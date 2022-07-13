@@ -1,0 +1,29 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <h1>Counter example</h1>
+    <div id="inner-text-bind">
+        <div bind:innerText="this.counter"></div>
+        <button bind:onclick="this.counter++">Click me!</button>
+    </div>
+
+    <script src="../../dist/bundle.js"></script>
+    <script>
+        let renderer = new Renderer({
+            id: 'inner-text-bind',
+            bind: {
+                counter: 0
+            },
+        });
+    </script>
+</body>
+
+</html>
