@@ -1,37 +1,3 @@
-/**
- * Don't mind me just re-inventing the wheel
- * This is my attempt at creating a simple enough HTML render engine similar to what ALL popular front-end frameworks/libraries already do perfectly, AKA data binding
- * except "cheaper" and without the extra fancy features, this is targeted to smaller "simpler" projects that only want to bind data to the HTML with as
- * minimum configuration or setup as possible, keeping it all super performant, the end goal here is to have minimum extra knowledge outside HTML and JavaScript and be able
- * to empower your templates. if you know vanilla javascript and basic HTML you should already know how this library works.
- * HOPEFULLY once the actual project where this file is being used is done, I can move forward on this idea. for now its current state is enough for the project needs
- *
- * # Bind examples
- *
- * ```html
- * <div id="main-content">
- *  <div bind:innerText="this.test"><div>
- * <div>
- * ```
- *
- * ```js
- * let renderer = new Renderer({
- *  id: 'main-content',
- *  bind: {
- *    test: 'Hello world!'
- *  }
- * });
- * ```
- *
- * ## HTML outputs:
- * <div id="main-content">
- *  <div bind:innerText="this.test">Hello world!<div>
- * <div>
- */
-
-/**
- * All the support bind types and values should become its own file eventually
- */
 
 /**
  * Bindable mouse events (This should only contains valid HTML event keywords for ease of use)
@@ -96,6 +62,39 @@ const BindValues = [
   ...BindFocusEventValues,
 ] as const;
 type BindTypes = typeof BindValues[number];
+
+let proxies = {};
+let values = {};
+function objectProxy(data, path) {
+  proxies[path] = new Proxy(data, objectProxyHandler(path));
+
+  Object.keys(data).forEach((key) => {
+    let value = data[key];
+    let fullPath = path + "." + key;
+    values[fullPath] = typeof value === 'object' ?
+      objectProxy(value, path + "." + key) : data[key];
+  });
+
+  return proxies[path];
+}
+
+function objectProxyHandler(path) {
+  return {
+    get: (target, prop) => {
+      let fullPath = path + "." + prop;
+      return values[fullPath] || target[prop];
+    },
+    set: (target, prop, value) => {
+      let fullPath = path + "." + prop;
+      // Update stored primitive value
+      values[fullPath] = value;
+      // Update target value
+      target[prop] = value;
+      return true;
+    }
+  };
+}
+
 
 export default class Renderer {
   id: string;
