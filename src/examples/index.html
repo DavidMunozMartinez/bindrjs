@@ -1,29 +1,58 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
 </head>
 
 <body>
+  <script src="../../dist/bundle.js"></script>
 
-    <h1>Counter example</h1>
-    <div id="inner-text-bind">
-        <div bind:innerText="this.counter"></div>
-        <button bind:onclick="this.counter++">Click me!</button>
-    </div>
+  <!-- Inner HTML Counter example -->
+  <h3>Counter example</h3>
+  <span id="inner-text-bind">
+    <!-- <p>Counter: </p> -->
+    <span bind:innerText="this.counter"></span>
 
-    <script src="../../dist/bundle.js"></script>
-    <script>
-        let renderer = new Renderer({
-            id: 'inner-text-bind',
-            bind: {
-                counter: 0
-            },
-        });
-    </script>
+    <button bind:onclick="this.counter++">Click me!</button>
+  </span>
+  <script>
+    let innerHTMLExample = new Bindr({
+      id: 'inner-text-bind',
+      bind: {
+        counter: 0,
+      },
+    })
+
+  </script>
+
+  <!-- Run time updates example -->
+  <h3>Runtime data update</h3>
+  <div id="data-update">
+    <input type="text" bind:oninput="this.input(event)">
+
+    <p>
+      I am binded to the input:
+    </p>
+    <div bind:innerText="this.inputData"></div>
+    <p>
+      And so am i:
+    </p>
+    <div bind:innerText="this.inputData"></div>
+  </div>
+  <script>
+    let dataUpdate = new Bindr({
+      id: 'data-update',
+      bind: {
+        input: (event) => {
+          dataUpdate.bind.inputData = event.target.value;
+        },
+        inputData: ''
+      }
+    })
+  </script>
 </body>
 
 </html>

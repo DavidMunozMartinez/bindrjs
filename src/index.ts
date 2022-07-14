@@ -1,102 +1,57 @@
-
 /**
  * Bindable mouse events (This should only contains valid HTML event keywords for ease of use)
  */
-const BindMouseEventValues = [
-  'onclick',
-  'ondblclick',
-  'ondrag',
-  'ondragend',
-  'ondragenter',
-  'ondragleave',
-  'ondragover',
-  'ondragstart',
-  'ondrop',
-  'onmousedown',
-  'onmousemove',
-  'onmouseout',
-  'onmouseover',
-  'onmouseup',
-  'onscroll',
-] as const;
-type BindMouseEventTypes = typeof BindMouseEventValues[number];
 
-const BindKeyboardEventValues = ['onkeydown'] as const;
-type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
+import {
+  BindTypes,
+  BindCodeTypes,
+  BindHTMLTypes,
+  BindKeyboardEventTypes,
+  BindValues,
+  BindableEventValues,
+  BindKeyboardEventValues,
+  BindMouseEventTypes,
+  BindMouseEventValues,
+  BindFocusEventTypes,
+  BindFocusEventValues,
+  BindCodeTypeValues,
+  BindHTMLValues,
+} from './bindr-model';
 
-const BindFocusEventValues = ['onblur', 'onfocus'] as const;
-type BindFocusEventTypes = typeof BindFocusEventValues[number];
+// let proxies = {};
+// let values = {};
+// let root = 'this';
+// function objectProxy(data, path) {
+//   proxies[path] = new Proxy(data, objectProxyHandler(path));
 
-const BindableEventValues = [
-  ...BindMouseEventValues,
-  ...BindKeyboardEventValues,
-  ...BindFocusEventValues,
-];
+//   Object.keys(data).forEach((key) => {
+//     let value = data[key];
+//     let fullPath = path + "." + key;
+//     values[fullPath] = typeof value === 'object' ?
+//       objectProxy(value, path + "." + key) : data[key];
+//   });
 
-/**
- * These are 'custom' bind types that imitate structural directive/components in other frameworks
- */
-const BindCodeTypeValues = ['if', 'forEach'] as const;
-type BindCodeTypes = typeof BindCodeTypeValues[number];
+//   return proxies[path];
+// }
 
-const BindHTMLValues = [
-  'innerHTML',
-  'innerText',
-  'class',
-  'style',
-  'attr',
-] as const;
-type BindHTMLTypes = typeof BindHTMLValues[number];
+// function objectProxyHandler(path) {
+//   return {
+//     get: (target, prop) => {
+//       let fullPath = path + "." + prop;
+//       return values[fullPath] || target[prop];
+//     },
+//     set: (target, prop, value) => {
+//       let fullPath = path + "." + prop;
+//       // Update stored primitive value
+//       values[fullPath] = value;
+//       // Update target value
+//       target[prop] = value;
+//       return true;
+//     }
+//   };
+// }
 
-// To add more binding types/logic first add them to this array then, for behavior add its function to the BindHandlers Object
-const BindValues = [
-  // HTMLElement binds
-  ...BindHTMLValues,
-  // Code like binds
-  ...BindCodeTypeValues,
-  // Mouse event binds
-  ...BindMouseEventValues,
-  // Keyboard event binds
-  ...BindKeyboardEventValues,
-  // Focus event binds
-  ...BindFocusEventValues,
-] as const;
-type BindTypes = typeof BindValues[number];
-
-let proxies = {};
-let values = {};
-function objectProxy(data, path) {
-  proxies[path] = new Proxy(data, objectProxyHandler(path));
-
-  Object.keys(data).forEach((key) => {
-    let value = data[key];
-    let fullPath = path + "." + key;
-    values[fullPath] = typeof value === 'object' ?
-      objectProxy(value, path + "." + key) : data[key];
-  });
-
-  return proxies[path];
-}
-
-function objectProxyHandler(path) {
-  return {
-    get: (target, prop) => {
-      let fullPath = path + "." + prop;
-      return values[fullPath] || target[prop];
-    },
-    set: (target, prop, value) => {
-      let fullPath = path + "." + prop;
-      // Update stored primitive value
-      values[fullPath] = value;
-      // Update target value
-      target[prop] = value;
-      return true;
-    }
-  };
-}
-
-
-export default class Renderer {
+export default class Bindr {
   id: string;
   template?: string;
   bind: any = {};
@@ -178,6 +133,8 @@ export default class Renderer {
     ...this.eventBindHandlers,
   };
 
+  values: any = {};
+
   constructor(data: IRenderer) {
     this.id = data.id;
     this.template = data.template?.toString();
@@ -188,26 +145,47 @@ export default class Renderer {
     } else {
       new Error('Could not initialize renderer, container not found');
     }
-    // if (this.container && this.template) {
-    //   this.container.innerHTML = this.template;
-    // }
+
     if (data.bind) {
-      try {
-        if (this.validateBindProps(data.bind)) {
-          this.bind = new Proxy(data.bind, {set: this.update.bind(this)});
-          this.defineBinds();
-        } else {
-          const err = new Error(
-            'Cannot bind Objects, Arrays or Functions to the Renderer... Yet'
-          );
-          throw err;
-        }
-      } catch (e) {
-        console.error(e);
-      }
+      this.bind = this.objectProxy(data.bind, 'this');
+      this.defineBinds();
     }
   }
 
+  private objectProxy(data: any, path: string) {
+    let result = new Proxy(data, this.objectProxyHandler(path));
+
+    Object.keys(data).forEach(key => {
+      let value = data[key];
+      let fullPath = path + '.' + key;
+      this.values[fullPath] =
+        typeof value === 'object'
+          ? this.objectProxy(value, path + '.' + key)
+          : data[key];
+    });
+
+    return result;
+  }
+
+  private objectProxyHandler(path: string) {
+    return {
+      get: (target: {[x: string]: any}, prop: string) => {
+        let fullPath = path + '.' + prop;
+        return this.values[fullPath] || target[prop];
+      },
+      set: (target: {[x: string]: any}, prop: string, value: any) => {
+        let fullPath = path + '.' + prop;
+        // Update stored primitive value
+        this.values[fullPath] = value;
+        // Update target value
+        target[prop] = value;
+        this.update(target, prop, value);
+        return true;
+      },
+    };
+  }
+
+  // TODO: This will change, we want to run an array of functions for each dom bind that this property affects
   /**
    * Executed each time one of the bind properties is updated by the use or JS Proxy API
    * this is a intermediate process between the setters and getters of the bind properties sent
@@ -242,6 +220,7 @@ export default class Renderer {
     return true;
   }
 
+  // TODO: Binds will be defined differently moving forwards
   //   /**
   //    * Does a check in the renderer container to look for tempalte bindings and properly create the renderer
   //    * bind mapings
