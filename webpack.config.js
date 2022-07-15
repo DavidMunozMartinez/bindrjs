@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
   entry: './src/index.ts',
   devtool: 'inline-source-map',
+  mode: 'development',
   watch: true,
   module: {
     rules: [
@@ -24,7 +25,5 @@ module.exports = {
       type: 'umd',
       export: 'default',
     },
-    // library: 'Renderer',
-    // libraryTarget: 'umd',
   },
 };

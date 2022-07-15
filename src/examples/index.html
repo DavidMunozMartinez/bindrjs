@@ -15,32 +15,25 @@
   <span id="inner-text-bind">
     <!-- <p>Counter: </p> -->
     <span bind:innerText="this.counter"></span>
-
     <button bind:onclick="this.counter++">Click me!</button>
   </span>
+
   <script>
     let innerHTMLExample = new Bindr({
       id: 'inner-text-bind',
       bind: {
         counter: 0,
       },
-    })
-
+    });
   </script>
 
   <!-- Run time updates example -->
   <h3>Runtime data update</h3>
   <div id="data-update">
     <input type="text" bind:oninput="this.input(event)">
-
-    <p>
-      I am binded to the input:
-    </p>
-    <div bind:innerText="this.inputData"></div>
-    <p>
-      And so am i:
-    </p>
-    <div bind:innerText="this.inputData"></div>
+    <p> I am binded to the input: <span bind:innerText="this.inputData"></span></p>
+    <p> And so am i: <span bind:innerText="this.inputData"></span></p>
+    <p> This is interpolated: {{this.inputData}} </p>
   </div>
   <script>
     let dataUpdate = new Bindr({
@@ -51,7 +44,7 @@
         },
         inputData: ''
       }
-    })
+    });
   </script>
 </body>
 
