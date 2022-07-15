@@ -17,6 +17,7 @@
     <button bind:onclick="this.data.counter++">${this.data.text}: ${this.data.counter}</button>
     <button onclick="nestedDataBind.bind.counter++">Using native onclick ${this.counter}</button>
     <p> Nested string from input: ${this.data.inputValue} </p>
+    <p> Both counters total: ${ this.data.counter + this.counter } </p>
   </div>
   <script>
     let nestedDataBind = new Bind({

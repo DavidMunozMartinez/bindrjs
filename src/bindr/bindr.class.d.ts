@@ -6,10 +6,14 @@ export default class Bind {
     container: HTMLElement;
     bindAs?: string | null;
     /**
-     * Holds all bind data and the templateBinds that it affects so when its data os updated
-     * we can quickly update all the binds that depend on it
+     * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
+     * we can quickly update all the DOM binds that depend on it
      */
     private DataBindHandlers;
+    /**
+     * Holds all the DOM Handlers found in the container, these are referenced in the
+     * DataBindHandlers when any value in the bind object is updated
+     */
     private DOMBindHandlers;
     /**
      * This is a flattened map of all our values in the bind object, all keys are strings that represent
@@ -17,6 +21,10 @@ export default class Bind {
      * or arrays, arrays are still tricky, will revisit soon
      */
     private values;
+    /**
+     * This is a flattened map of all proxies created to handle data reactivity, there should always be
+     * ONE proxy per object found in the bind passed from the user (including the bind itself).
+     */
     private proxies;
     constructor(data: IRenderer);
     private objectProxy;

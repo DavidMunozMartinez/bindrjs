@@ -25,10 +25,14 @@ export default class Bind {
   bindAs?: string | null;
 
   /**
-   * Holds all bind data and the templateBinds that it affects so when its data os updated
-   * we can quickly update all the binds that depend on it
+   * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
+   * we can quickly update all the DOM binds that depend on it
    */
   private DataBindHandlers: IRendererBindMaps = {};
+  /**
+   * Holds all the DOM Handlers found in the container, these are referenced in the
+   * DataBindHandlers when any value in the bind object is updated
+   */
   private DOMBindHandlers: HTMLBindHandler[] = [];
 
   /**
@@ -37,6 +41,10 @@ export default class Bind {
    * or arrays, arrays are still tricky, will revisit soon
    */
   private values: {[key: string]: unknown} = {};
+  /**
+   * This is a flattened map of all proxies created to handle data reactivity, there should always be
+   * ONE proxy per object found in the bind passed from the user (including the bind itself).
+   */
   private proxies: any = {};
 
   constructor(data: IRenderer) {
@@ -47,7 +55,7 @@ export default class Bind {
     if (container) {
       this.container = container;
     } else {
-      new Error('Could not initialize renderer, container not found');
+      throw new Error('Could not initialize renderer, container not found');
     }
 
     if (data.bind) {
