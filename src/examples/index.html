@@ -10,46 +10,13 @@
 <body>
   <script src="../../dist/bundle.js"></script>
 
-  <!-- Inner HTML Counter example -->
-  <h3>Simple Counter</h3>
-  <span id="inner-text-bind">
-    <!-- <p>Counter: </p> -->
-    <span bind:innerText="this.counter"></span>
-    <button bind:onclick="this.counter++">Click me!</button>
-  </span>
-
-  <script>
-    let innerHTMLExample = new Bind({
-      id: 'inner-text-bind',
-      bind: {
-        counter: 0,
-      },
-    });
-  </script>
-
-  <h3>Runtime data update</h3>
-  <div id="data-update">
-    <input type="text" bind:oninput="this.onInput(event)">
-    <button bind:onclick="this.likes++"> Likes ${this.likes} ${this.someText}</button>
-  </div>
-  <script>
-    let dataUpdate = new Bind({
-      id: 'data-update',
-      bind: {
-        onInput: (event) => {
-          dataUpdate.bind.someText = event.target.value;
-        },
-        likes: 0,
-        someText: 'Hello world'
-      }
-    });
-  </script>
-
-  <h3>Nested data bind</h3>
+  <h3>Data bind testing: </h3>
   <div id="nested-data">
+    <input type="text" bind:oninput="this.data.inputValue = event.target.value">
     <button bind:onclick="this.counter++"> Regular counter ${this.counter} </button>
     <button bind:onclick="this.data.counter++">${this.data.text}: ${this.data.counter}</button>
     <button onclick="nestedDataBind.bind.counter++">Using native onclick ${this.counter}</button>
+    <p> Nested string from input: ${this.data.inputValue} </p>
   </div>
   <script>
     let nestedDataBind = new Bind({
@@ -57,6 +24,7 @@
       bind: {
         data: {
           text: 'This is a nested counter',
+          inputValue: '',
           counter: 0
         },
         counter: 0
