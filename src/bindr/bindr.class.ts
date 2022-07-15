@@ -36,7 +36,8 @@ export default class Bind {
    * the path to the value and all values in this object are primitive values strings, numbers, booleans
    * or arrays, arrays are still tricky, will revisit soon
    */
-  private primitiveValues: {[key: string]: unknown} = {};
+  private values: {[key: string]: unknown} = {};
+  private proxies: any = {};
 
   constructor(data: IRenderer) {
     this.id = data.id;
@@ -56,18 +57,18 @@ export default class Bind {
   }
 
   private objectProxy(data: any, path: string) {
-    const result = new Proxy(data, this.objectProxyHandler(path));
-
+    this.proxies[path] = new Proxy(data, this.objectProxyHandler(path));
     Object.keys(data).forEach(key => {
       const value = data[key];
       const fullPath = path + '.' + key;
-      this.primitiveValues[fullPath] =
-        typeof value === 'object'
-          ? this.objectProxy(value, path + '.' + key)
-          : data[key];
+      if (typeof value === 'object') {
+        this.objectProxy(value, path + '.' + key);
+      } else {
+        this.values[fullPath] = data[key];
+      }
     });
 
-    return result;
+    return this.proxies[path];
   }
 
   private objectProxyHandler(path: string) {
@@ -75,57 +76,37 @@ export default class Bind {
       get: (target: {[x: string]: unknown}, prop: string) => {
         const fullPath = path + '.' + prop;
         // Return primitive value, to avoid returning proxy objects to the user
-        return this.primitiveValues[fullPath] || target[prop];
+        return this.proxies[fullPath] || target[prop];
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
         const fullPath = path + '.' + prop;
         // Update stored primitive value
-        this.primitiveValues[fullPath] = value;
+        this.values[fullPath] = value;
         // Update target value
         target[prop] = value;
-        this.update(target, prop, value);
+        // Execute update on DOM binds
+        this.update(fullPath);
+
         return true;
       },
     };
   }
 
-  // TODO: This will change, we want to run an array of functions for each dom bind that this property affects
   /**
-   * Executed each time one of the bind properties is updated by the use or JS Proxy API
-   * this is a intermediate process between the setters and getters of the bind properties sent
-   * trough the Renderer class
-   * @param target
-   * @param key
-   * @param value
+   * Finds the BindHandlers that are affected by the updated property and
+   * re-computes any necessary DOM changes
+   * @param path Path to the property being updated
    */
-  update(target: any, key: string | symbol, value: any): boolean {
-    key = String(key);
-    target[key] = value;
-    if (!this.container) return true;
-    if (this.DataBindHandlers[key]) {
-      const rendererBind = this.DataBindHandlers[key];
+  update(path: string) {
+    if (this.DataBindHandlers[path]) {
+      const rendererBind = this.DataBindHandlers[path];
       if (rendererBind.affects) {
         // Update all DOM connections to this data
         rendererBind.affects.forEach((handler: HTMLBindHandler) => {
           handler.compute(this.bind);
         });
       }
-    } else {
-      // If we don't have this key, it means it was added before the renderer initialization
-      // so we need to re-define our binds
-      // TODO: Find a way to just re-define binds that concern this property
-      this.defineBinds();
     }
-    return true;
-  }
-
-  // TODO: Binds will be defined differently moving forwards
-  /**
-   * Does a check in the renderer container to look for template bindings and properly create the renderer
-   * bind mapings
-   */
-  updateBinds() {
-    this.defineBinds();
   }
 
   /**
@@ -137,8 +118,8 @@ export default class Bind {
    */
   private defineBinds() {
     // Functions are event driven not data driven, so we filter them out of this process
-    const bindsPropertyKeys = Object.keys(this.bind).filter(
-      key => typeof this.bind[key] !== 'function'
+    const bindsPropertyKeys = Object.keys(this.values).filter(
+      key => typeof this.values[key] !== 'function'
     );
     this.DOMBindHandlers = this.getTemplateBinds();
 

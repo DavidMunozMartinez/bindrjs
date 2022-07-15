@@ -16,24 +16,17 @@ export default class Bind {
      * the path to the value and all values in this object are primitive values strings, numbers, booleans
      * or arrays, arrays are still tricky, will revisit soon
      */
-    private primitiveValues;
+    private values;
+    private proxies;
     constructor(data: IRenderer);
     private objectProxy;
     private objectProxyHandler;
     /**
-     * Executed each time one of the bind properties is updated by the use or JS Proxy API
-     * this is a intermediate process between the setters and getters of the bind properties sent
-     * trough the Renderer class
-     * @param target
-     * @param key
-     * @param value
+     * Finds the BindHandlers that are affected by the updated property and
+     * re-computes any necessary DOM changes
+     * @param path Path to the property being updated
      */
-    update(target: any, key: string | symbol, value: any): boolean;
-    /**
-     * Does a check in the renderer container to look for template bindings and properly create the renderer
-     * bind mapings
-     */
-    updateBinds(): void;
+    update(path: string): void;
     /**
      * This is a somewhat expensive function in an attempt to keep the data/DOM updates as quick as possible,
      * we iterate over all nodes in the container and create a BindHandler which holds a reference of the element

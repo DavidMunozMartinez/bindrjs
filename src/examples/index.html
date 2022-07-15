@@ -11,7 +11,7 @@
   <script src="../../dist/bundle.js"></script>
 
   <!-- Inner HTML Counter example -->
-  <h3>Counter example</h3>
+  <h3>Simple Counter</h3>
   <span id="inner-text-bind">
     <!-- <p>Counter: </p> -->
     <span bind:innerText="this.counter"></span>
@@ -27,13 +27,11 @@
     });
   </script>
 
-  <!-- Run time updates example -->
   <h3>Runtime data update</h3>
   <div id="data-update">
     <input type="text" bind:oninput="this.onInput(event)">
     <button bind:onclick="this.likes++"> Likes ${this.likes} ${this.someText}</button>
   </div>
-
   <script>
     let dataUpdate = new Bind({
       id: 'data-update',
@@ -46,6 +44,26 @@
       }
     });
   </script>
+
+  <h3>Nested data bind</h3>
+  <div id="nested-data">
+    <button bind:onclick="this.counter++"> Regular counter ${this.counter} </button>
+    <button bind:onclick="this.data.counter++">${this.data.text}: ${this.data.counter}</button>
+    <button onclick="nestedDataBind.bind.counter++">Using native onclick ${this.counter}</button>
+  </div>
+  <script>
+    let nestedDataBind = new Bind({
+      id: 'nested-data',
+      bind: {
+        data: {
+          text: 'This is a nested counter',
+          counter: 0
+        },
+        counter: 0
+      }
+    });
+  </script>
+
 </body>
 
 </html>
