@@ -1,2 +1,2 @@
-import Bindr from './bindr/bindr.class';
-export default Bindr;
+import Bind from './bindr/bindr.class';
+export default Bind;

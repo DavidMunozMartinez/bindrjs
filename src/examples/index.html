@@ -19,7 +19,7 @@
   </span>
 
   <script>
-    let innerHTMLExample = new Bindr({
+    let innerHTMLExample = new Bind({
       id: 'inner-text-bind',
       bind: {
         counter: 0,
@@ -30,19 +30,19 @@
   <!-- Run time updates example -->
   <h3>Runtime data update</h3>
   <div id="data-update">
-    <input type="text" bind:oninput="this.input(event)">
-    <p> I am binded to the input: <span bind:innerText="this.inputData"></span></p>
-    <p> And so am i: <span bind:innerText="this.inputData"></span></p>
-    <p> This is interpolated: {{this.inputData}} </p>
+    <input type="text" bind:oninput="this.onInput(event)">
+    <button bind:onclick="this.likes++"> Likes ${this.likes} ${this.someText}</button>
   </div>
+
   <script>
-    let dataUpdate = new Bindr({
+    let dataUpdate = new Bind({
       id: 'data-update',
       bind: {
-        input: (event) => {
-          dataUpdate.bind.inputData = event.target.value;
+        onInput: (event) => {
+          dataUpdate.bind.someText = event.target.value;
         },
-        inputData: ''
+        likes: 0,
+        someText: 'Hello world'
       }
     });
   </script>

@@ -1,6 +1,3 @@
-/**
- * Dynamically created all bindHandler functions for Mouse/Keyboard Events
- */
 import { BindTypes, ITemplateBind } from './bindr-model';
 export declare class HTMLBindHandler {
     type: BindTypes;

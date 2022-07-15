@@ -44,9 +44,10 @@ export type BindCodeTypes = typeof BindCodeTypeValues[number];
 export const BindHTMLValues = [
   'innerHTML',
   'innerText',
+  'interpolation',
   'class',
-  'style',
-  'attr',
+  // 'style',
+  // 'attr',
 ] as const;
 export type BindHTMLTypes = typeof BindHTMLValues[number];
 
@@ -69,7 +70,7 @@ export const LowerCasedBindValues = BindValues.map(value =>
 );
 
 export type BindHandlers = {
-  [key in BindTypes]: (bind: ITemplateBind) => void;
+  [key in BindTypes]: (bind: ITemplateBind, context: any) => void;
 };
 
 export interface IRenderer {

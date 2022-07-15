@@ -5,7 +5,6 @@ import {
   BindHTMLTypes,
   BindKeyboardEventTypes,
   BindValues,
-  // BindableEventValues,
   BindKeyboardEventValues,
   BindMouseEventTypes,
   BindMouseEventValues,
@@ -13,13 +12,12 @@ import {
   BindFocusEventValues,
   BindCodeTypeValues,
   BindHTMLValues,
-  // BindHandlers,
   IRenderer,
   IRendererBindMaps,
   LowerCasedBindValues,
 } from './bindr-model';
 
-export default class Bindr {
+export default class Bind {
   id: string;
   template?: string;
   bind: any = {};
@@ -33,6 +31,11 @@ export default class Bindr {
   private DataBindHandlers: IRendererBindMaps = {};
   private DOMBindHandlers: HTMLBindHandler[] = [];
 
+  /**
+   * This is a flattened map of all our values in the bind object, all keys are strings that represent
+   * the path to the value and all values in this object are primitive values strings, numbers, booleans
+   * or arrays, arrays are still tricky, will revisit soon
+   */
   private primitiveValues: {[key: string]: unknown} = {};
 
   constructor(data: IRenderer) {
@@ -71,6 +74,7 @@ export default class Bindr {
     return {
       get: (target: {[x: string]: unknown}, prop: string) => {
         const fullPath = path + '.' + prop;
+        // Return primitive value, to avoid returning proxy objects to the user
         return this.primitiveValues[fullPath] || target[prop];
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
@@ -117,7 +121,7 @@ export default class Bindr {
 
   // TODO: Binds will be defined differently moving forwards
   /**
-   * Does a check in the renderer container to look for tempalte bindings and properly create the renderer
+   * Does a check in the renderer container to look for template bindings and properly create the renderer
    * bind mapings
    */
   updateBinds() {
@@ -126,9 +130,10 @@ export default class Bindr {
 
   /**
    * This is a somewhat expensive function in an attempt to keep the data/DOM updates as quick as possible,
-   * we iterate over all found bindings and create a helper object with enough references to perform quick
-   * updates whenever a binded property is updated
+   * we iterate over all nodes in the container and create a BindHandler which holds a reference of the element
+   * and the necessary data to compute DOM changes when a property that concerns the handler is updated
    * TODO: Make is so it only checks the new element for bind data connections instead of re-mapping everything
+   * when we add more elements
    */
   private defineBinds() {
     // Functions are event driven not data driven, so we filter them out of this process
@@ -144,7 +149,7 @@ export default class Bindr {
           // Expression in this template bind requires this bind property
           handler.expression.indexOf(propKey) > -1 &&
           // Bindable mouse event should not be reactive to changes
-          !this.isMouseEventType(handler.type)
+          this.isHTMLBindType(handler.type)
         ) {
           affects.push(handler);
           handler.isAffectedBy.push(propKey);
@@ -159,7 +164,7 @@ export default class Bindr {
     callback: (element: HTMLElement) => void
   ): any {
     const root = element;
-    const children = root.children;
+    const children = root.childNodes;
     callback(root);
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -169,42 +174,74 @@ export default class Bindr {
 
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
     container = (container ? container : this.container) || null;
-    const handlers: HTMLBindHandler[] = [];
-    this.recurseContainer(container, element => {
-      // Interpolated binds
-      Array.from(element.childNodes)
-        .filter(
-          node => node.nodeType === 3 && node.nodeValue && node.nodeValue.trim()
-        )
-        .forEach(node => {
-          if (
-            node.nodeValue &&
-            node.nodeValue.indexOf('{{') > -1 &&
-            node.nodeValue.indexOf('}}') > -1
-          ) {
-            console.warn('Data interpolation is coming I promise (づ ᴗ _ᴗ)づ♡');
-          }
-        });
-
-      // Attribute binds
-      element
-        .getAttributeNames()
-        .filter(attrName => attrName.indexOf('bind:') > -1)
-        .forEach(attrName => {
-          const type: BindTypes =
-            BindValues[LowerCasedBindValues.indexOf(attrName.split(':')[1])];
-          const handler = new HTMLBindHandler({
-            type: type,
-            element: element,
-            expression: element.getAttribute(attrName) || '',
-            isAffectedBy: [],
+    const htmlHandlers: HTMLBindHandler[] = [];
+    this.recurseContainer(container, node => {
+      switch (node.nodeType) {
+        // Element
+        case 1:
+          this.getAttrBindsFromElement(node, handler => {
+            htmlHandlers.push(handler);
           });
-          // Compute the bind as we find them
-          handler.compute(this.bind);
-          handlers.push(handler);
-        });
+          break;
+        // Text
+        case 3:
+          this.getInterpolationBindsFromElement(node, handler => {
+            htmlHandlers.push(handler);
+          });
+          break;
+        // Comment
+        case 8:
+          break;
+      }
     });
-    return handlers;
+    return htmlHandlers;
+  }
+
+  private getAttrBindsFromElement(
+    element: HTMLElement,
+    callback: (handler: HTMLBindHandler) => void
+  ): HTMLBindHandler[] {
+    return element
+      .getAttributeNames()
+      .filter(attrName => attrName.indexOf('bind:') > -1)
+      .map(attrName => {
+        const type: BindTypes =
+          BindValues[LowerCasedBindValues.indexOf(attrName.split(':')[1])];
+        const handler = new HTMLBindHandler({
+          type: type,
+          element: element,
+          expression: element.getAttribute(attrName) || '',
+          isAffectedBy: [],
+        });
+        // Compute the bind as we find them
+        handler.compute(this.bind);
+        callback(handler);
+        return handler;
+      });
+  }
+
+  /**Maybe execute this in the entire container once to allow for string interpolation anywhere? */
+  private getInterpolationBindsFromElement(
+    element: HTMLElement,
+    callback: (handler: HTMLBindHandler) => void
+  ) {
+    let regexp = /\${(.*?)}/gm;
+    if (element.nodeValue && element.nodeValue.trim()) {
+      let matches = element.nodeValue.matchAll(regexp);
+      let current = matches.next();
+      while (!current.done) {
+        const handler = new HTMLBindHandler({
+          type: 'interpolation',
+          element: element,
+          expression: current.value.input || '',
+          isAffectedBy: [],
+        });
+        // Interpolate strings as we find them
+        handler.compute(this.bind);
+        current = matches.next();
+        callback(handler);
+      }
+    }
   }
 
   isMouseEventType(keyInput: BindTypes): keyInput is BindMouseEventTypes {
@@ -230,9 +267,5 @@ export default class Bindr {
   isHTMLBindType(keyInput: BindTypes): keyInput is BindHTMLTypes {
     const test = JSON.parse(JSON.stringify(BindHTMLValues));
     return test.includes(keyInput);
-  }
-
-  shouldComputeWhenFound(type: BindTypes) {
-    return this.isCodeBindType(type) || this.isHTMLBindType(type);
   }
 }

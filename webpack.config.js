@@ -21,7 +21,7 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
     library: {
-      name: 'Bindr',
+      name: 'Bind',
       type: 'umd',
       export: 'default',
     },

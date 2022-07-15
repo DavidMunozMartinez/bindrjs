@@ -11,13 +11,13 @@ export declare const BindableEventValues: ("onclick" | "ondblclick" | "ondrag" |
  */
 export declare const BindCodeTypeValues: readonly ["if", "forEach"];
 export declare type BindCodeTypes = typeof BindCodeTypeValues[number];
-export declare const BindHTMLValues: readonly ["innerHTML", "innerText", "class", "style", "attr"];
+export declare const BindHTMLValues: readonly ["innerHTML", "innerText", "interpolation", "class"];
 export declare type BindHTMLTypes = typeof BindHTMLValues[number];
-export declare const BindValues: readonly ["innerHTML", "innerText", "class", "style", "attr", "if", "forEach", "onclick", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onscroll", "onkeydown", "onkeypress", "oninput", "onblur", "onfocus"];
+export declare const BindValues: readonly ["innerHTML", "innerText", "interpolation", "class", "if", "forEach", "onclick", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onscroll", "onkeydown", "onkeypress", "oninput", "onblur", "onfocus"];
 export declare type BindTypes = typeof BindValues[number];
 export declare const LowerCasedBindValues: string[];
 export declare type BindHandlers = {
-    [key in BindTypes]: (bind: ITemplateBind) => void;
+    [key in BindTypes]: (bind: ITemplateBind, context: any) => void;
 };
 export interface IRenderer {
     /**
