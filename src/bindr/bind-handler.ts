@@ -109,6 +109,18 @@ const bindHandlers: BindHandlers = {
 
 function evaluateDOMExpression(expression: string, context?: any): unknown {
   // const alias = this.bindAs ? `let ${this.bindAs}=this;` : '';
+  // const bindDefs = Object.keys(context)
+  //   .map(key => {
+  //     return `window.${key} = this.${key};`;
+  //   })
+  //   .reduce((prev, current) => {
+  //     return (prev += current);
+  //   });
+
+  // console.log(bindDefs);
+
   // I probably need to sanitize this
-  return Function(`return ${expression};`).apply(context);
+  return Function(`
+  return ${expression};
+  `).apply(context);
 }

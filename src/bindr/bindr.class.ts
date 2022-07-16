@@ -68,9 +68,9 @@ export default class Bind {
     this.proxies[path] = new Proxy(data, this.objectProxyHandler(path));
     Object.keys(data).forEach(key => {
       const value = data[key];
-      const fullPath = path + '.' + key;
+      const fullPath = `${path}.${key}`;
       if (typeof value === 'object') {
-        this.objectProxy(value, path + '.' + key);
+        this.objectProxy(value, fullPath);
       } else {
         this.values[fullPath] = data[key];
       }
@@ -83,7 +83,8 @@ export default class Bind {
     return {
       get: (target: {[x: string]: unknown}, prop: string) => {
         const fullPath = path + '.' + prop;
-        // Return primitive value, to avoid returning proxy objects to the user
+        // If path is a proxy, return the proxy so the getter of that proxy returns
+        // the value
         return this.proxies[fullPath] || target[prop];
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
@@ -180,6 +181,8 @@ export default class Bind {
           break;
         // Comment
         case 8:
+          // Figureout how to control these ones
+          console.log(node);
           break;
       }
     });
