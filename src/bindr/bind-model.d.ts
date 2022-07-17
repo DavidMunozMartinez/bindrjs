@@ -17,7 +17,7 @@ export declare const BindValues: readonly ["innerHTML", "innerText", "interpolat
 export declare type BindTypes = typeof BindValues[number];
 export declare const LowerCasedBindValues: string[];
 export declare type BindHandlers = {
-    [key in BindTypes]: (bind: ITemplateBind, context: any) => void;
+    [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => void;
 };
 export interface IRenderer {
     /**
@@ -40,7 +40,7 @@ export interface IRenderer {
      */
     bindAs?: string | null;
 }
-export interface ITemplateBind {
+export interface IHTMLBindHandler {
     element: HTMLElement;
     type: BindTypes;
     previous?: unknown;

@@ -1,4 +1,4 @@
-import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, BindFocusEventTypes, IRenderer } from './bindr-model';
+import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, BindFocusEventTypes, IRenderer } from './bind-model';
 export default class Bind {
     id: string;
     template?: string;

@@ -5,29 +5,49 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+
+  <style>
+  </style>
 </head>
 
 <body>
   <script src="../../dist/bundle.js"></script>
 
-  <h3>Data bind testing: </h3>
+  <h3>This is just my playroom to quick test: </h3>
   <div id="nested-data">
     <!-- <input type="text" bind:oninput="this.data.inputValue = event.target.value"> -->
-    <button bind:onclick="this.counter++"> Regular counter ${this.counter} </button>
-    <button bind:onclick="this.data.counter++">This is a nested counter: ${this.data.counter}</button>
-    <!-- <button onclick="nestedDataBind.bind.counter++">Using native onclick ${this.counter}</button>
-    <p> Nested string from input: ${this.data.inputValue} </p>
-    <p> Both counters total: ${ this.data.counter + this.counter } </p> -->
+    <div>
+      <button bind:onclick="this.counter--"> Counter - 1</button>
+      <span>${this.counter}</span>
+      <button bind:onclick="this.counter++"> Counter + 1</button>
+    </div>
+
+    <div>
+      <span>
+        <!-- This is a conditioned tag: -->
+        <div bind:if="this.counter < 5">
+          Counter is smaller than 5
+        </div>
+        <div bind:if="this.counter === 5">
+          Counter is 5
+        </div>
+        <div bind:if="this.counter > 5">
+          Counter is greater than 5
+        </div>
+      </span>
+    </div>
+
+    <!-- <div>
+      <button bind:onclick="this.data.counter--">Nested Counter - 1</button>
+      <span>${this.data.counter}</span>
+      <button bind:onclick="this.data.counter++">Nested Counter + 1</button>
+    </div> -->
+
   </div>
   <script>
     let nestedDataBind = new Bind({
       id: 'nested-data',
       bind: {
-        data: {
-          text: 'This is a nested counter',
-          // inputValue: '',
-          counter: 0
-        },
         counter: 0
       }
     });

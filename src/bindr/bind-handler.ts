@@ -2,17 +2,19 @@ import {
   BindableEventValues,
   BindHandlers,
   BindTypes,
-  ITemplateBind,
-} from './bindr-model';
+  IHTMLBindHandler,
+} from './bind-model';
 
 export class HTMLBindHandler {
   type: BindTypes;
   element: HTMLElement;
   result: unknown;
+  previous: unknown;
   isAffectedBy: any[];
   expression: string;
+  // context: unknown;
 
-  constructor(templateBind: ITemplateBind) {
+  constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
     this.element = templateBind.element;
     this.result = null;
@@ -50,15 +52,15 @@ const eventBindHandlers = BindableEventValues.reduce(
  */
 const bindHandlers: BindHandlers = {
   // Probably shouldn't use this, since seems unsafe
-  innerHTML: (handler: HTMLBindHandler, context: any) => {
+  innerHTML: (handler: HTMLBindHandler, context: unknown) => {
     handler.result = evaluateDOMExpression(handler.expression, context);
     handler.element.innerHTML = String(handler.result);
   },
-  innerText: (handler: HTMLBindHandler, context: any) => {
+  innerText: (handler: HTMLBindHandler, context: unknown) => {
     handler.result = evaluateDOMExpression(handler.expression, context);
     handler.element.innerText = String(handler.result);
   },
-  interpolation: (handler: HTMLBindHandler, context: any) => {
+  interpolation: (handler: HTMLBindHandler, context: unknown) => {
     let node = handler.element;
     let regexp = /\${(.*?)}/gm;
 
@@ -75,50 +77,65 @@ const bindHandlers: BindHandlers = {
     }
     node.textContent = interpolated;
   },
-  class: (bind: ITemplateBind) => {
-    // bind.result = this.evaluateDOMExpression(bind.expression);
-    // const current = String(bind.result);
-    // const previous = String(bind.previous);
-    // if (
-    //   previous &&
-    //   current !== previous &&
-    //   bind.element.classList.contains(previous)
-    // ) {
-    //   bind.element.classList.remove(previous);
-    // }
-    // if (current) {
-    //   bind.element.classList.add(current);
-    //   bind.previous = current;
-    // }
+  class: (bind: HTMLBindHandler, context) => {
+    bind.result = evaluateDOMExpression(bind.expression, context);
+    const current = String(bind.result);
+    const previous = String(bind.previous);
+    if (
+      previous &&
+      current !== previous &&
+      bind.element.classList.contains(previous)
+    ) {
+      bind.element.classList.remove(previous);
+    }
+    if (current) {
+      bind.element.classList.add(current);
+      bind.previous = current;
+    }
   },
-  style: (bind: ITemplateBind) => {
+  style: (bind: HTMLBindHandler) => {
     throw new Error('style binding not implemented yet.');
   },
-  attr: (bind: ITemplateBind) => {
+  attr: (bind: HTMLBindHandler) => {
     throw new Error('attr binding not implemented yet.');
   },
-  if: (bind: ITemplateBind) => {
-    throw new Error('if binding not implemented yet.');
+  if: (bind: HTMLBindHandler, context: unknown) => {
+    bind.result = Boolean(evaluateDOMExpression(bind.expression, context));
+    if (bind.result !== bind.previous) {
+      bind.element = (bind.result ? uncommentHTML(bind.element) : commentHTML(bind.element)) 
+    }
+    bind.previous = bind.result;
   },
-  forEach: (bind: ITemplateBind) => {
-    throw new Error('forEach binding not implemented yet.');
+  forEach: (bind: HTMLBindHandler) => {
   },
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };
 
+function commentHTML(element: HTMLElement): HTMLElement {
+  // This is already a comment
+  if (element.nodeType === 8) {
+    return element;
+  }
+
+  let commented = document.createComment(element.outerHTML);
+  element.replaceWith(commented);
+  return <HTMLElement><unknown>commented;
+}
+
+function uncommentHTML(element: HTMLElement): HTMLElement {
+  // This is not a comment
+  if (element.nodeType !== 8) {
+    return element;
+  }
+  let temp = document.createElement('div');
+  temp.innerHTML = element.textContent || '';
+  let uncommented = temp.childNodes[0];
+  element.replaceWith(uncommented);
+  return <HTMLElement>uncommented;
+}
+
 function evaluateDOMExpression(expression: string, context?: any): unknown {
-  // const alias = this.bindAs ? `let ${this.bindAs}=this;` : '';
-  // const bindDefs = Object.keys(context)
-  //   .map(key => {
-  //     return `window.${key} = this.${key};`;
-  //   })
-  //   .reduce((prev, current) => {
-  //     return (prev += current);
-  //   });
-
-  // console.log(bindDefs);
-
   // I probably need to sanitize this
   return Function(`
   return ${expression};

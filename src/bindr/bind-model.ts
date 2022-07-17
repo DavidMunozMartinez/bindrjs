@@ -70,7 +70,7 @@ export const LowerCasedBindValues = BindValues.map(value =>
 );
 
 export type BindHandlers = {
-  [key in BindTypes]: (bind: ITemplateBind, context: any) => void;
+  [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => void;
 };
 
 export interface IRenderer {
@@ -95,7 +95,7 @@ export interface IRenderer {
   bindAs?: string | null;
 }
 
-export interface ITemplateBind {
+export interface IHTMLBindHandler {
   element: HTMLElement;
   type: BindTypes;
   previous?: unknown;

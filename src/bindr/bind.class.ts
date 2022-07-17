@@ -15,7 +15,7 @@ import {
   IRenderer,
   IRendererBindMaps,
   LowerCasedBindValues,
-} from './bindr-model';
+} from './bind-model';
 
 export default class Bind {
   id: string;
@@ -139,7 +139,8 @@ export default class Bind {
           // Expression in this template bind requires this bind property
           handler.expression.indexOf(propKey) > -1 &&
           // Bindable mouse event should not be reactive to changes
-          this.isHTMLBindType(handler.type)
+          this.isHTMLBindType(handler.type) ||
+          this.isCodeBindType(handler.type)
         ) {
           affects.push(handler);
           handler.isAffectedBy.push(propKey);
@@ -181,7 +182,7 @@ export default class Bind {
           break;
         // Comment
         case 8:
-          // Figureout how to control these ones
+          // Figure out how to control these ones
           console.log(node);
           break;
       }
