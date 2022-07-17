@@ -8,13 +8,10 @@ import {
   BindKeyboardEventValues,
   BindMouseEventTypes,
   BindMouseEventValues,
-  BindFocusEventTypes,
-  BindFocusEventValues,
   BindCodeTypeValues,
   BindHTMLValues,
   IRenderer,
   IRendererBindMaps,
-  LowerCasedBindValues,
 } from './bind-model';
 
 export default class Bind {
@@ -81,6 +78,11 @@ export default class Bind {
 
   private objectProxyHandler(path: string) {
     return {
+      /**
+       * When data is nested this should only return the proper Proxy object, instead its always
+       * returning the root proxy then the nested proxy then the value, this is inefficient if we have
+       * the opportunity to only return one Proxy object
+       */
       get: (target: {[x: string]: unknown}, prop: string) => {
         const fullPath = path + '.' + prop;
         // If path is a proxy, return the proxy so the getter of that proxy returns
@@ -137,9 +139,9 @@ export default class Bind {
       this.DOMBindHandlers.forEach((handler: HTMLBindHandler) => {
         if (
           // Expression in this template bind requires this bind property
-          handler.expression.indexOf(propKey) > -1 &&
-          // Bindable mouse event should not be reactive to changes
-          this.isHTMLBindType(handler.type) ||
+          (handler.expression.indexOf(propKey) > -1 &&
+            // Bindable mouse event should not be reactive to changes
+            this.isHTMLBindType(handler.type)) ||
           this.isCodeBindType(handler.type)
         ) {
           affects.push(handler);
@@ -180,11 +182,6 @@ export default class Bind {
             htmlHandlers.push(handler);
           });
           break;
-        // Comment
-        case 8:
-          // Figure out how to control these ones
-          console.log(node);
-          break;
       }
     });
     return htmlHandlers;
@@ -196,10 +193,10 @@ export default class Bind {
   ): HTMLBindHandler[] {
     return element
       .getAttributeNames()
-      .filter(attrName => attrName.indexOf('bind:') > -1)
+      .filter(attrName => attrName.indexOf(':') > -1)
       .map(attrName => {
         const type: BindTypes =
-          BindValues[LowerCasedBindValues.indexOf(attrName.split(':')[1])];
+          BindValues[BindValues.indexOf(<BindTypes>attrName.split(':')[1])];
         const handler = new HTMLBindHandler({
           type: type,
           element: element,
@@ -244,11 +241,6 @@ export default class Bind {
 
   isKeyboardEventType(keyInput: BindTypes): keyInput is BindKeyboardEventTypes {
     const test = JSON.parse(JSON.stringify(BindKeyboardEventValues));
-    return test.includes(keyInput);
-  }
-
-  isFocusEventType(keyInput: BindTypes): keyInput is BindFocusEventTypes {
-    const test = JSON.parse(JSON.stringify(BindFocusEventValues));
     return test.includes(keyInput);
   }
 

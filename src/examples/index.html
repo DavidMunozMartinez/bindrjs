@@ -17,21 +17,21 @@
   <div id="nested-data">
     <!-- <input type="text" bind:oninput="this.data.inputValue = event.target.value"> -->
     <div>
-      <button bind:onclick="this.counter--"> Counter - 1</button>
+      <button :onclick="this.counter--"> Counter - 1</button>
       <span>${this.counter}</span>
-      <button bind:onclick="this.counter++"> Counter + 1</button>
+      <button :onclick="this.counter++"> Counter + 1</button>
     </div>
 
     <div>
       <span>
         <!-- This is a conditioned tag: -->
-        <div bind:if="this.counter < 5">
+        <div :if="this.counter < 5">
           Counter is smaller than 5
         </div>
-        <div bind:if="this.counter === 5">
+        <div :if="this.counter === 5">
           Counter is 5
         </div>
-        <div bind:if="this.counter > 5">
+        <div :if="this.counter > 5">
           Counter is greater than 5
         </div>
       </span>

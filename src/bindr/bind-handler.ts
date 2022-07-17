@@ -1,5 +1,5 @@
 import {
-  BindableEventValues,
+  BindEventValues,
   BindHandlers,
   BindTypes,
   IHTMLBindHandler,
@@ -28,9 +28,9 @@ export class HTMLBindHandler {
 }
 
 /**
- * Dynamically created all bindHandler functions for Mouse/Keyboard Events
+ * Dynamically created all bindHandler functions for HTML Events
  */
-const eventBindHandlers = BindableEventValues.reduce(
+const eventBindHandlers = BindEventValues.reduce(
   (functions: any, event: string) => (
     // Lets think of a way to not use 'any' here
     (functions[event] = (handler: any, context: any) => {
@@ -102,32 +102,28 @@ const bindHandlers: BindHandlers = {
   if: (bind: HTMLBindHandler, context: unknown) => {
     bind.result = Boolean(evaluateDOMExpression(bind.expression, context));
     if (bind.result !== bind.previous) {
-      bind.element = (bind.result ? uncommentHTML(bind.element) : commentHTML(bind.element)) 
+      bind.element = bind.result
+        ? uncommentHTML(bind.element)
+        : commentHTML(bind.element);
     }
     bind.previous = bind.result;
   },
-  forEach: (bind: HTMLBindHandler) => {
-  },
+  foreach: (bind: HTMLBindHandler) => {},
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };
 
 function commentHTML(element: HTMLElement): HTMLElement {
   // This is already a comment
-  if (element.nodeType === 8) {
-    return element;
-  }
-
+  if (element.nodeType === 8) return element;
   let commented = document.createComment(element.outerHTML);
   element.replaceWith(commented);
-  return <HTMLElement><unknown>commented;
+  return <HTMLElement>(<unknown>commented);
 }
 
 function uncommentHTML(element: HTMLElement): HTMLElement {
   // This is not a comment
-  if (element.nodeType !== 8) {
-    return element;
-  }
+  if (element.nodeType !== 8) return element;
   let temp = document.createElement('div');
   temp.innerHTML = element.textContent || '';
   let uncommented = temp.childNodes[0];

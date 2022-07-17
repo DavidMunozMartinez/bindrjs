@@ -1,8 +1,66 @@
 import {HTMLBindHandler} from './bind-handler';
 
+/**
+ * Events triggered for the window object (applies to the <body> tag):
+ */
+export const BindWindowEventAttributeValues = [
+  'onafterprint',
+  'onbeforeprint',
+  'onbeforeunload',
+  'onerror',
+  'onhashchange',
+  'onload',
+  'onmessage',
+  'onoffline',
+  'ononline',
+  'onpagehide',
+  'onpageshow',
+  'onpopstate',
+  'onresize',
+  'onstorage',
+  'onunload',
+] as const;
+export type BindWindowEventAttributeTypes =
+  typeof BindWindowEventAttributeValues[number];
+
+/**
+ * Events triggered by actions inside a HTML form (applies to almost all HTML elements, but is most used in form elements):
+ */
+export const BindFormEventValues = [
+  'onblur',
+  'onchange',
+  'oncontextmenu',
+  'onfocus',
+  'oninput',
+  'oninvalid',
+  'onreset',
+  'onsearch',
+  'onselect',
+  'onsubmit',
+] as const;
+export type BindFormEventTypes = typeof BindFormEventValues[number];
+
+export const BindKeyboardEventValues = [
+  'onkeydown',
+  'onkeypress',
+  'onkeyup',
+] as const;
+export type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
+
 export const BindMouseEventValues = [
   'onclick',
   'ondblclick',
+  'onmousedown',
+  'onmousemove',
+  'onmouseout',
+  'onmouseover',
+  'onmouseup',
+  'onmousewheel',
+  'onwheel',
+] as const;
+export type BindMouseEventTypes = typeof BindMouseEventValues[number];
+
+export const BindDragEventValues = [
   'ondrag',
   'ondragend',
   'ondragenter',
@@ -10,44 +68,40 @@ export const BindMouseEventValues = [
   'ondragover',
   'ondragstart',
   'ondrop',
-  'onmousedown',
-  'onmousemove',
-  'onmouseout',
-  'onmouseover',
-  'onmouseup',
   'onscroll',
 ] as const;
-export type BindMouseEventTypes = typeof BindMouseEventValues[number];
+export type BindDragEventTypes = typeof BindDragEventValues[number];
 
-export const BindKeyboardEventValues = [
-  'onkeydown',
-  'onkeypress',
-  'oninput',
+export const BindClipboardEventValues = [
+  'oncopy',
+  'oncut',
+  'onpaste',
 ] as const;
-export type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
+export type BindClipboardEventTypes = typeof BindClipboardEventValues[number];
 
-export const BindFocusEventValues = ['onblur', 'onfocus'] as const;
-export type BindFocusEventTypes = typeof BindFocusEventValues[number];
+// export const BindFocusEventValues = ['onblur', 'onfocus'] as const;
+// export type BindFocusEventTypes = typeof BindFocusEventValues[number];
 
-export const BindableEventValues = [
-  ...BindMouseEventValues,
+export const BindEventValues = [
+  ...BindWindowEventAttributeValues,
+  ...BindFormEventValues,
   ...BindKeyboardEventValues,
-  ...BindFocusEventValues,
+  ...BindMouseEventValues,
+  ...BindDragEventValues,
+  ...BindClipboardEventValues,
 ];
 
 /**
  * These are 'custom' bind types that imitate structural directive/components in other frameworks
  */
-export const BindCodeTypeValues = ['if', 'forEach'] as const;
+export const BindCodeTypeValues = ['if', 'foreach'] as const;
 export type BindCodeTypes = typeof BindCodeTypeValues[number];
 
 export const BindHTMLValues = [
-  'innerHTML',
-  'innerText',
+  'innerhtml',
+  'innertext',
   'interpolation',
   'class',
-  // 'style',
-  // 'attr',
 ] as const;
 export type BindHTMLTypes = typeof BindHTMLValues[number];
 
@@ -57,17 +111,13 @@ export const BindValues = [
   ...BindHTMLValues,
   // Code like binds
   ...BindCodeTypeValues,
-  // Mouse event binds
-  ...BindMouseEventValues,
-  // Keyboard event binds
-  ...BindKeyboardEventValues,
-  // Focus event binds
-  ...BindFocusEventValues,
+  // Event binds
+  ...BindEventValues,
 ] as const;
 export type BindTypes = typeof BindValues[number];
-export const LowerCasedBindValues = BindValues.map(value =>
-  value.toLowerCase()
-);
+// export const LowerCasedBindValues = BindValues.map(value =>
+//   value.toLowerCase()
+// );
 
 export type BindHandlers = {
   [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => void;

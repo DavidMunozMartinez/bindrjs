@@ -1,11 +1,26 @@
 import { HTMLBindHandler } from './bind-handler';
-export declare const BindMouseEventValues: readonly ["onclick", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onscroll"];
-export declare type BindMouseEventTypes = typeof BindMouseEventValues[number];
-export declare const BindKeyboardEventValues: readonly ["onkeydown", "onkeypress", "oninput"];
+/**
+ * Events triggered for the window object (applies to the <body> tag):
+ */
+export declare const BindWindowEventAttributeValues: readonly ["onafterprint", "onbeforeprint", "onbeforeunload", "onerror", "onhashchange", "onload", "onmessage", "onoffline", "ononline", "onpagehide", "onpageshow", "onpopstate", "onresize", "onstorage", "onunload"];
+export declare type BindWindowEventAttributeTypes = typeof BindWindowEventAttributeValues[number];
+/**
+ * Events triggered by actions inside a HTML form (applies to almost all HTML elements, but is most used in form elements):
+ */
+export declare const BindFormEventValues: readonly ["onblur", "onchange", "oncontextmenu", "onfocus", "oninput", "oninvalid", "onreset", "onsearch", "onselect", "onsubmit"];
+export declare type BindFormEventTypes = typeof BindFormEventValues[number];
+export declare const BindKeyboardEventValues: readonly ["onkeydown", "onkeypress", "onkeyup"];
 export declare type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
-export declare const BindFocusEventValues: readonly ["onblur", "onfocus"];
-export declare type BindFocusEventTypes = typeof BindFocusEventValues[number];
-export declare const BindableEventValues: ("onclick" | "ondblclick" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onscroll" | "onkeydown" | "onkeypress" | "oninput" | "onblur" | "onfocus")[];
+/**
+ *
+ */
+export declare const BindMouseEventValues: readonly ["onclick", "ondblclick", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onwheel"];
+export declare type BindMouseEventTypes = typeof BindMouseEventValues[number];
+export declare const BindDragEventValues: readonly ["ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onscroll"];
+export declare type BindDragEventTypes = typeof BindDragEventValues[number];
+export declare const BindClipboardEventValues: readonly ["oncopy", "oncut", "onpaste"];
+export declare type BindClipboardEventTypes = typeof BindClipboardEventValues[number];
+export declare const BindEventValues: ("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[];
 /**
  * These are 'custom' bind types that imitate structural directive/components in other frameworks
  */
@@ -13,7 +28,7 @@ export declare const BindCodeTypeValues: readonly ["if", "forEach"];
 export declare type BindCodeTypes = typeof BindCodeTypeValues[number];
 export declare const BindHTMLValues: readonly ["innerHTML", "innerText", "interpolation", "class"];
 export declare type BindHTMLTypes = typeof BindHTMLValues[number];
-export declare const BindValues: readonly ["innerHTML", "innerText", "interpolation", "class", "if", "forEach", "onclick", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onscroll", "onkeydown", "onkeypress", "oninput", "onblur", "onfocus"];
+export declare const BindValues: readonly ["innerHTML", "innerText", "interpolation", "class", "if", "forEach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
 export declare type BindTypes = typeof BindValues[number];
 export declare const LowerCasedBindValues: string[];
 export declare type BindHandlers = {

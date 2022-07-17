@@ -1,4 +1,4 @@
-import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, BindFocusEventTypes, IRenderer } from './bind-model';
+import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, IRenderer } from './bind-model';
 export default class Bind {
     id: string;
     template?: string;
@@ -50,7 +50,6 @@ export default class Bind {
     private getInterpolationBindsFromElement;
     isMouseEventType(keyInput: BindTypes): keyInput is BindMouseEventTypes;
     isKeyboardEventType(keyInput: BindTypes): keyInput is BindKeyboardEventTypes;
-    isFocusEventType(keyInput: BindTypes): keyInput is BindFocusEventTypes;
     isCodeBindType(keyInput: BindTypes): keyInput is BindCodeTypes;
     isHTMLBindType(keyInput: BindTypes): keyInput is BindHTMLTypes;
 }
