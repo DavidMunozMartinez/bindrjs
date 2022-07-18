@@ -241,8 +241,6 @@ export default class Bind {
           expression: element.getAttribute(attrName) || '',
           isAffectedBy: [],
         });
-        // Compute the bind as we find them
-        // handler.compute(this.bind);
         callback(handler);
         return handler;
       });
@@ -264,8 +262,6 @@ export default class Bind {
           expression: current.value.input || '',
           isAffectedBy: [],
         });
-        // Interpolate strings as we find them
-        // handler.compute(this.bind);
         current = matches.next();
         callback(handler);
       }
