@@ -12,7 +12,8 @@ export class HTMLBindHandler {
   previous: unknown;
   isAffectedBy: any[];
   expression: string;
-  // context: unknown;
+  HTML?: string;
+  computed?: boolean = false;
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -20,10 +21,38 @@ export class HTMLBindHandler {
     this.result = null;
     this.isAffectedBy = templateBind.isAffectedBy;
     this.expression = templateBind.expression;
+
+    if (this.type === 'if') this.BindIfType();
   }
 
-  compute(context: any) {
-    bindHandlers[this.type](this, context);
+  /**
+   * Can return an element or part of element that needs rebinding
+   * @param context Context that will be given to the template
+   */
+  compute(context: any): HTMLElement | void {
+    if (this.element.isConnected) {
+      try {
+        return bindHandlers[this.type](this, context);
+      } catch (error: any) {
+        let errorAt = this.HTML ? this.HTML : this.element;
+        throw new Error(`Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message} `)
+      }
+    }
+  }
+
+  /**
+   * Hear me out:
+   * All ':if' binds are replaced by a comment marker and the actual HTML is stored in the HTMLBindHandler
+   * The ':if' bind type could entirely remove the element from the DOM so we need to always have an anchor point
+   * to the DOM to know where this HTMLBindHandler should apply modifications, because the nature of recursing the DOM
+   * the contents of the ':if' bind won't be checked (because its replaced by a comment marker), which is expected.
+   * Only when the condition is true, and the content rendered, we validate its content for more HTMLBindHandlers
+   */
+  private BindIfType() {
+    let marker = new Comment(`if:${this.expression}`);
+    this.HTML = this.element.outerHTML;
+    this.element.replaceWith(marker);
+    this.element = <HTMLElement>(<unknown>marker);
   }
 }
 
@@ -52,45 +81,31 @@ const eventBindHandlers = BindEventValues.reduce(
  */
 const bindHandlers: BindHandlers = {
   // Probably shouldn't use this, since seems unsafe
-  innerHTML: (handler: HTMLBindHandler, context: unknown) => {
+  innerhtml: (handler: HTMLBindHandler, context: unknown) => {
     handler.result = evaluateDOMExpression(handler.expression, context);
     handler.element.innerHTML = String(handler.result);
   },
-  innerText: (handler: HTMLBindHandler, context: unknown) => {
+  innertext: (handler: HTMLBindHandler, context: unknown) => {
     handler.result = evaluateDOMExpression(handler.expression, context);
     handler.element.innerText = String(handler.result);
   },
   interpolation: (handler: HTMLBindHandler, context: unknown) => {
-    let node = handler.element;
-    let regexp = /\${(.*?)}/gm;
-
-    let matches = handler.expression.matchAll(regexp);
-    let current = matches.next();
-    let interpolated = handler.expression;
-    while (!current.done) {
-      let primitiveValue = String(
-        evaluateDOMExpression(current.value[1], context)
-      );
-      interpolated = interpolated.replace(current.value[0], primitiveValue);
-      // node.textContent = interpolated;
-      current = matches.next();
-    }
-    node.textContent = interpolated;
+    handler.element.textContent = interpolateText(handler.expression, context);
   },
-  class: (bind: HTMLBindHandler, context) => {
-    bind.result = evaluateDOMExpression(bind.expression, context);
-    const current = String(bind.result);
-    const previous = String(bind.previous);
+  class: (handler: HTMLBindHandler, context) => {
+    handler.result = evaluateDOMExpression(handler.expression, context);
+    const current = String(handler.result);
+    const previous = String(handler.previous);
     if (
       previous &&
       current !== previous &&
-      bind.element.classList.contains(previous)
+      handler.element.classList.contains(previous)
     ) {
-      bind.element.classList.remove(previous);
+      handler.element.classList.remove(previous);
     }
     if (current) {
-      bind.element.classList.add(current);
-      bind.previous = current;
+      handler.element.classList.add(current);
+      handler.previous = current;
     }
   },
   style: (bind: HTMLBindHandler) => {
@@ -99,41 +114,52 @@ const bindHandlers: BindHandlers = {
   attr: (bind: HTMLBindHandler) => {
     throw new Error('attr binding not implemented yet.');
   },
-  if: (bind: HTMLBindHandler, context: unknown) => {
-    bind.result = Boolean(evaluateDOMExpression(bind.expression, context));
-    if (bind.result !== bind.previous) {
-      bind.element = bind.result
-        ? uncommentHTML(bind.element)
-        : commentHTML(bind.element);
-    }
-    bind.previous = bind.result;
-  },
-  foreach: (bind: HTMLBindHandler) => {},
+  if: BindIfHandler,
+  foreach: BindForEachHandler,
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };
 
-function commentHTML(element: HTMLElement): HTMLElement {
-  // This is already a comment
-  if (element.nodeType === 8) return element;
-  let commented = document.createComment(element.outerHTML);
-  element.replaceWith(commented);
-  return <HTMLElement>(<unknown>commented);
+function BindIfHandler(handler: HTMLBindHandler, context: unknown): any {
+  let rebind: any = false;
+  if (!handler.HTML) return rebind;
+
+  handler.result = Boolean(evaluateDOMExpression(handler.expression, context));
+  if (handler.result !== handler.previous) {
+    if (handler.result) {
+      let temp = document.createElement('div');
+      temp.innerHTML = handler.HTML;
+      handler.element.after(temp.children[0]);
+      rebind = handler.element.nextElementSibling;
+    } else if (typeof handler.previous === 'boolean') {
+      handler.element.nextSibling?.remove();
+    }
+  }
+  handler.previous = handler.result;
+  return rebind;
 }
 
-function uncommentHTML(element: HTMLElement): HTMLElement {
-  // This is not a comment
-  if (element.nodeType !== 8) return element;
-  let temp = document.createElement('div');
-  temp.innerHTML = element.textContent || '';
-  let uncommented = temp.childNodes[0];
-  element.replaceWith(uncommented);
-  return <HTMLElement>uncommented;
+function BindForEachHandler() {}
+
+function interpolateText(text: string, context: any) {
+  let regexp = /\${(.*?)}/gm;
+  let matches = text.matchAll(regexp);
+  let current = matches.next();
+  let interpolated = text;
+  while (!current.done) {
+    let primitiveValue = String(
+      evaluateDOMExpression(current.value[1], context)
+    );
+    interpolated = interpolated.replace(current.value[0], primitiveValue);
+    current = matches.next();
+  }
+  return interpolated;
 }
 
+// TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
 function evaluateDOMExpression(expression: string, context?: any): unknown {
   // I probably need to sanitize this
-  return Function(`
-  return ${expression};
-  `).apply(context);
+    return new Function(`
+      return ${expression};
+    `).apply(context);
 }

@@ -10,14 +10,14 @@ import {
   BindMouseEventValues,
   BindCodeTypeValues,
   BindHTMLValues,
-  IRenderer,
+  IBind,
   IRendererBindMaps,
 } from './bind-model';
 
 export default class Bind {
   id: string;
   template?: string;
-  bind: any = {};
+  bind: object = {};
   container!: HTMLElement;
   bindAs?: string | null;
 
@@ -31,6 +31,7 @@ export default class Bind {
    * DataBindHandlers when any value in the bind object is updated
    */
   private DOMBindHandlers: HTMLBindHandler[] = [];
+  // private DOMBindHandlersMap: {[key: string]: HTMLBindHandler} = {};
 
   /**
    * This is a flattened map of all our values in the bind object, all keys are strings that represent
@@ -44,19 +45,29 @@ export default class Bind {
    */
   private proxies: any = {};
 
-  constructor(data: IRenderer) {
+  constructor(data: IBind) {
     this.id = data.id;
-    this.template = data.template?.toString();
     this.bindAs = data.bindAs || null;
     const container = document.getElementById(this.id);
+    let template;
+    if (data.template) {
+      template = this.validateTemplate(data.template);
+    }
+
     if (container) {
       this.container = container;
     } else {
       throw new Error('Could not initialize renderer, container not found');
     }
 
-    if (data.bind) {
-      this.bind = this.objectProxy(data.bind, 'this');
+    if (template) {
+      template.then((templateString: string) => {
+        this.container.innerHTML = templateString;
+        this.bind = this.objectProxy(data.bind || {}, 'this');
+        this.defineBinds();
+      });
+    } else {
+      this.bind = this.objectProxy(data.bind || {}, 'this');
       this.defineBinds();
     }
   }
@@ -108,14 +119,27 @@ export default class Bind {
    * re-computes any necessary DOM changes
    * @param path Path to the property being updated
    */
-  update(path: string) {
+  private update(path: string) {
     if (this.DataBindHandlers[path]) {
       const rendererBind = this.DataBindHandlers[path];
       if (rendererBind.affects) {
         // Update all DOM connections to this data
+        let rebinds: any = [];
         rendererBind.affects.forEach((handler: HTMLBindHandler) => {
-          handler.compute(this.bind);
+          let rebind = handler.compute(this.bind); 
+          if (rebind) rebinds.push(rebind);
         });
+
+        // If the affected handlers returned elements that need re-binding, we do
+        // that here
+        rebinds.forEach((el: any) => {
+          this.defineBinds(el);
+        });
+
+        // If we got new binds we also need to cleanup old disconnected HTMLBindHandlers
+        if (rebinds.length) {
+          this.cleanHandlers(path);
+        }
       }
     }
   }
@@ -127,22 +151,26 @@ export default class Bind {
    * TODO: Make is so it only checks the new element for bind data connections instead of re-mapping everything
    * when we add more elements
    */
-  private defineBinds() {
+  private defineBinds(element?: HTMLElement) {
     // Functions are event driven not data driven, so we filter them out of this process
     const bindsPropertyKeys = Object.keys(this.values).filter(
       key => typeof this.values[key] !== 'function'
     );
-    this.DOMBindHandlers = this.getTemplateBinds();
+    this.DOMBindHandlers = this.getTemplateBinds(element);
 
     bindsPropertyKeys.forEach(propKey => {
-      const affects: HTMLBindHandler[] = [];
+      const affects: HTMLBindHandler[] =
+        (this.DataBindHandlers[propKey] &&
+          this.DataBindHandlers[propKey].affects) ||
+        [];
+
       this.DOMBindHandlers.forEach((handler: HTMLBindHandler) => {
         if (
           // Expression in this template bind requires this bind property
-          (handler.expression.indexOf(propKey) > -1 &&
-            // Bindable mouse event should not be reactive to changes
-            this.isHTMLBindType(handler.type)) ||
-          this.isCodeBindType(handler.type)
+          handler.expression.indexOf(propKey) > -1 &&
+          // Bindable mouse event should not be reactive to changes
+          (this.isHTMLBindType(handler.type) ||
+            this.isCodeBindType(handler.type))
         ) {
           affects.push(handler);
           handler.isAffectedBy.push(propKey);
@@ -154,11 +182,14 @@ export default class Bind {
 
   private recurseContainer(
     element: HTMLElement,
-    callback: (element: HTMLElement) => void
+    callback: (element: HTMLElement) => void,
+    ignoreSelf?: boolean
   ): any {
     const root = element;
     const children = root.childNodes;
-    callback(root);
+    if (!ignoreSelf) {
+      callback(root);
+    }
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       this.recurseContainer(<HTMLElement>child, callback);
@@ -166,6 +197,7 @@ export default class Bind {
   }
 
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
+    let ignoreRoot = !!container;
     container = (container ? container : this.container) || null;
     const htmlHandlers: HTMLBindHandler[] = [];
     this.recurseContainer(container, node => {
@@ -183,7 +215,13 @@ export default class Bind {
           });
           break;
       }
-    });
+    }, ignoreRoot);
+
+    // Compute handlers at the end to avoid DOM modifier binds to
+    // modify the DOM as we iterate it
+    htmlHandlers.forEach((handler) => {
+      handler.compute(this.bind);
+    })
     return htmlHandlers;
   }
 
@@ -204,7 +242,7 @@ export default class Bind {
           isAffectedBy: [],
         });
         // Compute the bind as we find them
-        handler.compute(this.bind);
+        // handler.compute(this.bind);
         callback(handler);
         return handler;
       });
@@ -227,11 +265,40 @@ export default class Bind {
           isAffectedBy: [],
         });
         // Interpolate strings as we find them
-        handler.compute(this.bind);
+        // handler.compute(this.bind);
         current = matches.next();
         callback(handler);
       }
     }
+  }
+
+  private validateTemplate(template: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      let isURL = template.indexOf('.html') > -1;
+      if (isURL) {
+        fetch(template)
+          .then(res => res.text())
+          .then(content => {
+            resolve(content);
+          });
+      } else {
+        resolve(template);
+      }
+    });
+  }
+
+  private cleanHandlers(dataKey: string) {
+    let DataHandler = this.DataBindHandlers[dataKey];
+    let current = DataHandler.affects.length - 1;
+    // Remove from end to start to avoid indexes shifting while
+    // removing
+    while (current >= 0) {
+      let isConnected = DataHandler.affects[current].element.isConnected;
+      if (!isConnected) DataHandler.affects.splice(current, 1);
+      current--;
+    }
+
+    console.log(this.DataBindHandlers[dataKey]);
   }
 
   isMouseEventType(keyInput: BindTypes): keyInput is BindMouseEventTypes {

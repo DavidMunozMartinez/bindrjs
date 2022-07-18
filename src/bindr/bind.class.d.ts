@@ -1,8 +1,8 @@
-import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, IRenderer } from './bind-model';
+import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, IBind } from './bind-model';
 export default class Bind {
     id: string;
     template?: string;
-    bind: any;
+    bind: object;
     container: HTMLElement;
     bindAs?: string | null;
     /**
@@ -26,7 +26,7 @@ export default class Bind {
      * ONE proxy per object found in the bind passed from the user (including the bind itself).
      */
     private proxies;
-    constructor(data: IRenderer);
+    constructor(data: IBind);
     private objectProxy;
     private objectProxyHandler;
     /**
@@ -34,7 +34,7 @@ export default class Bind {
      * re-computes any necessary DOM changes
      * @param path Path to the property being updated
      */
-    update(path: string): void;
+    private update;
     /**
      * This is a somewhat expensive function in an attempt to keep the data/DOM updates as quick as possible,
      * we iterate over all nodes in the container and create a BindHandler which holds a reference of the element
@@ -48,6 +48,8 @@ export default class Bind {
     private getAttrBindsFromElement;
     /**Maybe execute this in the entire container once to allow for string interpolation anywhere? */
     private getInterpolationBindsFromElement;
+    private validateTemplate;
+    private cleanHandlers;
     isMouseEventType(keyInput: BindTypes): keyInput is BindMouseEventTypes;
     isKeyboardEventType(keyInput: BindTypes): keyInput is BindKeyboardEventTypes;
     isCodeBindType(keyInput: BindTypes): keyInput is BindCodeTypes;

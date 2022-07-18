@@ -6,53 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
 
-  <style>
-  </style>
+  <script src="if-example/if-example.js" defer></script>
+  <script src="interpolation-example/interpolation.js" defer></script>
 </head>
 
 <body>
   <script src="../../dist/bundle.js"></script>
 
-  <h3>This is just my playroom to quick test: </h3>
-  <div id="nested-data">
-    <!-- <input type="text" bind:oninput="this.data.inputValue = event.target.value"> -->
-    <div>
-      <button :onclick="this.counter--"> Counter - 1</button>
-      <span>${this.counter}</span>
-      <button :onclick="this.counter++"> Counter + 1</button>
-    </div>
-
-    <div>
-      <span>
-        <!-- This is a conditioned tag: -->
-        <div :if="this.counter < 5">
-          Counter is smaller than 5
-        </div>
-        <div :if="this.counter === 5">
-          Counter is 5
-        </div>
-        <div :if="this.counter > 5">
-          Counter is greater than 5
-        </div>
-      </span>
-    </div>
-
-    <!-- <div>
-      <button bind:onclick="this.data.counter--">Nested Counter - 1</button>
-      <span>${this.data.counter}</span>
-      <button bind:onclick="this.data.counter++">Nested Counter + 1</button>
-    </div> -->
-
-  </div>
-  <script>
-    let nestedDataBind = new Bind({
-      id: 'nested-data',
-      bind: {
-        counter: 0
-      }
-    });
-  </script>
-
+  <h1>Tests </h1>
+  
+  <div id="interpolation-example"></div>
+  <div id="if-example"></div>
 </body>
 
 </html>

@@ -120,10 +120,10 @@ export type BindTypes = typeof BindValues[number];
 // );
 
 export type BindHandlers = {
-  [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => void;
+  [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement | void;
 };
 
-export interface IRenderer {
+export interface IBind {
   /**
    * Id of the element that will benefit from the context of this renderer
    */
@@ -138,7 +138,7 @@ export interface IRenderer {
    * This object will be attached to the container (found by the id property) and it will make the
    * data accessible to the entire container and its children trough the 'this' keyword
    */
-  bind?: any;
+  bind?: object;
   /**
    * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
    */
@@ -155,7 +155,7 @@ export interface IHTMLBindHandler {
    * Array of property keys that are in the binds property
    */
   isAffectedBy: string[];
-  childBinds?: HTMLBindHandler[];
+  // innerHTML?: string; 
 }
 
 export interface IRendererBindMaps {

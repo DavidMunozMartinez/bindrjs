@@ -11,9 +11,6 @@ export declare const BindFormEventValues: readonly ["onblur", "onchange", "oncon
 export declare type BindFormEventTypes = typeof BindFormEventValues[number];
 export declare const BindKeyboardEventValues: readonly ["onkeydown", "onkeypress", "onkeyup"];
 export declare type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
-/**
- *
- */
 export declare const BindMouseEventValues: readonly ["onclick", "ondblclick", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onwheel"];
 export declare type BindMouseEventTypes = typeof BindMouseEventValues[number];
 export declare const BindDragEventValues: readonly ["ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onscroll"];
@@ -24,17 +21,16 @@ export declare const BindEventValues: ("onafterprint" | "onbeforeprint" | "onbef
 /**
  * These are 'custom' bind types that imitate structural directive/components in other frameworks
  */
-export declare const BindCodeTypeValues: readonly ["if", "forEach"];
+export declare const BindCodeTypeValues: readonly ["if", "foreach"];
 export declare type BindCodeTypes = typeof BindCodeTypeValues[number];
-export declare const BindHTMLValues: readonly ["innerHTML", "innerText", "interpolation", "class"];
+export declare const BindHTMLValues: readonly ["innerhtml", "innertext", "interpolation", "class"];
 export declare type BindHTMLTypes = typeof BindHTMLValues[number];
-export declare const BindValues: readonly ["innerHTML", "innerText", "interpolation", "class", "if", "forEach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
+export declare const BindValues: readonly ["innerhtml", "innertext", "interpolation", "class", "if", "foreach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
 export declare type BindTypes = typeof BindValues[number];
-export declare const LowerCasedBindValues: string[];
 export declare type BindHandlers = {
-    [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => void;
+    [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement | void;
 };
-export interface IRenderer {
+export interface IBind {
     /**
      * Id of the element that will benefit from the context of this renderer
      */
@@ -49,7 +45,7 @@ export interface IRenderer {
      * This object will be attached to the container (found by the id property) and it will make the
      * data accessible to the entire container and its children trough the 'this' keyword
      */
-    bind?: any;
+    bind?: object;
     /**
      * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
      */
@@ -65,7 +61,6 @@ export interface IHTMLBindHandler {
      * Array of property keys that are in the binds property
      */
     isAffectedBy: string[];
-    childBinds?: HTMLBindHandler[];
 }
 export interface IRendererBindMaps {
     [key: string]: IRendererBind;

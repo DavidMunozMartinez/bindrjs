@@ -1,0 +1,15 @@
+<h3>Interpolation bind test </h3>
+<div>
+  ${this.text}
+</div>
+
+<div>
+  This has multiple interpolations in one line: ${this.text} ${this.counter}
+</div>
+
+<div>
+  This is an interpolated counter: 
+  <button :onclick="this.counter--"> - </button>
+  ${this.counter}
+  <button :onclick="this.counter++"> + </button>
+</div>
