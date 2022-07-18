@@ -18,7 +18,7 @@ to empower your templates. if you know vanilla JavaScript and basic HTML you sho
 <div>
 <script>
   // Instanciate new Bindr context
-  let renderer = new Bindr({
+  let renderer = new Bind({
     // id of the element that will benefit fron the Bindr context
     id: 'main-content',
     // Properties that will be accesible within the element with the selected id
@@ -47,7 +47,7 @@ to empower your templates. if you know vanilla JavaScript and basic HTML you sho
 <div>
 <script>
   // Instanciate new Bindr context
-  let renderer = new Bindr({
+  let renderer = new Bind({
     // id of the element that will benefit fron the Bindr context
     id: 'main-content',
     // Properties that will be accesible within the element with the selected id
