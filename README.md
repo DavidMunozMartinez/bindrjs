@@ -1,5 +1,5 @@
 # bindrJS
-My attempt at a !framework for HTML data binding
+My attempt at a !framework for efficient HTML data binding
 
 Don't mind me just re-inventing the wheel.
 This is my attempt at creating a simple enough HTML render engine similar to what ALL popular front-end frameworks/libraries already do perfectly, AKA data binding, except "cheaper" and without the extra fancy features.
@@ -9,12 +9,12 @@ to empower your templates. if you know vanilla JavaScript and basic HTML you sho
 
 ## Bind examples
  
-### Bind to element.innerText
+### String interpolation
 
 #### HTML
 ```html
 <div id="main-content">
-  <div bind:innerText="test"><div>
+  <div>${this.test}<div>
 <div>
 <script>
   // Instanciate new Bindr context
@@ -29,10 +29,41 @@ to empower your templates. if you know vanilla JavaScript and basic HTML you sho
 </script>
   
 ```
-#### HTML renders as:
+#### Output:
  
 ```html
 <div id="main-content">
-  <div bind:innerText="this.test">Hello world!<div>
+  <div>Hello world!<div>
 <div>
 ```
+
+### Conditional HTML
+
+#### HTML
+```html
+<div id="main-content">
+  <div :if="this.counter > 5">Counter is greater than 5<div>
+  <div :if="this.counter < 5">Counter is smaller than 5<div>
+<div>
+<script>
+  // Instanciate new Bindr context
+  let renderer = new Bindr({
+    // id of the element that will benefit fron the Bindr context
+    id: 'main-content',
+    // Properties that will be accesible within the element with the selected id
+    bind: {
+      counter: 6
+    }
+  });
+</script>
+```
+
+#### Output:
+
+```html
+<div id="main-content"><div>
+  <div :if="this.counter > 5">Counter is greater than 5</div>
+</div>
+```
+
+
