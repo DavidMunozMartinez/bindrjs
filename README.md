@@ -20,17 +20,15 @@ cd bindrjs
 // Install dependencies
 npm run install
 ```
-
 ### Compile
 ```
 npm run compile
-
 ```
-
 ### Run examples
 ```
 npm run examples
 ```
+
 This will open a local browser with an instance of live server running index.html in the examples folder.
 Mind you the examples page looks like 💩 at the moment and more than an examples page is my testing
 environment.
