@@ -15,11 +15,10 @@ import {
 } from './bind-model';
 
 export default class Bind {
-  id: string;
-  template?: string;
   bind: object = {};
-  container!: HTMLElement;
   bindAs?: string | null;
+  private id: string;
+  private container!: HTMLElement;
 
   /**
    * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
