@@ -22,14 +22,19 @@ export class HTMLBindHandler {
     this.isAffectedBy = templateBind.isAffectedBy;
     this.expression = templateBind.expression;
 
-    if (this.type === 'if') this.BindIfType();
+    switch(this.type) {
+      case 'if':
+      case 'foreach':
+        this.replaceForMarker(this.type, this.expression)
+        break;
+    }
   }
 
   /**
    * Can return an element or part of element that needs rebinding
    * @param context Context that will be given to the template
    */
-  compute(context: any): HTMLElement | void {
+  compute(context: any): HTMLElement[] | void {
     if (this.element.isConnected) {
       try {
         return bindHandlers[this.type](this, context);
@@ -48,11 +53,13 @@ export class HTMLBindHandler {
    * the contents of the ':if' bind won't be checked (because its replaced by a comment marker), which is expected.
    * Only when the condition is true, and the content rendered, we validate its content for more HTMLBindHandlers
    */
-  private BindIfType() {
-    let marker = new Comment(`if:${this.expression}`);
+  private replaceForMarker(type: string, expression: string) {
+    let marker = new Comment(`${type}:${expression}`);
+    // Remove the attribute for a cleaner DOM
+    this.element.removeAttribute(`:${type}`);
     this.HTML = this.element.outerHTML;
     this.element.replaceWith(marker);
-    this.element = <HTMLElement>(<unknown>marker);
+    this.element = <HTMLElement><unknown>marker;
   }
 }
 
@@ -136,10 +143,33 @@ function BindIfHandler(handler: HTMLBindHandler, context: unknown): any {
     }
   }
   handler.previous = handler.result;
-  return rebind;
+  return [rebind];
 }
 
-function BindForEachHandler() {}
+function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
+  let rebind: any = false;
+  if (!handler.HTML) return rebind;
+
+  let temp = document.createElement('div');
+  let expressionVars = handler.expression.split('in').map((val) => val.trim());
+  let localVar = expressionVars[0];
+  let arrayVar = expressionVars[1];
+  let array: any = evaluateDOMExpression(arrayVar, context) || [];
+
+  // Iterate it backwards so when we insert the resulting node after the marker
+  // they end up in the right order
+  rebind = [];
+  for (let i = array.length - 1; i > -1; i--) {
+    // Replace all instances of local variable with the actual array pointing to the proper index
+    // so when it gets interpolated or evaluated it points to the right place in the context
+    let node = handler.HTML?.replace(new RegExp(localVar, 'g'), `${arrayVar}[${i}]`);
+    temp.innerHTML += `${node}\n`;
+    rebind.push(temp.children[0]);
+    handler.element.after(temp.children[0]);
+  }
+
+  return rebind;
+}
 
 function interpolateText(text: string, context: any) {
   let regexp = /\${(.*?)}/gm;

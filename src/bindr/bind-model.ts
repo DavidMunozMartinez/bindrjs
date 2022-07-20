@@ -120,7 +120,7 @@ export type BindTypes = typeof BindValues[number];
 // );
 
 export type BindHandlers = {
-  [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement | void;
+  [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement[] | void;
 };
 
 export interface IBind {
@@ -143,6 +143,10 @@ export interface IBind {
    * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
    */
   bindAs?: string | null;
+  /**
+   * Executed once all bindings have been checked for the container
+   */
+  ready: () => void;
 }
 
 export interface IHTMLBindHandler {

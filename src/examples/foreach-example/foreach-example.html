@@ -1,0 +1,6 @@
+<h3> For each test: </h3>
+<ul>
+  <li :foreach="data in this.test">
+    ${data.author === 'me' ? 'Yours' : 'Not yours'} ${data.message}
+  </li>
+</ul>

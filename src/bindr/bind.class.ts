@@ -17,6 +17,7 @@ import {
 export default class Bind {
   bind: object = {};
   bindAs?: string | null;
+  ready: () => void;
   private id: string;
   private container!: HTMLElement;
 
@@ -47,6 +48,7 @@ export default class Bind {
   constructor(data: IBind) {
     this.id = data.id;
     this.bindAs = data.bindAs || null;
+    this.ready = data.ready || Function();
     const container = document.getElementById(this.id);
     let template;
     if (data.template) {
@@ -64,10 +66,12 @@ export default class Bind {
         this.container.innerHTML = templateString;
         this.bind = this.objectProxy(data.bind || {}, 'this');
         this.defineBinds();
+        this.ready();
       });
     } else {
       this.bind = this.objectProxy(data.bind || {}, 'this');
       this.defineBinds();
+      this.ready();
     }
   }
 
@@ -75,7 +79,8 @@ export default class Bind {
     this.proxies[path] = new Proxy(data, this.objectProxyHandler(path));
     Object.keys(data).forEach(key => {
       const value = data[key];
-      const fullPath = `${path}.${key}`;
+      const keyString = this.isArray(data) ? `[${key}]` : `.${key}`;
+      const fullPath = `${path}${keyString}`;
       if (typeof value === 'object') {
         this.objectProxy(value, fullPath);
       } else {
@@ -84,6 +89,10 @@ export default class Bind {
     });
 
     return this.proxies[path];
+  }
+
+  private isArray(value: any) {
+    return typeof value === 'object' && value.length !== undefined;
   }
 
   private objectProxyHandler(path: string) {
@@ -125,8 +134,10 @@ export default class Bind {
         // Update all DOM connections to this data
         let rebinds: any = [];
         rendererBind.affects.forEach((handler: HTMLBindHandler) => {
-          let rebind = handler.compute(this.bind); 
-          if (rebind) rebinds.push(rebind);
+          let res = handler.compute(this.bind);
+          if (res && res.length) {
+            rebinds = rebinds.concat(res);
+          }
         });
 
         // If the affected handlers returned elements that need re-binding, we do
@@ -155,6 +166,7 @@ export default class Bind {
     const bindsPropertyKeys = Object.keys(this.values).filter(
       key => typeof this.values[key] !== 'function'
     );
+
     this.DOMBindHandlers = this.getTemplateBinds(element);
 
     bindsPropertyKeys.forEach(propKey => {
@@ -216,11 +228,22 @@ export default class Bind {
       }
     }, ignoreRoot);
 
+    let rebinds: HTMLElement[] = [];
     // Compute handlers at the end to avoid DOM modifier binds to
     // modify the DOM as we iterate it
     htmlHandlers.forEach((handler) => {
-      handler.compute(this.bind);
-    })
+      let res = handler.compute(this.bind);
+      if (res && res.length) {
+        rebinds = rebinds.concat(res);
+      }
+    });
+
+    // Some HTMLBindHandlers return new elements that could need computing of their
+    // own, so we also check for those
+    if (rebinds.length) {
+      rebinds.forEach((el: HTMLElement) => this.defineBinds(el))
+    }
+
     return htmlHandlers;
   }
 

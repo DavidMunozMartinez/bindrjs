@@ -28,7 +28,7 @@ export declare type BindHTMLTypes = typeof BindHTMLValues[number];
 export declare const BindValues: readonly ["innerhtml", "innertext", "interpolation", "class", "if", "foreach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
 export declare type BindTypes = typeof BindValues[number];
 export declare type BindHandlers = {
-    [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement | void;
+    [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement[] | void;
 };
 export interface IBind {
     /**
@@ -50,6 +50,10 @@ export interface IBind {
      * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
      */
     bindAs?: string | null;
+    /**
+     * Executed once all bindings have been checked for the container
+     */
+    ready: () => void;
 }
 export interface IHTMLBindHandler {
     element: HTMLElement;

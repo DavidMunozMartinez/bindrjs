@@ -1,10 +1,10 @@
 import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, IBind } from './bind-model';
 export default class Bind {
-    id: string;
-    template?: string;
     bind: object;
-    container: HTMLElement;
     bindAs?: string | null;
+    ready: () => void;
+    private id;
+    private container;
     /**
      * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
      * we can quickly update all the DOM binds that depend on it
@@ -28,6 +28,7 @@ export default class Bind {
     private proxies;
     constructor(data: IBind);
     private objectProxy;
+    private isArray;
     private objectProxyHandler;
     /**
      * Finds the BindHandlers that are affected by the updated property and
