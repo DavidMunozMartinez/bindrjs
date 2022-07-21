@@ -2,25 +2,36 @@ let ForEachExample = new Bind({
   id: 'foreach-example',
   template: 'foreach-example/foreach-example.html',
   bind: {
-    test: [{
-      message: 'Hola',
-      author: 'me'
+    simpleArray: [
+      'One',
+    ],
+    objArray: [
+      {data: 'one'},
+    ],
+    nestedArrays: [{
+      data: 'First data object',
+      children: ['one']
     }, {
-      message: 'Bay',
-      author: 'you'
+      data: 'Second data object',
+      children: ['one']
     }, {
-      message: 'Ok',
-      author: 'me'
-    }, {
-      message: 'Bye',
-      author: 'me'
-    }]
+      data: 'Third data object',
+      children: ['one']
+    }],
+    add: () => {
+      ForEachExample.bind.simpleArray.push('Added trough button');
+    },
+    addObj: () => {
+      ForEachExample.bind.objArray.push({
+        data: 'Added trough button',
+        timestamp: new Date().toLocaleTimeString()
+      })
+    },
+    addToReference: (ref) => {
+      ref.push('Added trough button');
+    }
   },
-  // ready: () => {
-  //   ForEachExample.bind.test.push({
-  //     data: 'Added after the fact'
-  //   });
-
-  //   console.log(ForEachExample.bind.test);
-  // }
+  ready: () => {
+    ForEachExample.bind.simpleArray.push('Two');
+  }
 });

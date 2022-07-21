@@ -54,12 +54,14 @@ export class HTMLBindHandler {
    * Only when the condition is true, and the content rendered, we validate its content for more HTMLBindHandlers
    */
   private replaceForMarker(type: string, expression: string) {
-    let marker = new Comment(`${type}:${expression}`);
+    let markerStart = new Comment(`${type}:${expression} start`);
+    let markerEnd = new Comment(`${type}:${expression} end`);
     // Remove the attribute for a cleaner DOM
     this.element.removeAttribute(`:${type}`);
     this.HTML = this.element.outerHTML;
-    this.element.replaceWith(marker);
-    this.element = <HTMLElement><unknown>marker;
+    this.element.replaceWith(markerStart);
+    this.element = <HTMLElement><unknown>markerStart;
+    this.element.after(markerEnd);
   }
 }
 
@@ -155,6 +157,15 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   let localVar = expressionVars[0];
   let arrayVar = expressionVars[1];
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
+
+  // Clean the previous elements before creating new ones
+  // TODO: Create a solution to update existing DOM elements instead of re-creating
+  // all of them
+  if (array.length) {
+    while (handler.element.nextSibling?.textContent !== `${handler.type}:${handler.expression} end`) {
+      handler.element.nextElementSibling?.remove();
+    }
+  }
 
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order

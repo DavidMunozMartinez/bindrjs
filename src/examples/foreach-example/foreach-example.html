@@ -1,6 +1,37 @@
-<h3> For each test: </h3>
-<ul>
-  <li :foreach="data in this.test">
-    ${data.author === 'me' ? 'Yours' : 'Not yours'} ${data.message}
-  </li>
-</ul>
+<h2> For each test: </h2>
+<div>
+  <h2>Simple array of strings: </h2>
+  <button :onclick="this.add()">Add</button>${this.simpleArray.length}
+  <ul>
+    <li :foreach="data in this.simpleArray">
+      This is a repeated element: ${data}
+  </ul>
+</div>
+<div>
+  <h2>Array of objects: </h2>
+  <button :onclick="this.addObj()">Add Obj</button>${this.objArray.length}
+  <ul>
+    <li :foreach="objData in this.objArray">
+      ${objData.data}
+      <span :if="objData.timestamp">
+        At: ${objData.timestamp}
+      </span>
+    </li>
+  </ul>
+</div>
+
+<div>
+  <h2>Nested arrays: </h2>
+  <div :foreach="nested in this.nestedArrays">
+    <button :onclick="this.addToReference(nested.children)">Add to ${nested.data}</button>
+  </div>
+  <ul>
+    <li :foreach="nested in this.nestedArrays">
+      ${nested.data}'s children: ${nested.children.length}
+      <div :foreach="child in nested.children">
+        ${child}
+      </div>
+    </li>
+  </ul>
+  </button>
+</div>

@@ -83,8 +83,12 @@ export default class Bind {
       const fullPath = `${path}${keyString}`;
       if (typeof value === 'object') {
         this.objectProxy(value, fullPath);
+        // Arrays are still objects that need a proxy for their individual elements
+        // but we also store it as value because certain Bind Types depend directly
+        // on the array and not its values
+        if (this.isArray(value)) this.values[fullPath] = value;
       } else {
-        this.values[fullPath] = data[key];
+        this.values[fullPath] = value;
       }
     });
 
@@ -103,19 +107,30 @@ export default class Bind {
        * the opportunity to only return one Proxy object
        */
       get: (target: {[x: string]: unknown}, prop: string) => {
-        const fullPath = path + '.' + prop;
+        const keyString = this.isArray(target) ? `[${prop}]` : `.${prop}`;
+        const fullPath = path + keyString;
         // If path is a proxy, return the proxy so the getter of that proxy returns
         // the value
         return this.proxies[fullPath] || target[prop];
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
-        const fullPath = path + '.' + prop;
+        const keyString = this.isArray(target) ? `[${prop}]` : `.${prop}`;
+        const fullPath = path + keyString;
         // Update stored primitive value
         this.values[fullPath] = value;
+        let exists = Boolean(target[prop]);
         // Update target value
         target[prop] = value;
         // Execute update on DOM binds
-        this.update(fullPath);
+        /**
+         * The path is different if the property exists because this could be an array
+         * which its getting a new value pushed, in which case we need to update the DOM
+         * handlers to that array and not to the specific property (which doesn't exists
+         * because its a new element in the array with a new index), array, even though
+         * they are also objects, we store them as values for scenarios like this, so they
+         * can also have their own array of affects
+         */
+        this.update(exists ? fullPath : path);
 
         return true;
       },
