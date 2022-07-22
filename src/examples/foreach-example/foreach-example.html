@@ -5,7 +5,13 @@
   <ul>
     <li :foreach="data in this.simpleArray">
       This is a repeated element: ${data}
-      And has multiple uses of local var: ${data + '-' + data}
+      <div>
+        And has multiple uses of local var: ${data + '-' + data}
+      </div>
+      <div>
+        <!-- The word data should not be replaced with this.simpleArray[i] -->
+        We also have the word: "data"
+      </div>
     </li>
   </ul>
 </div>

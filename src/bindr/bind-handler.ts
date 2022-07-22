@@ -75,6 +75,7 @@ const eventBindHandlers = BindEventValues.reduce(
     // Lets think of a way to not use 'any' here
     (functions[event] = (handler: any, context: any) => {
       if (handler.type in handler.element) {
+        // handler.element.removeAttribute(`:${handler.type}`);
         handler.element[handler.type] = () => {
           evaluateDOMExpression(handler.expression, context);
         };
@@ -202,6 +203,9 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
   for (let i = array.length - 1; i > -1; i--) {
+    // TODO: This needs to change in the future to only find and replace in places where
+    // we would actually need to replace, like within string interpolation and bind
+    // attributes, to avoid replacing actual user defined content with the array name
     let nodeString = handler.HTML || '';
     nodeString = nodeString.replace(localVarRegexp, `${arrayVar}[${i}]`);
     temp.innerHTML += `${nodeString}\n`;
