@@ -22,10 +22,10 @@ export class HTMLBindHandler {
     this.isAffectedBy = templateBind.isAffectedBy;
     this.expression = templateBind.expression;
 
-    switch(this.type) {
+    switch (this.type) {
       case 'if':
       case 'foreach':
-        this.replaceForMarker(this.type, this.expression)
+        this.replaceForMarker(this.type, this.expression);
         break;
     }
   }
@@ -40,7 +40,9 @@ export class HTMLBindHandler {
         return bindHandlers[this.type](this, context);
       } catch (error: any) {
         let errorAt = this.HTML ? this.HTML : this.element;
-        throw new Error(`Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message} `)
+        throw new Error(
+          `Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message} `
+        );
       }
     }
   }
@@ -60,7 +62,7 @@ export class HTMLBindHandler {
     this.element.removeAttribute(`:${type}`);
     this.HTML = this.element.outerHTML;
     this.element.replaceWith(markerStart);
-    this.element = <HTMLElement><unknown>markerStart;
+    this.element = <HTMLElement>(<unknown>markerStart);
     this.element.after(markerEnd);
   }
 }
@@ -129,6 +131,8 @@ const bindHandlers: BindHandlers = {
   ...eventBindHandlers,
 };
 
+const InterpolationRegexp = /\${(.*?)}/gm;
+
 function BindIfHandler(handler: HTMLBindHandler, context: unknown): any {
   let rebind: any = false;
   if (!handler.HTML) return rebind;
@@ -153,38 +157,65 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   if (!handler.HTML) return rebind;
 
   let temp = document.createElement('div');
-  let expressionVars = handler.expression.split('in').map((val) => val.trim());
+  let expressionVars = handler.expression.split('in').map(val => val.trim());
   let localVar = expressionVars[0];
   let arrayVar = expressionVars[1];
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
+
+  if (handler.result && array.length !== (<Array<any>>handler.result).length) {
+    // Item could have been pushed, popped of spliced from the array, so
+    // only compute the new element or remove the existing DOM ref
+  } else {
+    // In theory we should not land here if an element in the array was
+    // modified, if that's the case, that specific node should have its own
+    // HTMLBindHandler which should be independent from the :foreach bind
+    // and should compute its own changes.
+  }
 
   // Clean the previous elements before creating new ones
   // TODO: Create a solution to update existing DOM elements instead of re-creating
   // all of them
   if (array.length) {
-    while (handler.element.nextSibling?.textContent !== `${handler.type}:${handler.expression} end`) {
+    while (
+      handler.element.nextSibling?.textContent !==
+      `${handler.type}:${handler.expression} end`
+    ) {
       handler.element.nextElementSibling?.remove();
     }
   }
 
+  rebind = [];
+  /**
+   * Look for all instances of the localVar name without taking into account
+   * nested object properties that could have the same name, IE:
+   * localVar = 'data';
+   * let regexp = new Regexp(`(?<=\\s|^|"|{|\\()\\b(data)\\b`, 'g');
+   * match
+   *   V
+   * data.data
+   *                    match
+   *                      V
+   * ${obj.data.count + data.count}
+   */
+  let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
+  let localVarRegexp = new RegExp(findString, 'g');
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
-  rebind = [];
   for (let i = array.length - 1; i > -1; i--) {
-    // Replace all instances of local variable with the actual array pointing to the proper index
-    // so when it gets interpolated or evaluated it points to the right place in the context
-    let node = handler.HTML?.replace(new RegExp(localVar, 'g'), `${arrayVar}[${i}]`);
-    temp.innerHTML += `${node}\n`;
-    rebind.push(temp.children[0]);
-    handler.element.after(temp.children[0]);
+    let nodeString = handler.HTML || '';
+    nodeString = nodeString.replace(localVarRegexp, `${arrayVar}[${i}]`);
+    temp.innerHTML += `${nodeString}\n`;
+    let item = temp.children[0];
+    rebind.push(item);
+    handler.element.after(item);
   }
 
+  handler.result = array;
   return rebind;
 }
 
 function interpolateText(text: string, context: any) {
-  let regexp = /\${(.*?)}/gm;
-  let matches = text.matchAll(regexp);
+  let matches = text.matchAll(InterpolationRegexp);
   let current = matches.next();
   let interpolated = text;
   while (!current.done) {
@@ -200,7 +231,7 @@ function interpolateText(text: string, context: any) {
 // TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
 function evaluateDOMExpression(expression: string, context?: any): unknown {
   // I probably need to sanitize this
-    return new Function(`
+  return new Function(`
       return ${expression};
     `).apply(context);
 }

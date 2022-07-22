@@ -5,16 +5,18 @@
   <ul>
     <li :foreach="data in this.simpleArray">
       This is a repeated element: ${data}
+      And has multiple uses of local var: ${data + '-' + data}
+    </li>
   </ul>
 </div>
 <div>
   <h2>Array of objects: </h2>
   <button :onclick="this.addObj()">Add Obj</button>${this.objArray.length}
   <ul>
-    <li :foreach="objData in this.objArray">
-      ${objData.data}
-      <span :if="objData.timestamp">
-        At: ${objData.timestamp}
+    <li :foreach="data in this.objArray">
+      ${data.data}
+      <span :if="data.timestamp">
+        At: ${data.timestamp}
       </span>
     </li>
   </ul>
