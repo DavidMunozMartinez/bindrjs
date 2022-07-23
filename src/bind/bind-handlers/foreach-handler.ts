@@ -1,6 +1,6 @@
 import { HTMLBindHandler } from "./bind-handler";
 import { evaluateDOMExpression, recurseElementNodes } from "../../utils";
-import { InterpolationRegexp } from "../../constants";
+import { BindingChar, InterpolationRegexp } from "../../constants";
 
 export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): any {
   let rebind: any = false;
@@ -75,7 +75,7 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
       if (el.nodeType > 1) return;
       el.getAttributeNames()
         // Only iterate bind type attributes
-        .filter(attr => attr.indexOf(':') === 0)
+        .filter(attr => attr.indexOf(BindingChar) === 0)
         .forEach(attr => {
           // Replace instances of local var name with array pointing to the index position
           el.setAttribute(

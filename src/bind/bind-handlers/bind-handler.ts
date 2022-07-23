@@ -7,6 +7,7 @@ import {
 import {evaluateDOMExpression, interpolateText} from '../../utils';
 import {ForEachBindHandler} from './foreach-handler';
 import {IfBindHandler} from './if-handler';
+import { BindingChar } from '../../constants';
 
 /**
  * These type of binds don't need the original attribute definition, so we clear them from
@@ -17,8 +18,8 @@ const CleanAttribute = ['if', 'foreach', 'class', 'style'];
 export class HTMLBindHandler {
   type: BindTypes;
   element: HTMLElement;
-  result: unknown;
-  previous: unknown;
+  result: any;
+  previous: any;
   expression: string;
   outerHTML?: string;
   attribute: string | null;
@@ -137,7 +138,7 @@ const bindHandlers: BindHandlers = {
   },
   class: (handler: HTMLBindHandler, context) => {
     let splitAttribute =
-      (handler.attribute && handler.attribute.split(':')) || [];
+      (handler.attribute && handler.attribute.split(BindingChar)) || [];
     let isBooleanClass = splitAttribute.length > 2;
     // let apply: boolean = true;
     if (isBooleanClass) {
@@ -170,12 +171,21 @@ const bindHandlers: BindHandlers = {
       }
     }
   },
-  style: (bind: HTMLBindHandler) => {
-    throw new Error('style binding not implemented yet.');
+  style: (handler: HTMLBindHandler, context: any) => {
+    handler.result = evaluateDOMExpression(handler.expression, context) || {};
+    // let styles = handler.result || {};
+    handler.element;
+    let styleProps = Object.keys(handler.result); 
+    // // let element = handler.element as Element;
+    styleProps.forEach((key: any) => {
+      if (handler.element.style && handler.element.style[key] !== undefined) {
+        handler.element.style[key] = handler.result[key];
+      }
+    });
   },
   attr: (handler: HTMLBindHandler, context: any) => {
     let value = handler.element.getAttribute(handler.attribute || '');
-    let actualAttr = handler.attribute?.split(':')[1] || '';
+    let actualAttr = handler.attribute?.split(BindingChar)[1] || '';
     if (value && actualAttr) {
       handler.result = evaluateDOMExpression(handler.expression, context);
       handler.element.setAttribute(actualAttr, String(handler.result || ''));

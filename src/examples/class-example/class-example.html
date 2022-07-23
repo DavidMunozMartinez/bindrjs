@@ -73,8 +73,7 @@
 <div class="idle"
   :class="this.className"
   :class:boolean-class="this.booleanClass"
-  :onclick="this.animateClickedItem()">
-
+  :onclick="this.tickle()">
   <div>
     Attribute [:class]
     <p>
@@ -94,5 +93,30 @@
   Click me to apply a class for 0.5s
   <div>
     ${this.className}
+  </div>
+</div>
+
+<h2>Style example</h2>
+<div class="idle"
+  :onmousemove="this.onMouseMove(event)"
+  :onmouseleave="this.onMouseLeave(event)"
+  :onclick="this.onClick()"
+  :style="{
+    border: '1px solid lightgray',
+    height: '400px',
+    width: '500px',
+    position: 'relative',
+    marginTop: '10px'
+  }">
+
+  <span :if="this.following">
+    I'll follow you forever!
+  </span>
+  <span :if="!this.following && this.following !== null">
+    Where you go?
+  </span>
+
+  <div class="follower"
+    :style="this.followerStyles">
   </div>
 </div>

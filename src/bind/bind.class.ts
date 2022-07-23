@@ -81,7 +81,7 @@ export default class Bind {
       const value = data[key];
       const keyString = this.isArray(data) ? `[${key}]` : `.${key}`;
       const fullPath = `${path}${keyString}`;
-      if (typeof value === 'object') {
+      if (typeof value === 'object' && value !== null) {
         this.objectProxy(value, fullPath);
         // Arrays are still objects that need a proxy for their individual elements
         // but we also store it as value because certain Bind Types depend directly
@@ -191,18 +191,23 @@ export default class Bind {
         [];
 
       this.DOMBindHandlers.forEach((handler: HTMLBindHandler) => {
-        if (
-          // Expression in this template bind requires this bind property
-          handler.expression.indexOf(propKey) > -1 &&
-          // Bindable mouse event should not be reactive to changes
-          (this.isHTMLBindType(handler.type) ||
-            this.isCodeBindType(handler.type))
-        ) {
+        let isUsed = this.propKeyUsedInExpression(propKey, handler.expression);
+        let dataReactiveType =
+          this.isHTMLBindType(handler.type) ||
+          this.isCodeBindType(handler.type);
+        if (isUsed && dataReactiveType) {
           affects.push(handler);
         }
       });
       this.DataBindHandlers[propKey] = {affects};
     });
+  }
+
+  private propKeyUsedInExpression(
+    propKey: string,
+    expression: string
+  ): boolean {
+    return propKey.indexOf(expression) > -1 || expression.indexOf(propKey) > -1;
   }
 
   private recurseContainer(
@@ -225,27 +230,31 @@ export default class Bind {
     let ignoreRoot = !!container;
     container = (container ? container : this.container) || null;
     const htmlHandlers: HTMLBindHandler[] = [];
-    this.recurseContainer(container, node => {
-      switch (node.nodeType) {
-        // Element
-        case 1:
-          this.getAttrBindsFromElement(node, handler => {
-            htmlHandlers.push(handler);
-          });
-          break;
-        // Text
-        case 3:
-          this.getInterpolationBindsFromElement(node, handler => {
-            htmlHandlers.push(handler);
-          });
-          break;
-      }
-    }, ignoreRoot);
+    this.recurseContainer(
+      container,
+      node => {
+        switch (node.nodeType) {
+          // Element
+          case 1:
+            this.getAttrBindsFromElement(node, handler => {
+              htmlHandlers.push(handler);
+            });
+            break;
+          // Text
+          case 3:
+            this.getInterpolationBindsFromElement(node, handler => {
+              htmlHandlers.push(handler);
+            });
+            break;
+        }
+      },
+      ignoreRoot
+    );
 
     let rebinds: HTMLElement[] = [];
     // Compute handlers at the end to avoid DOM modifier binds to
     // modify the DOM as we iterate it
-    htmlHandlers.forEach((handler) => {
+    htmlHandlers.forEach(handler => {
       let res = handler.compute(this.bind);
       if (res && res.length) {
         rebinds = rebinds.concat(res);
@@ -255,7 +264,7 @@ export default class Bind {
     // Some HTMLBindHandlers return new elements that could need computing of their
     // own, so we also check for those
     if (rebinds.length) {
-      rebinds.forEach((el: HTMLElement) => this.defineBinds(el))
+      rebinds.forEach((el: HTMLElement) => this.defineBinds(el));
     }
 
     return htmlHandlers;
@@ -277,7 +286,7 @@ export default class Bind {
             type: type,
             element: element,
             expression: element.getAttribute(attrName) || '',
-            attribute: attrName
+            attribute: attrName,
           });
         } else {
           // All unhandled types can be considered attribute type handlers
@@ -285,7 +294,7 @@ export default class Bind {
             type: 'attr',
             element: element,
             expression: element.getAttribute(attrName) || '',
-            attribute: attrName
+            attribute: attrName,
           });
         }
         callback(handler);
@@ -307,7 +316,7 @@ export default class Bind {
           type: 'interpolation',
           element: element,
           expression: current.value.input || '',
-          attribute: null
+          attribute: null,
         });
         current = matches.next();
         callback(handler);

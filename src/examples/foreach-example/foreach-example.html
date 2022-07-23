@@ -29,9 +29,9 @@
 
 <div>
   <h2>Nested arrays: </h2>
-  <div :foreach="nested in this.nestedArrays">
-    <button :onclick="this.addToReference(nested.children)">Add to ${nested.data}</button>
-  </div>
+    <button 
+    :foreach="nested in this.nestedArrays"
+    :onclick="this.addToReference(nested.children)">Add to ${nested.data}</button>
   <ul>
     <li :foreach="nested in this.nestedArrays">
       ${nested.data}'s children: ${nested.children.length}

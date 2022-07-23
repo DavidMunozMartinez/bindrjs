@@ -52,6 +52,7 @@ export const BindMouseEventValues = [
   'ondblclick',
   'onmousedown',
   'onmousemove',
+  'onmouseleave',
   'onmouseout',
   'onmouseover',
   'onmouseup',
@@ -102,7 +103,8 @@ export const BindHTMLValues = [
   'innertext',
   'interpolation',
   'class',
-  'attr'
+  'attr',
+  'style',
 ] as const;
 export type BindHTMLTypes = typeof BindHTMLValues[number];
 

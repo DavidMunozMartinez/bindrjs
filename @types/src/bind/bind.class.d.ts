@@ -44,6 +44,7 @@ export default class Bind {
      * when we add more elements
      */
     private defineBinds;
+    private propKeyUsedInExpression;
     private recurseContainer;
     private getTemplateBinds;
     private getAttrBindsFromElement;

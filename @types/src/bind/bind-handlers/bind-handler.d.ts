@@ -2,8 +2,8 @@ import { BindTypes, IHTMLBindHandler } from '../bind-model';
 export declare class HTMLBindHandler {
     type: BindTypes;
     element: HTMLElement;
-    result: unknown;
-    previous: unknown;
+    result: any;
+    previous: any;
     expression: string;
     outerHTML?: string;
     attribute: string | null;

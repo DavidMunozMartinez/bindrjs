@@ -11,21 +11,21 @@ export declare const BindFormEventValues: readonly ["onblur", "onchange", "oncon
 export declare type BindFormEventTypes = typeof BindFormEventValues[number];
 export declare const BindKeyboardEventValues: readonly ["onkeydown", "onkeypress", "onkeyup"];
 export declare type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
-export declare const BindMouseEventValues: readonly ["onclick", "ondblclick", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onwheel"];
+export declare const BindMouseEventValues: readonly ["onclick", "ondblclick", "onmousedown", "onmousemove", "onmouseleave", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onwheel"];
 export declare type BindMouseEventTypes = typeof BindMouseEventValues[number];
 export declare const BindDragEventValues: readonly ["ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "onscroll"];
 export declare type BindDragEventTypes = typeof BindDragEventValues[number];
 export declare const BindClipboardEventValues: readonly ["oncopy", "oncut", "onpaste"];
 export declare type BindClipboardEventTypes = typeof BindClipboardEventValues[number];
-export declare const BindEventValues: ("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[];
+export declare const BindEventValues: ("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseleave" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[];
 /**
  * These are 'custom' bind types that imitate structural directive/components in other frameworks
  */
 export declare const BindCodeTypeValues: readonly ["if", "foreach"];
 export declare type BindCodeTypes = typeof BindCodeTypeValues[number];
-export declare const BindHTMLValues: readonly ["innerhtml", "innertext", "interpolation", "class", "attr"];
+export declare const BindHTMLValues: readonly ["innerhtml", "innertext", "interpolation", "class", "attr", "style"];
 export declare type BindHTMLTypes = typeof BindHTMLValues[number];
-export declare const BindValues: readonly ["innerhtml", "innertext", "interpolation", "class", "attr", "if", "foreach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
+export declare const BindValues: readonly ["innerhtml", "innertext", "interpolation", "class", "attr", "style", "if", "foreach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseleave" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
 export declare type BindTypes = typeof BindValues[number];
 export declare type BindHandlers = {
     [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement[] | void;
