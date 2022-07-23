@@ -138,7 +138,7 @@ After 5 seconds
 #### HTML
 ```html
 <div id="main-content">
-  <div :class="this.dynamicClass"></div>
+  <div :class="this.dynamicClass" :class:show="this.isVisible"></div>
 <div>
 <script>
   let renderer = new Bind({
@@ -154,7 +154,7 @@ After 5 seconds
 
 ```html
 <div id="main-content"><div>
-  <div :class="this.dynamicClass" :class:show="this.isVisible" class="test-class show"></div>
+  <div class="test-class show"></div>
 </div>
 ```
 
