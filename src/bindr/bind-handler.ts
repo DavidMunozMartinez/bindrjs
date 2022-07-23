@@ -5,6 +5,12 @@ import {
   IHTMLBindHandler,
 } from './bind-model';
 
+/**
+ * These type of binds don't need the original attribute definition, so we clear them from
+ * the DOM as soon as we gather all the data we need from them
+ */
+const CleanAttribute = ['if', 'foreach', 'class', 'style'];
+
 export class HTMLBindHandler {
   type: BindTypes;
   element: HTMLElement;
@@ -14,6 +20,7 @@ export class HTMLBindHandler {
   expression: string;
   HTML?: string;
   computed?: boolean = false;
+  attribute: string | null;
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -21,6 +28,7 @@ export class HTMLBindHandler {
     this.result = null;
     this.isAffectedBy = templateBind.isAffectedBy;
     this.expression = templateBind.expression;
+    this.attribute = templateBind.attribute;
 
     switch (this.type) {
       case 'if':
@@ -28,10 +36,20 @@ export class HTMLBindHandler {
         this.replaceForMarker(this.type, this.expression);
         break;
     }
+
+    if (
+      !this.RequiresAttr(this.type) &&
+      this.element.getAttribute &&
+      this.attribute &&
+      this.element.getAttribute(this.attribute)
+    ) {
+      this.element.removeAttribute(this.attribute);
+    }
   }
 
   /**
-   * Can return an element or part of element that needs rebinding
+   * Can return an array of elements or nothing, if it contains elements
+   * then we need to re-bind them
    * @param context Context that will be given to the template
    */
   compute(context: any): HTMLElement[] | void {
@@ -47,18 +65,26 @@ export class HTMLBindHandler {
     }
   }
 
+  private RequiresAttr(type: BindTypes): boolean {
+    return CleanAttribute.indexOf(type) === -1;
+  }
+
   /**
    * Hear me out:
-   * All ':if' binds are replaced by a comment marker and the actual HTML is stored in the HTMLBindHandler
-   * The ':if' bind type could entirely remove the element from the DOM so we need to always have an anchor point
-   * to the DOM to know where this HTMLBindHandler should apply modifications, because the nature of recursing the DOM
-   * the contents of the ':if' bind won't be checked (because its replaced by a comment marker), which is expected.
-   * Only when the condition is true, and the content rendered, we validate its content for more HTMLBindHandlers
+   * All ':if | :foreach' binds are replaced by a comment marker and the actual HTML is stored in the HTMLBindHandler
+   * these bind types could entirely remove elements from the DOM so we need to always have an anchor point to know
+   * where this HTMLBindHandler should append or remove elements, because the nature of recursing the DOM the
+   * contents of these binds won't be checked (because its replaced by a comment marker), which is expected. Only
+   * when they are computed, and the content is actually rendered, we validate its content for more HTMLBindHandlers
    */
   private replaceForMarker(type: string, expression: string) {
     let markerStart = new Comment(`${type}:${expression} start`);
     let markerEnd = new Comment(`${type}:${expression} end`);
-    // Remove the attribute for a cleaner DOM
+    /**
+     * Remove attribute to keep a clean DOM and to avoid
+     * re-binding the same HTMLBindHandler when these type
+     * of handlers get evaluates/re-attached to DOM
+     */
     this.element.removeAttribute(`:${type}`);
     this.HTML = this.element.outerHTML;
     this.element.replaceWith(markerStart);
@@ -68,14 +94,13 @@ export class HTMLBindHandler {
 }
 
 /**
- * Dynamically created all bindHandler functions for HTML Events
+ * Dynamically create all bindHandler functions for HTML Events, since they all behave the same
  */
 const eventBindHandlers = BindEventValues.reduce(
   (functions: any, event: string) => (
     // Lets think of a way to not use 'any' here
     (functions[event] = (handler: any, context: any) => {
       if (handler.type in handler.element) {
-        // handler.element.removeAttribute(`:${handler.type}`);
         handler.element[handler.type] = () => {
           evaluateDOMExpression(handler.expression, context);
         };
@@ -105,19 +130,38 @@ const bindHandlers: BindHandlers = {
     handler.element.textContent = interpolateText(handler.expression, context);
   },
   class: (handler: HTMLBindHandler, context) => {
-    handler.result = evaluateDOMExpression(handler.expression, context);
-    const current = String(handler.result);
-    const previous = String(handler.previous);
-    if (
-      previous &&
-      current !== previous &&
-      handler.element.classList.contains(previous)
-    ) {
-      handler.element.classList.remove(previous);
-    }
-    if (current) {
-      handler.element.classList.add(current);
-      handler.previous = current;
+    let splitAttribute =
+      (handler.attribute && handler.attribute.split(':')) || [];
+    let isBooleanClass = splitAttribute.length > 2;
+    // let apply: boolean = true;
+    if (isBooleanClass) {
+      // The class that we want to apply is in the second part of the attribute
+      handler.result = splitAttribute[2];
+      let className = String(handler.result);
+      let truthy = Boolean(evaluateDOMExpression(handler.expression, context));
+      let classList = handler.element.classList;
+      // In this case the expression is a condition that should be evaluated for truth-ness
+      // rather than as a class string
+      if (truthy && !classList.contains(className)) {
+        classList.add(className);
+      } else if (classList.contains(className)) {
+        classList.remove(className);
+      }
+    } else {
+      handler.result = evaluateDOMExpression(handler.expression, context);
+      const current = String(handler.result);
+      const previous = String(handler.previous);
+      if (
+        previous &&
+        current !== previous &&
+        handler.element.classList.contains(previous)
+      ) {
+        handler.element.classList.remove(previous);
+      }
+      if (current) {
+        handler.element.classList.add(current);
+        handler.previous = current;
+      }
     }
   },
   style: (bind: HTMLBindHandler) => {
@@ -190,28 +234,47 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
    * Look for all instances of the localVar name without taking into account
    * nested object properties that could have the same name, IE:
    * localVar = 'data';
-   * let regexp = new Regexp(`(?<=\\s|^|"|{|\\()\\b(data)\\b`, 'g');
    * match
    *   V
    * data.data
    *                    match
    *                      V
    * ${obj.data.count + data.count}
+   * this RegExp is applied to interpolated strings and to bind type attributes
    */
   let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
   let localVarRegexp = new RegExp(findString, 'g');
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
   for (let i = array.length - 1; i > -1; i--) {
-    // TODO: This needs to change in the future to only find and replace in places where
-    // we would actually need to replace, like within string interpolation and bind
-    // attributes, to avoid replacing actual user defined content with the array name
     let nodeString = handler.HTML || '';
-    nodeString = nodeString.replace(localVarRegexp, `${arrayVar}[${i}]`);
-    temp.innerHTML += `${nodeString}\n`;
+    let arrayAtIndex = `${arrayVar}[${i}]`;
+
+    /**Find and replace all instances of the local variable name of the :foreach and
+     * replace it with the array pointing to the index position
+     */
+    temp.innerHTML = `${nodeString.replace(InterpolationRegexp, a => {
+      return a.replace(localVarRegexp, arrayAtIndex);
+    })}\n`;
+
     let item = temp.children[0];
     rebind.push(item);
     handler.element.after(item);
+
+    // Find and interpolate all attributes that need it
+    recurseContainer(<HTMLElement>item, el => {
+      if (el.nodeType > 1) return;
+      el.getAttributeNames()
+        // Only iterate bind type attributes
+        .filter(attr => attr.indexOf(':') === 0)
+        .forEach(attr => {
+          // Replace instances of local var name with array pointing to the index position
+          el.setAttribute(
+            attr,
+            el.getAttribute(attr)?.replace(localVarRegexp, arrayAtIndex) || ''
+          );
+        });
+    });
   }
 
   handler.result = array;
@@ -238,4 +301,20 @@ function evaluateDOMExpression(expression: string, context?: any): unknown {
   return new Function(`
       return ${expression};
     `).apply(context);
+}
+
+function recurseContainer(
+  element: HTMLElement,
+  callback: (element: HTMLElement) => void,
+  ignoreSelf?: boolean
+): any {
+  const root = element;
+  const children = root.childNodes;
+  if (!ignoreSelf) {
+    callback(root);
+  }
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    recurseContainer(<HTMLElement>child, callback);
+  }
 }

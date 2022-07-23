@@ -118,7 +118,7 @@ export default class Bind {
         const fullPath = path + keyString;
         // Update stored primitive value
         this.values[fullPath] = value;
-        let exists = Boolean(target[prop]);
+        let exists = Boolean(target[prop] !== undefined);
         // Update target value
         target[prop] = value;
         // Execute update on DOM binds
@@ -277,6 +277,7 @@ export default class Bind {
           element: element,
           expression: element.getAttribute(attrName) || '',
           isAffectedBy: [],
+          attribute: attrName
         });
         callback(handler);
         return handler;
@@ -298,6 +299,7 @@ export default class Bind {
           element: element,
           expression: current.value.input || '',
           isAffectedBy: [],
+          attribute: null
         });
         current = matches.next();
         callback(handler);
@@ -323,15 +325,13 @@ export default class Bind {
   private cleanHandlers(dataKey: string) {
     let DataHandler = this.DataBindHandlers[dataKey];
     let current = DataHandler.affects.length - 1;
-    // Remove from end to start to avoid indexes shifting while
+    // Remove from last to first to avoid indexes shifting while
     // removing
     while (current >= 0) {
       let isConnected = DataHandler.affects[current].element.isConnected;
       if (!isConnected) DataHandler.affects.splice(current, 1);
       current--;
     }
-
-    console.log(this.DataBindHandlers[dataKey]);
   }
 
   isMouseEventType(keyInput: BindTypes): keyInput is BindMouseEventTypes {

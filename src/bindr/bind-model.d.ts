@@ -65,6 +65,7 @@ export interface IHTMLBindHandler {
      * Array of property keys that are in the binds property
      */
     isAffectedBy: string[];
+    attribute: string | null;
 }
 export interface IRendererBindMaps {
     [key: string]: IRendererBind;
