@@ -6,7 +6,6 @@ export declare class HTMLBindHandler {
     previous: unknown;
     expression: string;
     HTML?: string;
-    computed?: boolean;
     attribute: string | null;
     constructor(templateBind: IHTMLBindHandler);
     /**

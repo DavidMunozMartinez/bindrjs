@@ -18,7 +18,6 @@ export class HTMLBindHandler {
   previous: unknown;
   expression: string;
   HTML?: string;
-  computed?: boolean = false;
   attribute: string | null;
 
   constructor(templateBind: IHTMLBindHandler) {
