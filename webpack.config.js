@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: './src/index.ts',
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   mode: 'development',
   watch: true,
   module: {
@@ -18,7 +18,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'bundle.js',
+    filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
     library: {
       name: 'Bind',

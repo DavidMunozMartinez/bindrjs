@@ -1,4 +1,4 @@
-import {HTMLBindHandler} from './bind-handler';
+import {HTMLBindHandler} from './bind-handlers/bind-handler';
 
 /**
  * Events triggered for the window object (applies to the <body> tag):

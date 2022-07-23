@@ -3,7 +3,10 @@ import {
   BindHandlers,
   BindTypes,
   IHTMLBindHandler,
-} from './bind-model';
+} from '../bind-model';
+import {evaluateDOMExpression, interpolateText} from '../../utils';
+import {ForEachBindHandler} from './foreach-handler';
+import {IfBindHandler} from './if-handler';
 
 /**
  * These type of binds don't need the original attribute definition, so we clear them from
@@ -62,6 +65,12 @@ export class HTMLBindHandler {
     }
   }
 
+  /**
+   * There are bind types that don't require they attribute in the DOM
+   * after it's been computed, we remove those to keep the DOM clean
+   * and avoid duplicating HTMLBindHandlers in some cases that new
+   * elements are created
+   */
   private RequiresAttr(type: BindTypes): boolean {
     return CleanAttribute.indexOf(type) === -1;
   }
@@ -85,7 +94,7 @@ export class HTMLBindHandler {
     this.element.removeAttribute(`:${type}`);
     this.outerHTML = this.element.outerHTML;
     this.element.replaceWith(markerStart);
-    this.element = (markerStart as unknown as HTMLElement);
+    this.element = markerStart as unknown as HTMLElement;
     this.element.after(markerEnd);
   }
 }
@@ -172,151 +181,8 @@ const bindHandlers: BindHandlers = {
       handler.element.setAttribute(actualAttr, String(handler.result || ''));
     }
   },
-  if: BindIfHandler,
-  foreach: BindForEachHandler,
+  if: IfBindHandler,
+  foreach: ForEachBindHandler,
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };
-
-const InterpolationRegexp = /\${(.*?)}/gm;
-
-function BindIfHandler(handler: HTMLBindHandler, context: unknown): any {
-  let rebind: any = false;
-  if (!handler.outerHTML) return rebind;
-
-  handler.result = Boolean(evaluateDOMExpression(handler.expression, context));
-  if (handler.result !== handler.previous) {
-    if (handler.result) {
-      let temp = document.createElement('div');
-      temp.innerHTML = handler.outerHTML;
-      handler.element.after(temp.children[0]);
-      rebind = handler.element.nextElementSibling;
-    } else if (typeof handler.previous === 'boolean') {
-      handler.element.nextSibling?.remove();
-    }
-  }
-  handler.previous = handler.result;
-  return [rebind];
-}
-
-function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
-  let rebind: any = false;
-  if (!handler.outerHTML) return rebind;
-
-  let temp = document.createElement('div');
-  let expressionVars = handler.expression.split(' in ').map(val => val.trim());
-  let localVar = expressionVars[0];
-  let arrayVar = expressionVars[1];
-  let array: any = evaluateDOMExpression(arrayVar, context) || [];
-
-  if (handler.result && array.length !== (handler.result as Array<any>).length) {
-    // Item could have been pushed, popped of spliced from the array, so
-    // only compute the new element or remove the existing DOM ref
-  } else {
-    // In theory we should not land here if an element in the array was
-    // modified, if that's the case, that specific node should have its own
-    // HTMLBindHandler which should be independent from the :foreach bind
-    // and should compute its own changes.
-  }
-
-  // Clean the previous elements before creating new ones
-  // TODO: Create a solution to update existing DOM elements instead of re-creating
-  // all of them
-  if (array.length) {
-    while (
-      handler.element.nextSibling?.textContent !==
-      `${handler.type}:${handler.expression} end`
-    ) {
-      handler.element.nextElementSibling?.remove();
-    }
-  }
-
-  rebind = [];
-  /**
-   * Look for all instances of the localVar name without taking into account
-   * nested object properties that could have the same name, IE:
-   * localVar = 'data';
-   * match
-   *   V
-   * data.data
-   *                    match
-   *                      V
-   * ${obj.data.count + data.count}
-   * this RegExp is applied to interpolated strings and to bind type attributes
-   */
-  let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
-  let localVarRegexp = new RegExp(findString, 'g');
-  // Iterate it backwards so when we insert the resulting node after the marker
-  // they end up in the right order
-  for (let i = array.length - 1; i > -1; i--) {
-    let nodeString = handler.outerHTML || '';
-    let arrayAtIndex = `${arrayVar}[${i}]`;
-
-    /**Find and replace all instances of the local variable name of the :foreach and
-     * replace it with the array pointing to the index position
-     */
-    temp.innerHTML = `${nodeString.replace(InterpolationRegexp, a => {
-      return a.replace(localVarRegexp, arrayAtIndex);
-    })}\n`;
-
-    let item = temp.children[0];
-    rebind.push(item);
-    handler.element.after(item);
-
-    // Find and interpolate all attributes that need it
-    recurseContainer(item as HTMLElement, el => {
-      if (el.nodeType > 1) return;
-      el.getAttributeNames()
-        // Only iterate bind type attributes
-        .filter(attr => attr.indexOf(':') === 0)
-        .forEach(attr => {
-          // Replace instances of local var name with array pointing to the index position
-          el.setAttribute(
-            attr,
-            el.getAttribute(attr)?.replace(localVarRegexp, arrayAtIndex) || ''
-          );
-        });
-    });
-  }
-
-  handler.result = array;
-  return rebind;
-}
-
-function interpolateText(text: string, context: any) {
-  let matches = text.matchAll(InterpolationRegexp);
-  let current = matches.next();
-  let interpolated = text;
-  while (!current.done) {
-    let primitiveValue = String(
-      evaluateDOMExpression(current.value[1], context)
-    );
-    interpolated = interpolated.replace(current.value[0], primitiveValue);
-    current = matches.next();
-  }
-  return interpolated;
-}
-
-// TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
-function evaluateDOMExpression(expression: string, context?: any): unknown {
-  // I probably need to sanitize this
-  return new Function(`
-      return ${expression};
-    `).apply(context);
-}
-
-function recurseContainer(
-  element: HTMLElement,
-  callback: (element: HTMLElement) => void,
-  ignoreSelf?: boolean
-): any {
-  const root = element;
-  const children = root.childNodes;
-  if (!ignoreSelf) {
-    callback(root);
-  }
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-    recurseContainer(child as HTMLElement, callback);
-  }
-}

@@ -1,4 +1,4 @@
-import { BindTypes, IHTMLBindHandler } from './bind-model';
+import { BindTypes, IHTMLBindHandler } from '../bind-model';
 export declare class HTMLBindHandler {
     type: BindTypes;
     element: HTMLElement;
@@ -14,6 +14,12 @@ export declare class HTMLBindHandler {
      * @param context Context that will be given to the template
      */
     compute(context: any): HTMLElement[] | void;
+    /**
+     * There are bind types that don't require they attribute in the DOM
+     * after it's been computed, we remove those to keep the DOM clean
+     * and avoid duplicating HTMLBindHandlers in some cases that new
+     * elements are created
+     */
     private RequiresAttr;
     /**
      * Hear me out:

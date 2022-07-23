@@ -1,4 +1,4 @@
-import {HTMLBindHandler} from './bind-handler';
+import {HTMLBindHandler} from './bind-handlers/bind-handler';
 import {
   BindTypes,
   BindCodeTypes,
@@ -280,6 +280,7 @@ export default class Bind {
             attribute: attrName
           });
         } else {
+          // All unhandled types can be considered attribute type handlers
           handler = new HTMLBindHandler({
             type: 'attr',
             element: element,
