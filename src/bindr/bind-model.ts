@@ -155,11 +155,6 @@ export interface IHTMLBindHandler {
   previous?: unknown;
   result?: unknown;
   expression: string;
-  /**
-   * Array of property keys that are in the binds property
-   */
-  isAffectedBy: string[];
-  // innerHTML?: string;
   attribute: string | null;
 }
 

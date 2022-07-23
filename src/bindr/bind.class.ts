@@ -199,7 +199,6 @@ export default class Bind {
             this.isCodeBindType(handler.type))
         ) {
           affects.push(handler);
-          handler.isAffectedBy.push(propKey);
         }
       });
       this.DataBindHandlers[propKey] = {affects};
@@ -276,7 +275,6 @@ export default class Bind {
           type: type,
           element: element,
           expression: element.getAttribute(attrName) || '',
-          isAffectedBy: [],
           attribute: attrName
         });
         callback(handler);
@@ -298,7 +296,6 @@ export default class Bind {
           type: 'interpolation',
           element: element,
           expression: current.value.input || '',
-          isAffectedBy: [],
           attribute: null
         });
         current = matches.next();

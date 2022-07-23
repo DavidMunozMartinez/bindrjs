@@ -4,7 +4,6 @@ export declare class HTMLBindHandler {
     element: HTMLElement;
     result: unknown;
     previous: unknown;
-    isAffectedBy: any[];
     expression: string;
     HTML?: string;
     computed?: boolean;

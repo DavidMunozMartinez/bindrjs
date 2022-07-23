@@ -16,7 +16,6 @@ export class HTMLBindHandler {
   element: HTMLElement;
   result: unknown;
   previous: unknown;
-  isAffectedBy: any[];
   expression: string;
   HTML?: string;
   computed?: boolean = false;
@@ -26,7 +25,6 @@ export class HTMLBindHandler {
     this.type = templateBind.type;
     this.element = templateBind.element;
     this.result = null;
-    this.isAffectedBy = templateBind.isAffectedBy;
     this.expression = templateBind.expression;
     this.attribute = templateBind.attribute;
 
