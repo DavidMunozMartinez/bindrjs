@@ -144,7 +144,8 @@ After 5 seconds
   let renderer = new Bind({
     id: 'main-content',
     bind: {
-      dynamicClass: 'test-class' 
+      dynamicClass: 'test-class',
+      isVisible: true
     }
   });
 </script>
@@ -153,7 +154,7 @@ After 5 seconds
 
 ```html
 <div id="main-content"><div>
-  <div :class="this.dynamicClass" class="test-class"></div>
+  <div :class="this.dynamicClass" :class:show="this.isVisible" class="test-class show"></div>
 </div>
 ```
 
