@@ -17,7 +17,7 @@ export class HTMLBindHandler {
   result: unknown;
   previous: unknown;
   expression: string;
-  HTML?: string;
+  outerHTML?: string;
   attribute: string | null;
 
   constructor(templateBind: IHTMLBindHandler) {
@@ -54,7 +54,7 @@ export class HTMLBindHandler {
       try {
         return bindHandlers[this.type](this, context);
       } catch (error: any) {
-        let errorAt = this.HTML ? this.HTML : this.element;
+        let errorAt = this.outerHTML ? this.outerHTML : this.element;
         throw new Error(
           `Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message} `
         );
@@ -83,7 +83,7 @@ export class HTMLBindHandler {
      * of handlers get evaluates/re-attached to DOM
      */
     this.element.removeAttribute(`:${type}`);
-    this.HTML = this.element.outerHTML;
+    this.outerHTML = this.element.outerHTML;
     this.element.replaceWith(markerStart);
     this.element = (markerStart as unknown as HTMLElement);
     this.element.after(markerEnd);
@@ -177,13 +177,13 @@ const InterpolationRegexp = /\${(.*?)}/gm;
 
 function BindIfHandler(handler: HTMLBindHandler, context: unknown): any {
   let rebind: any = false;
-  if (!handler.HTML) return rebind;
+  if (!handler.outerHTML) return rebind;
 
   handler.result = Boolean(evaluateDOMExpression(handler.expression, context));
   if (handler.result !== handler.previous) {
     if (handler.result) {
       let temp = document.createElement('div');
-      temp.innerHTML = handler.HTML;
+      temp.innerHTML = handler.outerHTML;
       handler.element.after(temp.children[0]);
       rebind = handler.element.nextElementSibling;
     } else if (typeof handler.previous === 'boolean') {
@@ -196,7 +196,7 @@ function BindIfHandler(handler: HTMLBindHandler, context: unknown): any {
 
 function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   let rebind: any = false;
-  if (!handler.HTML) return rebind;
+  if (!handler.outerHTML) return rebind;
 
   let temp = document.createElement('div');
   let expressionVars = handler.expression.split('in').map(val => val.trim());
@@ -244,7 +244,7 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
   for (let i = array.length - 1; i > -1; i--) {
-    let nodeString = handler.HTML || '';
+    let nodeString = handler.outerHTML || '';
     let arrayAtIndex = `${arrayVar}[${i}]`;
 
     /**Find and replace all instances of the local variable name of the :foreach and

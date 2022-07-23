@@ -5,7 +5,7 @@ export declare class HTMLBindHandler {
     result: unknown;
     previous: unknown;
     expression: string;
-    HTML?: string;
+    outerHTML?: string;
     attribute: string | null;
     constructor(templateBind: IHTMLBindHandler);
     /**
