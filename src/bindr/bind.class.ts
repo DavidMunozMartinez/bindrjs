@@ -217,7 +217,7 @@ export default class Bind {
     }
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      this.recurseContainer(<HTMLElement>child, callback);
+      this.recurseContainer(child as HTMLElement, callback);
     }
   }
 
@@ -270,7 +270,7 @@ export default class Bind {
       .filter(attrName => attrName.indexOf(':') > -1)
       .map(attrName => {
         const type: BindTypes =
-          BindValues[BindValues.indexOf(<BindTypes>attrName.split(':')[1])];
+          BindValues[BindValues.indexOf(attrName.split(':')[1] as BindTypes)];
         const handler = new HTMLBindHandler({
           type: type,
           element: element,

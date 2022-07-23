@@ -85,7 +85,7 @@ export class HTMLBindHandler {
     this.element.removeAttribute(`:${type}`);
     this.HTML = this.element.outerHTML;
     this.element.replaceWith(markerStart);
-    this.element = <HTMLElement>(<unknown>markerStart);
+    this.element = (markerStart as unknown as HTMLElement);
     this.element.after(markerEnd);
   }
 }
@@ -204,7 +204,7 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   let arrayVar = expressionVars[1];
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
 
-  if (handler.result && array.length !== (<Array<any>>handler.result).length) {
+  if (handler.result && array.length !== (handler.result as Array<any>).length) {
     // Item could have been pushed, popped of spliced from the array, so
     // only compute the new element or remove the existing DOM ref
   } else {
@@ -259,7 +259,7 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
     handler.element.after(item);
 
     // Find and interpolate all attributes that need it
-    recurseContainer(<HTMLElement>item, el => {
+    recurseContainer(item as HTMLElement, el => {
       if (el.nodeType > 1) return;
       el.getAttributeNames()
         // Only iterate bind type attributes
@@ -312,6 +312,6 @@ function recurseContainer(
   }
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
-    recurseContainer(<HTMLElement>child, callback);
+    recurseContainer(child as HTMLElement, callback);
   }
 }
