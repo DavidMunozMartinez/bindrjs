@@ -164,8 +164,13 @@ const bindHandlers: BindHandlers = {
   style: (bind: HTMLBindHandler) => {
     throw new Error('style binding not implemented yet.');
   },
-  attr: (bind: HTMLBindHandler) => {
-    throw new Error('attr binding not implemented yet.');
+  attr: (handler: HTMLBindHandler, context: any) => {
+    let value = handler.element.getAttribute(handler.attribute || '');
+    let actualAttr = handler.attribute?.split(':')[1] || '';
+    if (value && actualAttr) {
+      handler.result = evaluateDOMExpression(handler.expression, context);
+      handler.element.setAttribute(actualAttr, String(handler.result || ''));
+    }
   },
   if: BindIfHandler,
   foreach: BindForEachHandler,
@@ -199,7 +204,7 @@ function BindForEachHandler(handler: HTMLBindHandler, context: unknown): any {
   if (!handler.outerHTML) return rebind;
 
   let temp = document.createElement('div');
-  let expressionVars = handler.expression.split('in').map(val => val.trim());
+  let expressionVars = handler.expression.split(' in ').map(val => val.trim());
   let localVar = expressionVars[0];
   let arrayVar = expressionVars[1];
   let array: any = evaluateDOMExpression(arrayVar, context) || [];

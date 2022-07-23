@@ -102,6 +102,7 @@ export const BindHTMLValues = [
   'innertext',
   'interpolation',
   'class',
+  'attr'
 ] as const;
 export type BindHTMLTypes = typeof BindHTMLValues[number];
 

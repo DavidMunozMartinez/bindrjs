@@ -271,12 +271,22 @@ export default class Bind {
       .map(attrName => {
         const type: BindTypes =
           BindValues[BindValues.indexOf(attrName.split(':')[1] as BindTypes)];
-        const handler = new HTMLBindHandler({
-          type: type,
-          element: element,
-          expression: element.getAttribute(attrName) || '',
-          attribute: attrName
-        });
+        let handler: HTMLBindHandler;
+        if (type) {
+          handler = new HTMLBindHandler({
+            type: type,
+            element: element,
+            expression: element.getAttribute(attrName) || '',
+            attribute: attrName
+          });
+        } else {
+          handler = new HTMLBindHandler({
+            type: 'attr',
+            element: element,
+            expression: element.getAttribute(attrName) || '',
+            attribute: attrName
+          });
+        }
         callback(handler);
         return handler;
       });

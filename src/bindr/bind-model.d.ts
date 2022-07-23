@@ -23,9 +23,9 @@ export declare const BindEventValues: ("onafterprint" | "onbeforeprint" | "onbef
  */
 export declare const BindCodeTypeValues: readonly ["if", "foreach"];
 export declare type BindCodeTypes = typeof BindCodeTypeValues[number];
-export declare const BindHTMLValues: readonly ["innerhtml", "innertext", "interpolation", "class"];
+export declare const BindHTMLValues: readonly ["innerhtml", "innertext", "interpolation", "class", "attr"];
 export declare type BindHTMLTypes = typeof BindHTMLValues[number];
-export declare const BindValues: readonly ["innerhtml", "innertext", "interpolation", "class", "if", "foreach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
+export declare const BindValues: readonly ["innerhtml", "innertext", "interpolation", "class", "attr", "if", "foreach", ...("onafterprint" | "onbeforeprint" | "onbeforeunload" | "onerror" | "onhashchange" | "onload" | "onmessage" | "onoffline" | "ononline" | "onpagehide" | "onpageshow" | "onpopstate" | "onresize" | "onstorage" | "onunload" | "onblur" | "onchange" | "oncontextmenu" | "onfocus" | "oninput" | "oninvalid" | "onreset" | "onsearch" | "onselect" | "onsubmit" | "onkeydown" | "onkeypress" | "onkeyup" | "onclick" | "ondblclick" | "onmousedown" | "onmousemove" | "onmouseout" | "onmouseover" | "onmouseup" | "onmousewheel" | "onwheel" | "ondrag" | "ondragend" | "ondragenter" | "ondragleave" | "ondragover" | "ondragstart" | "ondrop" | "onscroll" | "oncopy" | "oncut" | "onpaste")[]];
 export declare type BindTypes = typeof BindValues[number];
 export declare type BindHandlers = {
     [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement[] | void;
