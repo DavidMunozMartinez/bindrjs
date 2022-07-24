@@ -227,7 +227,7 @@ export default class Bind {
   }
 
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
-    let ignoreRoot = !!container;
+    // let ignoreRoot = !!container;
     container = (container ? container : this.container) || null;
     const htmlHandlers: HTMLBindHandler[] = [];
     this.recurseContainer(
@@ -248,7 +248,7 @@ export default class Bind {
             break;
         }
       },
-      ignoreRoot
+      // ignoreRoot
     );
 
     let rebinds: HTMLElement[] = [];

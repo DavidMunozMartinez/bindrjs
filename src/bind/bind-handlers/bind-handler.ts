@@ -140,7 +140,6 @@ const bindHandlers: BindHandlers = {
     let splitAttribute =
       (handler.attribute && handler.attribute.split(BindingChar)) || [];
     let isBooleanClass = splitAttribute.length > 2;
-    // let apply: boolean = true;
     if (isBooleanClass) {
       // The class that we want to apply is in the second part of the attribute
       handler.result = splitAttribute[2];
@@ -173,7 +172,6 @@ const bindHandlers: BindHandlers = {
   },
   style: (handler: HTMLBindHandler, context: any) => {
     handler.result = evaluateDOMExpression(handler.expression, context) || {};
-    // let styles = handler.result || {};
     handler.element;
     let styleProps = Object.keys(handler.result); 
     // // let element = handler.element as Element;

@@ -1,0 +1,49 @@
+
+
+#navbar {
+  float: left;
+  width: 150px;
+  height: 100%;
+  text-align: center;
+  padding: 10px;
+}
+
+.code-ref {
+  /* color: #9cdcfe; */
+  text-align: center;
+}
+
+.Interpolation .code-ref {
+  /* color: #d4d4d4; */
+}
+
+.navbar-button {
+    /* height: 30px; */
+    margin-bottom: 10px;
+    background-color: rgb(148, 148, 180);
+    vertical-align: middle;
+    width: 90%;
+    background: lavender;
+    border-radius: 5px;
+    /* border: none; */
+    /* outline: none; */
+    /* background-color: #1e1e1e; */
+    color: black;
+    display: inline-block;
+    font-size: 14px;
+    text-decoration: none;
+    /* color: #d4d4d4; */
+    padding: 10px;
+    box-sizing: border-box;
+
+}
+
+.content {
+  padding: 10px;
+  width: calc(100% - 150px);
+  height: 100%;
+  overflow: scroll;
+  float: right;
+  padding-bottom: 500px;
+  box-sizing: border-box;
+}
