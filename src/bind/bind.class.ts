@@ -14,6 +14,8 @@ import {
   IRendererBindMaps,
 } from './bind-model';
 
+import {recurseElementNodes} from '../utils';
+
 export default class Bind {
   bind: object = {};
   bindAs?: string | null;
@@ -69,17 +71,11 @@ export default class Bind {
       template.then((templateString: string) => {
         this.container.innerHTML = templateString;
         this.bind = this.objectProxy(data.bind || {}, 'this');
-        this.templateRendered();
-        this.defineBinds();
-        this.templateBinded();
-        this.ready();
+        this.initTemplate();
       });
     } else {
       this.bind = this.objectProxy(data.bind || {}, 'this');
-      this.templateRendered();
-      this.defineBinds();
-      this.templateBinded();
-      this.ready();
+      this.initTemplate();
     }
   }
 
@@ -143,6 +139,13 @@ export default class Bind {
         return true;
       },
     };
+  }
+
+  private initTemplate() {
+    this.templateRendered();
+    this.defineBinds();
+    this.templateBinded();
+    this.ready();
   }
 
   /**
@@ -218,46 +221,25 @@ export default class Bind {
     return propKey.indexOf(expression) > -1 || expression.indexOf(propKey) > -1;
   }
 
-  private recurseContainer(
-    element: HTMLElement,
-    callback: (element: HTMLElement) => void,
-    ignoreSelf?: boolean
-  ): any {
-    const root = element;
-    const children = root.childNodes;
-    if (!ignoreSelf) {
-      callback(root);
-    }
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      this.recurseContainer(child as HTMLElement, callback);
-    }
-  }
-
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
-    // let ignoreRoot = !!container;
-    container = (container ? container : this.container) || null;
+    container = container ? container : this.container;
     const htmlHandlers: HTMLBindHandler[] = [];
-    this.recurseContainer(
-      container,
-      node => {
-        switch (node.nodeType) {
-          // Element
-          case 1:
-            this.getAttrBindsFromElement(node, handler => {
-              htmlHandlers.push(handler);
-            });
-            break;
-          // Text
-          case 3:
-            this.getInterpolationBindsFromElement(node, handler => {
-              htmlHandlers.push(handler);
-            });
-            break;
-        }
-      },
-      // ignoreRoot
-    );
+    recurseElementNodes(container, node => {
+      switch (node.nodeType) {
+        // Element
+        case 1:
+          this.getAttrBindsFromElement(node, handler => {
+            htmlHandlers.push(handler);
+          });
+          break;
+        // Text
+        case 3:
+          this.getInterpolationBindsFromElement(node, handler => {
+            htmlHandlers.push(handler);
+          });
+          break;
+      }
+    });
 
     let rebinds: HTMLElement[] = [];
     // Compute handlers at the end to avoid DOM modifier binds to

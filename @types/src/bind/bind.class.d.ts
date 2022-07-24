@@ -32,6 +32,7 @@ export default class Bind {
     private objectProxy;
     private isArray;
     private objectProxyHandler;
+    private initTemplate;
     /**
      * Finds the BindHandlers that are affected by the updated property and
      * re-computes any necessary DOM changes
@@ -47,7 +48,6 @@ export default class Bind {
      */
     private defineBinds;
     private propKeyUsedInExpression;
-    private recurseContainer;
     private getTemplateBinds;
     private getAttrBindsFromElement;
     /**Maybe execute this in the entire container once to allow for string interpolation anywhere? */
