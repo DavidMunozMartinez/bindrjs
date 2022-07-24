@@ -5,10 +5,9 @@ let InterpolationBind = new Bind({
   bind: {
     text: 'Hello from interpolation.js',
     counter: 0,
-    usage: '\${string}'
     multiplier: 1,
   },
-});`
+});`;
 
 let InterpolationBind = new Bind({
   id: 'interpolation-example',
@@ -17,13 +16,22 @@ let InterpolationBind = new Bind({
     text: 'Hello from interpolation.js',
     counter: 0,
     multiplier: 1,
-    usage: '${string}',
     PreBindHTMLCode: '',
-    JSCode: js
+    JSCode: js,
   },
   templateRendered: () => {
-    let html = InterpolationBind.container.getElementsByClassName('example')[0].innerHTML;
-    InterpolationBind.bind.PreBindHTMLCode = Prism.highlight(html, Prism.languages.markup, 'markup');
-    InterpolationBind.bind.JSCode = Prism.highlight(js, Prism.languages.javascript, 'javascript');
-  }
+    let html =
+      InterpolationBind.container.getElementsByClassName('example')[0]
+        .innerHTML;
+    InterpolationBind.bind.PreBindHTMLCode = Prism.highlight(
+      html,
+      Prism.languages.markup,
+      'markup'
+    );
+    InterpolationBind.bind.JSCode = Prism.highlight(
+      js,
+      Prism.languages.javascript,
+      'javascript'
+    );
+  },
 });

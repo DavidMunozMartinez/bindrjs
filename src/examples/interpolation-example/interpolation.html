@@ -12,11 +12,8 @@
     </div>
 
     <div>
-      This has multiple interpolations: ${this.text} ${this.counter}
-      <div>
-        ${this.counter} * <input type="number" style="width: 50px;" :oninput="this.multiplier = event.target.value"> =
-        ${this.counter * this.multiplier}
-      </div>
+      ${this.counter} * <input type="number" style="width: 50px;" :oninput="this.multiplier = event.target.value"> =
+      ${this.counter * this.multiplier}
     </div>
   </div>
 

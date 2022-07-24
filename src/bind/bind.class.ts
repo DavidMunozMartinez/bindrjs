@@ -144,8 +144,10 @@ export default class Bind {
   private initTemplate() {
     this.templateRendered();
     this.defineBinds();
-    this.templateBinded();
-    this.ready();
+    setTimeout(() => {
+      this.templateBinded();
+      this.ready();
+    });
   }
 
   /**
