@@ -1,4 +1,7 @@
-
+body {
+  /* background: */
+  background: #1e1e1e;
+}
 
 #navbar {
   float: left;
@@ -27,7 +30,6 @@
     border-radius: 5px;
     /* border: none; */
     /* outline: none; */
-    /* background-color: #1e1e1e; */
     color: black;
     display: inline-block;
     font-size: 14px;
