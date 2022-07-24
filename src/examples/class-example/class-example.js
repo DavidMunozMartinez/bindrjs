@@ -18,7 +18,7 @@ let ClassExample = new Bind({
       width: '50px',
       borderRadius: '50%',
       transform: 'translate(225px,175px)',
-      backgroundColor: 'black',
+      backgroundColor: 'lightgray',
       position: 'absolute',
       pointerEvents: 'none',
       transition: 'transform 2000ms cubic-bezier(.17,.67,.26,.92)',

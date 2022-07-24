@@ -54,6 +54,8 @@ export interface IBind {
      * Executed once all bindings have been checked for the container
      */
     ready: () => void;
+    templateRendered: () => void;
+    templateBinded: () => void;
 }
 export interface IHTMLBindHandler {
     element: HTMLElement;

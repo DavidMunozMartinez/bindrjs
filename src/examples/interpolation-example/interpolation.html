@@ -1,15 +1,32 @@
-<h2>Interpolation bind test </h2>
-<div>
-  ${this.text}
-</div>
+<div class="example-section">
+  <div class="example">
+    <h2>Interpolation bind:</h2>
+    <div>
+      This value is interpolated: ${this.text}
+    </div>
+    <div>
+      This is an interpolated counter:
+      <button class="btn btn-outline-primary" :onclick="this.counter--"> - </button>
+      <span style="width: 30px; display: inline-block; text-align: center;">${this.counter}</span>
+      <button class="btn btn-outline-primary" :onclick="this.counter++"> + </button>
+    </div>
 
-<div>
-  This has multiple interpolations in one line: ${this.text} ${this.counter}
-</div>
+    <div>
+      This has multiple interpolations: ${this.text} ${this.counter}
+      <div>
+        ${this.counter} * <input type="number" style="width: 50px;" :oninput="this.multiplier = event.target.value"> =
+        ${this.counter * this.multiplier}
+      </div>
+    </div>
+  </div>
 
-<div>
-  This is an interpolated counter: 
-  <button class="btn btn-outline-primary" :onclick="this.counter--"> - </button>
-  ${this.counter}
-  <button class="btn btn-outline-primary" :onclick="this.counter++"> + </button>
+  <h3>Code: </h3>
+  <div>
+    Javascript:
+    <div class="code-block js" style="white-space: pre-wrap" :innerhtml="this.JSCode"></div>
+  </div>
+  <div>
+    HTML:
+    <div class="code-block" style="white-space: pre-wrap" :innerhtml="this.PreBindHTMLCode"></div>
+  </div>
 </div>

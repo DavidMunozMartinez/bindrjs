@@ -6,11 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <script src="../../dist/index.js" defer></script>
+  <script src="examples.js" defer></script>
   <script src="if-example/if-example.js" defer></script>
   <script src="interpolation-example/interpolation.js" defer></script>
   <script src="foreach-example/foreach-example.js" defer></script>
   <script src="class-example/class-example.js" defer></script>
-  <script src="examples.js" defer></script>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,11 +21,19 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"
                         integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
                         crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/themes/prism.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/prism.min.js"></script>
+  <script>
+    window.Prism.manual = true;
+  </script>
+
 </head>
+
 <body class="bg-dark text-light">
   <!-- To run this examples run "npm run examples" -->
   <div id="navbar" class="left-navbar">
-    <a :foreach="bindType in this.bindTypes" class="btn btn-outline-primary navbar-button" :class="bindType.name" :href="bindType.anchor">
+    <a :foreach="bindType in this.bindTypes" class="btn btn-outline-primary navbar-button" :class="bindType.name"
+                          :href="bindType.anchor">
       <!-- ${bindType.name}: -->
       <div class="code-ref">
         ${bindType.codeRef}

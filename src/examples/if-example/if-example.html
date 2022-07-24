@@ -1,17 +1,19 @@
-<div>
-  <h2> If bind test: </h2>
-  <input type="text" bind:oninput="this.text = event.target.value">
-  <span :if="this.text">
-    Input has a value: ${this.text}
-
-    <!-- Nested If bind test -->
-    <div :if="this.text && this.text.length > 5">
-      Text is to long ( ͡° ͜ʖ ͡°)
-      <div>
-        it has: ${this.text.length} characters
+<div class="example-section">
+  <div>
+    <h2> If bind test: </h2>
+    <input type="text" bind:oninput="this.text = event.target.value">
+    <span :if="this.text">
+      Input has a value: ${this.text}
+  
+      <!-- Nested If bind test -->
+      <div :if="this.text && this.text.length > 5">
+        Text is to long ( ͡° ͜ʖ ͡°)
+        <div>
+          it has: ${this.text.length} characters
+        </div>
       </div>
-    </div>
-  </span>
-
-  <span :if="!this.text">Input does NOT have a value</span>
+    </span>
+  
+    <span :if="!this.text">Input does NOT have a value</span>
+  </div>
 </div>

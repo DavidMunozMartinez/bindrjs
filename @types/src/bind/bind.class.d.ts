@@ -3,6 +3,8 @@ export default class Bind {
     bind: object;
     bindAs?: string | null;
     ready: () => void;
+    templateRendered: () => void;
+    templateBinded: () => void;
     private id;
     private container;
     /**

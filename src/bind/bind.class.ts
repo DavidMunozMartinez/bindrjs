@@ -18,6 +18,8 @@ export default class Bind {
   bind: object = {};
   bindAs?: string | null;
   ready: () => void;
+  templateRendered: () => void;
+  templateBinded: () => void;
   private id: string;
   private container!: HTMLElement;
 
@@ -49,6 +51,8 @@ export default class Bind {
     this.id = data.id;
     this.bindAs = data.bindAs || null;
     this.ready = data.ready || Function();
+    this.templateRendered = data.templateRendered || Function();
+    this.templateBinded = data.templateBinded || Function();
     const container = document.getElementById(this.id);
     let template;
     if (data.template) {
@@ -65,12 +69,16 @@ export default class Bind {
       template.then((templateString: string) => {
         this.container.innerHTML = templateString;
         this.bind = this.objectProxy(data.bind || {}, 'this');
+        this.templateRendered();
         this.defineBinds();
+        this.templateBinded();
         this.ready();
       });
     } else {
       this.bind = this.objectProxy(data.bind || {}, 'this');
+      this.templateRendered();
       this.defineBinds();
+      this.templateBinded();
       this.ready();
     }
   }

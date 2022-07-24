@@ -17,24 +17,19 @@ body {
 }
 
 .Interpolation .code-ref {
-  /* color: #d4d4d4; */
 }
 
 .navbar-button {
-    /* height: 30px; */
     margin-bottom: 10px;
     background-color: rgb(148, 148, 180);
     vertical-align: middle;
     width: 90%;
     background: lavender;
     border-radius: 5px;
-    /* border: none; */
-    /* outline: none; */
     color: black;
     display: inline-block;
     font-size: 14px;
     text-decoration: none;
-    /* color: #d4d4d4; */
     padding: 10px;
     box-sizing: border-box;
 
@@ -48,4 +43,58 @@ body {
   float: right;
   padding-bottom: 500px;
   box-sizing: border-box;
+}
+
+#interpolation-example,
+#class-example,
+#if-example,
+#foreach-example {
+  display: flex;
+  flex-direction: row;
+}
+
+.example-section {
+  padding: 30px;
+  justify-content: center;
+  width: calc(100% - 20px);
+  border: 1px solid var(--bs-gray-800);
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
+
+.code-block {
+  background-color: #1e1e1e;
+  font-family: 'Monaco';
+  font-size: 13px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.code-block.js {
+  color: #9cdcfe;
+}
+
+.token.tag,
+.token.keyword {
+  color: #569cd6 !important;
+}
+.token.attr-name {
+  color: #9cdcfe !important;
+}
+.token.attr-value,
+.token.string {
+  color: #ce9178!important;
+}
+.token.property {
+  color: #d7ba7d !important;
+}
+.token.number {
+  color: #b5cea8 !important
+}
+.token.class-name {
+  color: #4ec9b0 !important;
+}
+.token.operator {
+  color: #999 !important;
+  background-color: unset !important;
 }
