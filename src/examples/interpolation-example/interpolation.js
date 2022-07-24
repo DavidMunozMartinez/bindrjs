@@ -24,7 +24,6 @@ let InterpolationBind = new Bind({
   templateRendered: () => {
     let html = InterpolationBind.container.getElementsByClassName('example')[0].innerHTML;
     InterpolationBind.bind.PreBindHTMLCode = Prism.highlight(html, Prism.languages.markup, 'markup');
-
     InterpolationBind.bind.JSCode = Prism.highlight(js, Prism.languages.javascript, 'javascript');
   }
 });

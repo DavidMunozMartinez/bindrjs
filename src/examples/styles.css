@@ -75,7 +75,8 @@ body {
 }
 
 .token.tag,
-.token.keyword {
+.token.keyword,
+.token.boolean {
   color: #569cd6 !important;
 }
 .token.attr-name {
@@ -97,4 +98,7 @@ body {
 .token.operator {
   color: #999 !important;
   background-color: unset !important;
+}
+.token.function {
+  color: #dcdcaa !important; 
 }

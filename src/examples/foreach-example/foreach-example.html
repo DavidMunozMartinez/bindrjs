@@ -1,38 +1,50 @@
 <div class="example-section">
-  <h2> For each test: </h2>
-<div>
-  <h2>Simple array of strings: </h2>
-  <button class="btn btn-sm btn-outline-primary" :onclick="this.add()">Add</button>${this.simpleArray.length}
-  <ul>
-    <li :foreach="data in this.simpleArray">
-      This is a repeated element: ${data}
-    </li>
-  </ul>
-</div>
-<div>
-  <h2>Array of objects: </h2>
-  <button class="btn btn-sm btn-outline-primary" :onclick="this.addObj()">Add Obj</button>${this.objArray.length}
-  <ul>
-    <li :foreach="data in this.objArray">
-      ${data.data}
-      <span :if="data.timestamp">
-        At: ${data.timestamp}
-      </span>
-    </li>
-  </ul>
-</div>
+  <div class="example">
+    <h2> For each test: </h2>
+    <div>
+      <h2>Simple array of strings: </h2>
+      <button class="btn btn-sm btn-outline-primary" :onclick="this.add()">Add</button>${this.simpleArray.length}
+      <ul>
+        <li :foreach="data in this.simpleArray">
+          This is a repeated element: ${data}
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h2>Array of objects: </h2>
+      <button class="btn btn-sm btn-outline-primary" :onclick="this.addObj()">Add Obj</button>${this.objArray.length}
+      <ul>
+        <li :foreach="data in this.objArray">
+          ${data.data}
+          <span :if="data.timestamp">
+            At: ${data.timestamp}
+          </span>
+        </li>
+      </ul>
+    </div>
 
-<div>
-  <h2>Nested arrays: </h2>
-  <ul :foreach="nested in this.nestedArrays">
-    <button class="btn btn-sm btn-outline-primary" :onclick="this.addToReference(nested.children)">
-      Add to ${nested.data}
-    </button>
-    ${nested.data}'s children: ${nested.children.length}
-    <li :foreach="child in nested.children">
-      ${child}
-    </li>
-  </ul>
-  </button>
-</div>
+    <div>
+      <h2>Nested arrays: </h2>
+      <ul :foreach="nested in this.nestedArrays">
+        <button class="btn btn-sm btn-outline-primary" :onclick="this.addToReference(nested.children)">
+          Add to ${nested.data}
+        </button>
+        ${nested.data}'s children: ${nested.children.length}
+        <li :foreach="child in nested.children">
+          ${child}
+        </li>
+      </ul>
+      </button>
+    </div>
+
+  </div>
+  <h3>Code: </h3>
+  <div>
+    Javascript:
+    <div class="code-block js" style="white-space: pre-wrap" :innerhtml="this.JSCode"></div>
+  </div>
+  <div>
+    HTML:
+    <div class="code-block" style="white-space: pre-wrap" :innerhtml="this.PreBindHTMLCode"></div>
+  </div>
 </div>

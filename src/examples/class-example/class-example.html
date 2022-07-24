@@ -1,6 +1,5 @@
-<div class="example-section">
-  <h2>Class example</h2>
 
+<div class="example-section">
   <style>
     .idle {
       width: 300px;
@@ -8,89 +7,100 @@
       padding: 20px;
       cursor: pointer;
     }
-
+  
     .sleepy {
       animation-iteration-count: infinite;
     }
-
+  
     .idle.tickle-tickle {
       animation: shake 0.5s;
       animation-iteration-count: 1;
     }
-
+  
     p {
       margin: 0;
       margin-bottom: 10px;
     }
-
+  
     @keyframes shake {
       0% {
         transform: translate(1px, 1px) rotate(0deg);
       }
-
+  
       10% {
         transform: translate(-1px, -2px) rotate(-1deg);
       }
-
+  
       20% {
         transform: translate(-3px, 0px) rotate(1deg);
       }
-
+  
       30% {
         transform: translate(3px, 2px) rotate(0deg);
       }
-
+  
       40% {
         transform: translate(1px, -1px) rotate(1deg);
       }
-
+  
       50% {
         transform: translate(-1px, 2px) rotate(-1deg);
       }
-
+  
       60% {
         transform: translate(-3px, 1px) rotate(0deg);
       }
-
+  
       70% {
         transform: translate(3px, 1px) rotate(-1deg);
       }
-
+  
       80% {
         transform: translate(-1px, -1px) rotate(1deg);
       }
-
+  
       90% {
         transform: translate(1px, 2px) rotate(0deg);
       }
-
+  
       100% {
         transform: translate(1px, -2px) rotate(-1deg);
       }
     }
   </style>
-
-  <div class="idle" :class="this.className" :class:boolean-class="this.booleanClass" :onclick="this.tickle()">
-    <div>
-      Attribute [:class]
-      <p>
-        adds a class based on a binded string
-      </p>
-    </div>
-
-    <div>
-      Attribute [:class:(class-name)]
-      <p>
-        adds the class defined in the attribute
-        based on truthy evaluation of the binded
-        property
-      </p>
-    </div>
-
-    Click me to apply a class for 0.5s
-    <div>
-      ${this.className}
+  <div class="example">
+    <h2>Class example</h2>
+    <div class="idle" :class="this.className" :class:boolean-class="this.booleanClass" :onclick="this.tickle()">
+      <div>
+        Attribute [:class]
+        <p>
+          adds a class based on a binded string
+        </p>
+      </div>
+  
+      <div>
+        Attribute [:class:(class-name)]
+        <p>
+          adds the class defined in the attribute
+          based on truthy evaluation of the binded
+          property
+        </p>
+      </div>
+  
+      Click me to apply a class for 0.5s
+      <div>
+        ${this.className}
+      </div>
     </div>
   </div>
 
+  <h2>Code: </h2>
+  <div>
+    Javascript:
+    <div class="code-block js" style="white-space: pre-wrap" :innerhtml="this.JSCode"></div>
+  </div>
+  <div>
+    HTML:
+    <div class="code-block" style="white-space: pre-wrap" :innerhtml="this.PreBindHTMLCode"></div>
+  </div>
 </div>
