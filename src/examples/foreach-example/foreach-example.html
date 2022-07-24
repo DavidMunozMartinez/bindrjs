@@ -6,12 +6,6 @@
   <ul>
     <li :foreach="data in this.simpleArray">
       This is a repeated element: ${data}
-      <div>
-        And has multiple uses of local var: ${data + '-' + data}
-      </div>
-      <div>
-        We also have the word: "data"
-      </div>
     </li>
   </ul>
 </div>
@@ -30,15 +24,13 @@
 
 <div>
   <h2>Nested arrays: </h2>
-    <button class="btn btn-sm btn-outline-primary" 
-    :foreach="nested in this.nestedArrays"
-    :onclick="this.addToReference(nested.children)">Add to ${nested.data}</button>
-  <ul>
-    <li :foreach="nested in this.nestedArrays">
-      ${nested.data}'s children: ${nested.children.length}
-      <div :foreach="child in nested.children">
-        ${child}
-      </div>
+  <ul :foreach="nested in this.nestedArrays">
+    <button class="btn btn-sm btn-outline-primary" :onclick="this.addToReference(nested.children)">
+      Add to ${nested.data}
+    </button>
+    ${nested.data}'s children: ${nested.children.length}
+    <li :foreach="child in nested.children">
+      ${child}
     </li>
   </ul>
   </button>

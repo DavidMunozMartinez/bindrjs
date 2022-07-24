@@ -13,9 +13,9 @@ let LeftNavbar = new Bind({
       anchor: '#class-example',
       codeRef: ':class'
     }, {
-      id: 'styles-example',
+      id: 'style-example',
       name: 'Styles',
-      anchor: '#styles-example',
+      anchor: '#style-example',
       codeRef: ':style'
     }, {
       id: 'if-example',
