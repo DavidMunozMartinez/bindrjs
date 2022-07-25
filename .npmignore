@@ -7,3 +7,4 @@ webpack.config.js
 tsconfig.json
 node_modules
 dist/index.js.map
+examples
