@@ -1,0 +1,9 @@
+src
+webpack.config.js
+.eslintignore
+.eslintrc.json
+.gitignore
+.prettierrc.json
+tsconfig.json
+node_modules
+dist/index.js.map
