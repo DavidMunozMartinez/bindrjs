@@ -50,6 +50,10 @@ let MainContent = new Bind({
     text: 'Hello world!'
   }
 });
+
+// This is 100% reactive!
+MainContent.bind
+
 // You can access the properties of the Bind instance
 console.log(MainContent.bind.text);
 // > Hello world!
@@ -59,12 +63,12 @@ MainContent.bind.text = 'Changing reactive data';
 // Now any part of the template that depends on "this.text" property WILL automatically be updated accordingly
 ```
 
-NOTE: You are able to add new properties to the bind object after it has been instantiated, and data reactivity might or might not work, I would not recommend to do so yet.
-
+NOTE: If you add new properties to the bind object after it's been instantiated, those will not be reactive, if you need more reactive properties you
+should add all the properties that the template will need with null values when the Bind class is being instantiated
 
 ## Examples
  
-### String interpolation ```${this.<any>}```
+### String interpolation ```${string}```
 
 #### HTML
 ```html
@@ -153,8 +157,35 @@ After 5 seconds
 #### Output:
 
 ```html
-<div id="main-content"><div>
+<div id="main-content">
   <div class="test-class show"></div>
+</div>
+```
+
+### Bind ForEach ```:foreach```
+
+#### HTML
+```html
+<div id="main-content">
+  <div :foreach="value in this.values">
+    ${value}
+  </div>
+</div>
+<script>
+  let renderer = new Bind({
+    id: 'main-content',
+    bind: {
+      values: ['One', 'Two', 'Tree']
+    }
+  });
+</script>
+```
+#### Output:
+```html
+<div id=main-content>
+  <div>One</div>
+  <div>Two</div>
+  <div>Tree</div>
 </div>
 ```
 

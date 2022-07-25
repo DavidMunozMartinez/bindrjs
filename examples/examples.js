@@ -41,3 +41,4 @@ let LeftNavbar = new Bind({
     ],
   },
 });
+

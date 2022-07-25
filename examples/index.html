@@ -30,12 +30,11 @@
 
 </head>
 
+<!-- To run this examples run "npm run examples" -->
 <body class="bg-dark text-light">
-  <!-- To run this examples run "npm run examples" -->
   <div id="navbar" class="left-navbar">
     <a :foreach="bindType in this.bindTypes" class="btn btn-outline-primary navbar-button" :class="bindType.name"
                           :href="bindType.anchor">
-      <!-- ${bindType.name}: -->
       <div class="code-ref">
         ${bindType.codeRef}
       </div>
