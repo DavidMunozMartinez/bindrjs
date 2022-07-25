@@ -2,7 +2,7 @@
   "name": "bindrjs",
   "version": "1.0.0",
   "description": "Don't mind me just re-inventing the wheel",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start": "webpack --mode=development",
     "examples": "live-server --open=examples",
@@ -14,6 +14,10 @@
     "prepare": "npm run compile",
     "pretest": "npm run compile",
     "posttest": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DavidMunozMartinez/bindrjs.git"
   },
   "keywords": [
     "data",
