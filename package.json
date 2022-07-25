@@ -6,14 +6,9 @@
   "scripts": {
     "start": "webpack --mode=development",
     "examples": "live-server --open=examples",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "gts lint",
     "clean": "gts clean",
-    "compile": "webpack",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "compile": "webpack"
   },
   "repository": {
     "type": "git",
