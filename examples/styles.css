@@ -3,11 +3,6 @@ body {
   background: #1e1e1e;
 }
 
-.prop {
-
-  /* color:rgb(148, 148, 180) */
-}
-
 #navbar {
   float: left;
   width: 150px;
@@ -80,6 +75,18 @@ body {
 
 .code-block.js {
   color: #9cdcfe;
+}
+
+.language-shell {
+  color: white !important;
+}
+
+.language-markup,
+.language-shell {
+  background-color: #1e1e1e !important;
+  text-shadow: none !important;
+  border-radius: 10px;
+  width: fit-content !important;
 }
 
 .token.tag,
