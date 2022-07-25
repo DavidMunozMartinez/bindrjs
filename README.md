@@ -10,6 +10,9 @@ You may be interested in this library if you ONLY want to add data binding to yo
 
 This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding data to your HTML
 
+Docs/Showcase:
+https://bindrjs.vercel.app/
+
 ## Add to your project
 
 ### With npm:
