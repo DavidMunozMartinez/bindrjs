@@ -1,29 +1,15 @@
 <div class="example-section">
   <div class="example">
-    <h2> If bind test: </h2>
-    <input type="text" :oninput="this.text = event.target.value">
-    <span :if="this.text">
-      Input has a value: ${this.text}
-
-      <!-- Nested If bind test -->
-      <div :if="this.text && this.text.length > 5">
-        Text is to long ( ͡° ͜ʖ ͡°)
-        <div>
-          it has: ${this.text.length} characters
-        </div>
-      </div>
-    </span>
-
-    <span :if="!this.text">Input does NOT have a value</span>
+    <h2> If Binding: <code>:if</code></h2>
+    <p>
+      The <code>:if</code> binding takes the provided expression and only cares if it evaluates truthy, if it does the content is renderer, if its falsy the content disappears entirely from the DOM
+    </p>
+    <p>
+      Its important to know that whatever bindings are in the contents of the elements that make use of the
+      <code>:if</code>
+      binding are not evaluated if the expression resolves to falsy,
+      only when the expression is evaluated to truthy and the content is actually rendered, only then the children bindings are evaluated and computed
+    </p>
   </div>
-
-  <h3>Code: </h3>
-  <div>
-    Javascript:
-    <div class="code-block js" style="white-space: pre-wrap" :innerhtml="this.JSCode"></div>
-  </div>
-  <div>
-    HTML:
-    <div class="code-block" style="white-space: pre-wrap" :innerhtml="this.PreBindHTMLCode"></div>
-  </div>
+  <iframe width="100%" height="400" src="//jsfiddle.net/Damuz/skq0oevc/3/embedded/html,js,result/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 </div>

@@ -1,41 +1,23 @@
 <style>
-  .idle {
-    width: 300px;
-    border-radius: 5px;
-    padding: 20px;
-    cursor: pointer;
-  }
+
 </style>
 
 <div class="example-section">
   <div class="example">
-    <h2>Style example</h2>
-    <div class="idle" :onmousemove="this.onMouseMove(event)" :onmouseleave="this.onMouseLeave(event)" :style="{
-        border: '1px solid lightgray',
-        height: '400px',
-        width: '500px',
-        position: 'relative',
-        marginTop: '10px'
-      }">
-  
-      <span :if="this.following">
-        I'll follow you forever!
-      </span>
-      <span :if="!this.following && this.following !== null">
-        Where you go?
-      </span>
-  
-      <div class="follower" :style="this.followerStyles">
-      </div>
-    </div>
+    <h2>Style Binding <code>:style</code></h2>
+    <p>
+      You can bind styles to your HTML with the <code>:style</code> attribute by providing an object as a value, each key in the object will represent a css property
+      and the value will represent the property value, remember that multi-word property names needs to be camel cased to be correctly applied.
+    </p>
+    <p>
+      For example <code lang="css"> .class { background-color: red }  </code>
+    </p>
+    <p>
+      Needs to be defined in the object as <code lang="javascript"> let background = { backgroundColor: 'red' } </code>
+    </p>
+    <p>
+      NOTE: Specific property binding like <code>:style:property-name</code> is still not supported
+    </p>
   </div>
-  <h3>Code: </h3>
-  <div>
-    Javascript:
-    <div class="code-block js" style="white-space: pre-wrap" :innerhtml="this.JSCode"></div>
-  </div>
-  <div>
-    HTML:
-    <div class="code-block" style="white-space: pre-wrap" :innerhtml="this.PreBindHTMLCode"></div>
-  </div>
+  <iframe width="100%" height="550" src="//jsfiddle.net/Damuz/w7qc3hgn/16/embedded/html,js,css,result/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 </div>

@@ -3,6 +3,11 @@ body {
   background: #1e1e1e;
 }
 
+.prop {
+
+  /* color:rgb(148, 148, 180) */
+}
+
 #navbar {
   float: left;
   width: 150px;
@@ -62,10 +67,13 @@ body {
   margin-bottom: 30px;
 }
 
-.code-block {
-  background-color: #1e1e1e;
+.code {
   font-family: 'Monaco';
   font-size: 13px;
+}
+
+.code-block {
+  background-color: #1e1e1e;
   padding: 10px;
   border-radius: 10px;
 }

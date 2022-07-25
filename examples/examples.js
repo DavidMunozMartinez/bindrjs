@@ -36,7 +36,7 @@ let LeftNavbar = new Bind({
         id: 'attribute-example',
         name: 'Attribute',
         anchor: '#attribute-example',
-        codeRef: ':[any]',
+        codeRef: ':[attr]',
       },
     ],
   },
