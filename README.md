@@ -10,6 +10,25 @@ You may be interested in this library if you ONLY want to add data binding to yo
 
 This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding data to your HTML
 
+## Add to your project
+
+### With npm:
+
+Install:
+```
+npm i bindrjs
+```
+Add to ```index.html```:
+```html
+<script src="<path_to_node_modules>/dist/index.js"></script> 
+```
+
+### Or add stript tag from unpkg cdn provider:
+```html
+<script src="https://unpkg.com/bindrjs@1.0.0/dist/index.js"></script> 
+```
+
+
 ### Download the code
 
 ```
