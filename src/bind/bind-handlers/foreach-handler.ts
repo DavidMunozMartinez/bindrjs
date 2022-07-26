@@ -26,10 +26,7 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
   // TODO: Create a solution to update existing DOM elements instead of re-creating
   // all of them
   if (array.length) {
-    while (
-      handler.element.nextSibling?.textContent !==
-      `${handler.type}:${handler.expression} end`
-    ) {
+    while (handler.element.nextSibling?.textContent !== `${handler.type}:${handler.expression} end`) {
       handler.element.nextElementSibling?.remove();
     }
   }
@@ -48,7 +45,7 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
    * this RegExp is applied to interpolated strings and to bind type attributes
    */
   let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
-  let localVarRegexp = new RegExp(findString, 'g');
+  // let localVarRegexp = new RegExp(findString, 'g');
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
   for (let i = array.length - 1; i > -1; i--) {
@@ -56,11 +53,15 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
     let arrayAtIndex = `${arrayVar}[${i}]`;
 
     /**
-     * Find and replace all instances of the local variable name of the :foreach and
-     * replace it with the array pointing to the index position
+     * A little hacky but it works:
+     * We add an expression which defines the local var as the array pointing
+     * to the correct index, so when it gets evaluated, all uses of the local var
+     * are correctly evaluated, this removes all complexities around figuring out
+     * a proper regex to replace the pieces of string that make use of the local
+     * var itself
      */
-    temp.innerHTML = `${nodeString.replace(InterpolationRegexp, a => {
-      return a.replace(localVarRegexp, arrayAtIndex);
+    temp.innerHTML = `${nodeString.replace(InterpolationRegexp, (a, b) => {
+      return `\${let ${localVar}=${arrayAtIndex}; return ${b}}`;
     })}\n`;
 
     let item = temp.children[0];
@@ -77,11 +78,12 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
         // Only iterate bind type attributes
         .filter(attr => attr.indexOf(BindingChar) === 0)
         .forEach(attr => {
-          // Replace instances of local var name with array pointing to the index position
-          el.setAttribute(
-            attr,
-            el.getAttribute(attr)?.replace(localVarRegexp, arrayAtIndex) || ''
-          );
+          let attrValue = el.getAttribute(attr) || '';
+          let needsLocalVar = attrValue.indexOf(localVar) > -1;
+          if (needsLocalVar) {
+            let newValue = `let ${localVar}=${arrayAtIndex}; return ${attrValue}`;
+            el.setAttribute(attr, newValue);
+          }
         });
     });
   }

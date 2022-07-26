@@ -1,10 +1,14 @@
-import { InterpolationRegexp } from "./constants";
+import {InterpolationRegexp} from './constants';
 
 // TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
-export function evaluateDOMExpression(expression: string, context?: any): unknown {
+export function evaluateDOMExpression(
+  expression: string,
+  context?: any
+): unknown {
   // I probably need to sanitize this
+  let needsToReturn = expression.indexOf('return') === -1;
   return new Function(`
-      return ${expression};
+    ${needsToReturn ? 'return' : ''} ${expression};
     `).apply(context);
 }
 
