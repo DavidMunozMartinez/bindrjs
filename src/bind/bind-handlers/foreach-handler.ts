@@ -1,8 +1,15 @@
-import { HTMLBindHandler } from "./bind-handler";
-import { evaluateDOMExpression, recurseElementNodes } from "../../utils";
-import { BindingChar, InterpolationRegexp } from "../../constants";
+import {HTMLBindHandler} from './bind-handler';
+import {
+  evaluateDOMExpression,
+  findAndReplaceVariable,
+  recurseElementNodes,
+} from '../../utils';
+import {BindingChar, InterpolationRegexp} from '../../constants';
 
-export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): any {
+export function ForEachBindHandler(
+  handler: HTMLBindHandler,
+  context: unknown
+): any {
   let rebind: any = false;
   if (!handler.outerHTML) return rebind;
 
@@ -12,7 +19,10 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
   let arrayVar = expressionVars[1];
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
 
-  if (handler.result && array.length !== (handler.result as Array<any>).length) {
+  if (
+    handler.result &&
+    array.length !== (handler.result as Array<any>).length
+  ) {
     // Item could have been pushed, popped of spliced from the array, so
     // only compute the new element or remove the existing DOM ref
   } else {
@@ -47,8 +57,10 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
    * ${obj.data.count + data.count}
    * this RegExp is applied to interpolated strings and to bind type attributes
    */
-  let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
-  let localVarRegexp = new RegExp(findString, 'g');
+  // let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
+  // Safari doesn't support look-behind, so we replace old regex with this:
+  // let findString = `^\\b(${localVar})\\b|^[=\\-\\+\\(*\\/\\s](${localVar})`;
+  // let localVarRegexp = new RegExp(findString, 'g');
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
   for (let i = array.length - 1; i > -1; i--) {
@@ -56,34 +68,37 @@ export function ForEachBindHandler(handler: HTMLBindHandler, context: unknown): 
     let arrayAtIndex = `${arrayVar}[${i}]`;
 
     /**
-     * Find and replace all instances of the local variable name of the :foreach and
-     * replace it with the array pointing to the index position
+     * Find and replace all instances of the local variable name used in string
+     * interpolation within the HTML string of the :foreach and replace it with
+     * the array pointing to the index position
      */
-    temp.innerHTML = `${nodeString.replace(InterpolationRegexp, a => {
-      return a.replace(localVarRegexp, arrayAtIndex);
-    })}\n`;
-
+    temp.innerHTML = nodeString.replace(InterpolationRegexp, (a, b) => {
+      return `\${${findAndReplaceVariable(b, localVar, arrayAtIndex)}}`;
+    });
     let item = temp.children[0];
-    rebind.push(item);
-    handler.element.after(item);
 
     /**
-     * Find and replace all instances of local var name in attributes that might
-     * need it
+     * Find and replace all instances of local variable name in attributes that
+     * might need it
      */
+    handler.element.after(item);
     recurseElementNodes(item as HTMLElement, (el: Element) => {
       if (el.nodeType > 1) return;
       el.getAttributeNames()
         // Only iterate bind type attributes
         .filter(attr => attr.indexOf(BindingChar) === 0)
         .forEach(attr => {
-          // Replace instances of local var name with array pointing to the index position
-          el.setAttribute(
-            attr,
-            el.getAttribute(attr)?.replace(localVarRegexp, arrayAtIndex) || ''
+          let value = findAndReplaceVariable(
+            el.getAttribute(attr) || '',
+            localVar,
+            arrayAtIndex
           );
+          // Replace instances of local var name with array pointing to the index position
+          el.setAttribute(attr, value);
         });
     });
+
+    rebind.push(item);
   }
 
   handler.result = array;
