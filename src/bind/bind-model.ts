@@ -152,6 +152,7 @@ export interface IBind {
   ready: () => void;
   templateRendered: () => void;
   templateBinded: () => void;
+  customBinds: {name: string, compute: (handler: HTMLBindHandler, context: any) => HTMLElement[] | null }[]
 }
 
 export interface IHTMLBindHandler {

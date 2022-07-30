@@ -5,8 +5,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BindrJS</title>
-  <!-- <script src="../../dist/index.js" defer></script> -->
-  <script src="https://unpkg.com/bindrjs@1.0.3/dist/index.js" defer></script>
+  <script src="../../dist/index.js" defer></script>
+  <!-- <script src="https://unpkg.com/bindrjs@1.0.3/dist/index.js" defer></script> -->
   <script src="examples.js" defer></script>
   <script src="if-example/if-example.js" defer></script>
   <script src="interpolation-example/interpolation.js" defer></script>
@@ -35,11 +35,16 @@
 <!-- To run this examples run "npm run examples" -->
 <body class="bg-dark text-light">
   <div id="navbar" class="left-navbar">
-    <a :foreach="bindType in this.bindTypes" class="btn btn-outline-primary navbar-button" :class="bindType.name"
-                          :href="bindType.anchor">
-      <div class="code-ref">
+    <a 
+      :foreach="bindType in this.bindTypes"
+      class="btn btn-outline-primary navbar-button"
+      :class="bindType.name"
+      :href="bindType.anchor">
+
+      <div class="code-ref" :test="bindType.testData">
         ${bindType.codeRef}
       </div>
+
     </a>
   </div>
 

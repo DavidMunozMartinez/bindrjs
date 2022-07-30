@@ -23,6 +23,7 @@ export class HTMLBindHandler {
   expression: string;
   outerHTML?: string;
   attribute: string | null;
+  isCustom: string | null = null;
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -188,9 +189,24 @@ const bindHandlers: BindHandlers = {
       handler.result = evaluateDOMExpression(handler.expression, context);
       handler.element.setAttribute(actualAttr, String(handler.result || ''));
     }
+    // Custom handlers are user defined
+    if (handler.isCustom) {
+      return customHandlers[handler.isCustom](handler, context);
+    }
   },
   if: IfBindHandler,
   foreach: ForEachBindHandler,
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };
+
+export const customHandlers: {[key: string]: (handler: HTMLBindHandler, context: any) => void} = {};
+export function AddCustomHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => void) {
+  if (bindHandlers[name as BindTypes]) {
+    throw new Error(`Can't add custom bind handler name: "${name}" since it already exists :(\n
+    If you feel like the bind handler doesn't do what you need, feel free to add a pull/feature request at: \n
+    https://github.com/DavidMunozMartinez/bindrjs/issues\n`)
+  } else {
+    customHandlers[name] = compute;
+  }
+}

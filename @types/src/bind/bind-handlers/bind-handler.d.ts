@@ -7,6 +7,7 @@ export declare class HTMLBindHandler {
     expression: string;
     outerHTML?: string;
     attribute: string | null;
+    isCustom: string | null;
     constructor(templateBind: IHTMLBindHandler);
     /**
      * Can return an array of elements or nothing, if it contains elements
@@ -31,3 +32,7 @@ export declare class HTMLBindHandler {
      */
     private replaceForMarker;
 }
+export declare const customHandlers: {
+    [key: string]: (handler: HTMLBindHandler, context: any) => void;
+};
+export declare function AddCustomHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => void): void;

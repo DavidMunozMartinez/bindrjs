@@ -1,4 +1,4 @@
-import {HTMLBindHandler} from './bind-handlers/bind-handler';
+import {AddCustomHandler, HTMLBindHandler, customHandlers} from './bind-handlers/bind-handler';
 import {
   BindTypes,
   BindCodeTypes,
@@ -65,6 +65,12 @@ export default class Bind {
       this.container = container;
     } else {
       throw new Error('Could not initialize renderer, container not found');
+    }
+
+    if (data.customBinds) {
+      data.customBinds.forEach((customBind) => {
+        AddCustomHandler(customBind.name, customBind.compute);
+      });
     }
 
     if (template) {
@@ -270,8 +276,10 @@ export default class Bind {
       .getAttributeNames()
       .filter(attrName => attrName.indexOf(':') > -1)
       .map(attrName => {
+        let cleanAttrName = attrName.split(':')[1];
         const type: BindTypes =
-          BindValues[BindValues.indexOf(attrName.split(':')[1] as BindTypes)];
+          BindValues[BindValues.indexOf(cleanAttrName as BindTypes)];
+
         let handler: HTMLBindHandler;
         if (type) {
           handler = new HTMLBindHandler({
@@ -288,6 +296,7 @@ export default class Bind {
             expression: element.getAttribute(attrName) || '',
             attribute: attrName,
           });
+          if (customHandlers[cleanAttrName]) handler.isCustom = cleanAttrName;
         }
         callback(handler);
         return handler;
@@ -362,4 +371,10 @@ export default class Bind {
     const test = JSON.parse(JSON.stringify(BindHTMLValues));
     return test.includes(keyInput);
   }
+
+  CustomHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => HTMLElement[] | null) {
+    AddCustomHandler(name, compute);
+  }
 }
+
+// export const AddHandler = AddCustomHandler;

@@ -7,6 +7,7 @@ let LeftNavbar = new Bind({
         name: 'Interpolation',
         anchor: '#interpolation-example',
         codeRef: '${string}',
+        testData: 'something'
       },
       {
         id: 'class-example',
@@ -40,5 +41,18 @@ let LeftNavbar = new Bind({
       },
     ],
   },
+  customBinds: [
+    {
+      name: 'test',
+      compute: (handler, context) => {
+        console.log('Hello from custom handler');
+      }
+    }
+  ]
 });
+setTimeout(() => {
+  LeftNavbar.bind.bindTypes[0].testData = 'SOmething else!';
+  // LeftNavbar.bind.bindTypes[0].name = 'Interpolatioooon';
+}, 2000);
+
 

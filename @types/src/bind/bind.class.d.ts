@@ -1,3 +1,4 @@
+import { HTMLBindHandler } from './bind-handlers/bind-handler';
 import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, IBind } from './bind-model';
 export default class Bind {
     bind: object;
@@ -58,4 +59,5 @@ export default class Bind {
     isKeyboardEventType(keyInput: BindTypes): keyInput is BindKeyboardEventTypes;
     isCodeBindType(keyInput: BindTypes): keyInput is BindCodeTypes;
     isHTMLBindType(keyInput: BindTypes): keyInput is BindHTMLTypes;
+    CustomHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => HTMLElement[] | null): void;
 }
