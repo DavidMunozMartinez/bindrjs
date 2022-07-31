@@ -47,7 +47,7 @@ let LeftNavbar = new Bind({
         id: 'custom-example',
         name: 'Custom',
         anchor: '#custom-example',
-        codeRef: 'Custom bind'
+        codeRef: 'Custom'
       }
     ],
   },

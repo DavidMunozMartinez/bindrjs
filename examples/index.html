@@ -35,9 +35,7 @@
 <!-- To run this examples run "npm run examples" -->
 <body class="bg-dark text-light">
   <div id="navbar" class="left-navbar">
-    <div class="btn navbar-button logo">
-      <!-- <div class="bindr-logo">
-      </div> -->
+    <div class="btn navbar-button logo" title="Logo will go here">
     </div>
 
     <a 
@@ -115,8 +113,11 @@
             <li><code>compute</code>: is the function that will be called every time data attached to this handler changes</li>
           </p>
           <p>
-            NOTE: You have to make sure your custom handlers are defined before any new instance of Bind that might need them
+            NOTES:
+            <li>You have to make sure your custom handlers are defined before any new instance of Bind that might need them</li>
+            <li>You can't create custom binds which are already coded in the library</li>
           </p>
+          <iframe width="100%" height="600" src="//jsfiddle.net/Damuz/g41kce9L/48/embedded/result,html,js,css/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
         </div>
       </div>
     </div>
