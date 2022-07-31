@@ -1,3 +1,7 @@
+CustomBindHandler('test', (handler, context) => {
+  console.log('Hello from custom handler');
+});
+
 let LeftNavbar = new Bind({
   id: 'navbar',
   bind: {
@@ -39,20 +43,16 @@ let LeftNavbar = new Bind({
         anchor: '#attribute-example',
         codeRef: ':[attr]',
       },
+      {
+        id: 'custom-example',
+        name: 'Custom',
+        anchor: '#custom-example',
+        codeRef: 'Custom bind'
+      }
     ],
   },
-  customBinds: [
-    {
-      name: 'test',
-      compute: (handler, context) => {
-        console.log('Hello from custom handler');
-      }
-    }
-  ]
 });
+
 setTimeout(() => {
-  LeftNavbar.bind.bindTypes[0].testData = 'SOmething else!';
-  // LeftNavbar.bind.bindTypes[0].name = 'Interpolatioooon';
+  LeftNavbar.bind.bindTypes[0].testData = 'Something else!';
 }, 2000);
-
-

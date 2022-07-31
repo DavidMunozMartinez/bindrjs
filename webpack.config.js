@@ -15,15 +15,10 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts'],
   },
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
-    library: {
-      name: 'Bind',
-      type: 'umd',
-      export: 'default',
-    },
   },
 };

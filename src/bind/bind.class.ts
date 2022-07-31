@@ -376,5 +376,3 @@ export default class Bind {
     AddCustomHandler(name, compute);
   }
 }
-
-// export const AddHandler = AddCustomHandler;
