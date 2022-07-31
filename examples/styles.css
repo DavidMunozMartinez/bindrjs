@@ -32,7 +32,14 @@ body {
     text-decoration: none;
     padding: 10px;
     box-sizing: border-box;
+}
 
+.navbar-button.logo {
+  height: 90px;
+  width: 90px;
+  background: none;
+  border-radius: 5px;
+  border: 1px solid var(--bs-gray-800);
 }
 
 .content {
