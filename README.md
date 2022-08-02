@@ -14,7 +14,8 @@ Just... Data... Binding... This is for you
 ## How?
 
 Data updates have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions.
-Using the Proxy API along-side internal HTML Bind Handlers, anytime a property is updated in JavaScript, all and ONLY the HTML DOM elements that are related to that Data are updated accordingly
+
+Using the Proxy API along-side internal HTML Bind Handlers, anytime a property is updated in JavaScript, all and ONLY the HTML DOM elements that are related to that Data are updated accordingly.
 
 This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding reactive data to your HTML
 
@@ -22,6 +23,7 @@ This library requires no configuration, or setup, just include the js bundle int
 
 This library is also built thinking about how YOU might want to scale it up to your specific needs.
 Chances are you DO need data reactivity, but you want it to affect your DOM in your very own specific way, with this library you can create you own HTML Bind Handlers which can interact and take full advantage of the internal data reactivity implementation.
+
 Don't be shy and take a look at the demo: https://bindrjs.vercel.app/
 
 
