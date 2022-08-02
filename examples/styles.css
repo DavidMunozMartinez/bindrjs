@@ -3,6 +3,24 @@ body {
   background: #1e1e1e;
 }
 
+.btn.btn-outline-primary.gh {
+  bottom: 0;
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+}
+
+.btn.btn-outline-primary.gh:hover svg {
+  fill: white;
+}
+
+
+.btn.btn-outline-primary.gh svg {
+  height: 30px;
+  fill: var(--bs-btn-color);
+  bottom: 0;
+}
+
 #navbar {
   float: left;
   width: 150px;
