@@ -87,7 +87,8 @@ export function findAndReplaceVariable(
     let validCharBehind =
       invalidBehindVariable.indexOf(charBehind) === -1 &&
       validBehindVariable.indexOf(charBehind) > -1;
-    let validAheadChar = validAheadVariable.indexOf(charAhead) > -1;
+    let validAheadChar = 
+      validAheadVariable.indexOf(charAhead) > -1;
 
     // We count the single and double quotes behind the match to make sure this
     // match is not within quotes

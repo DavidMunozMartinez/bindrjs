@@ -1,14 +1,25 @@
-# bindrJS
-My attempt at a !framework for efficient HTML data binding
+# BindrJS
 
-Don't mind me just re-inventing the wheel.
-This is my attempt at creating a simple enough HTML render engine similar to what ALL popular front-end frameworks/libraries already do perfectly, AKA data binding, except "cheaper" and without the extra fancy features.
+The lightest of libraries for good solid HTML data binding.
 
-This is mainly a learning experience to get a feel for the kind of problems modern web development has and how different frameworks solve them.
+## Why?
 
-You may be interested in this library if you ONLY want to add data binding to your web app, in the end this is just a javascript library, without project structures or design patterns.
+If you are like me and often want to spin up a quick project that uses just plain JavaScript.
+ - No compilation process
+ - No bundle bigger than my actual project
+ - No complex setup or strict framework "rules"
 
-This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding data to your HTML
+Just... Data... Binding... This is for you
+
+## How?
+
+Data updates have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions, using the Proxy API alongside some internal HTML Bind Handlers, anytime a property is updated in JavaScript, all and ONLY the HTML DOM elements that are related to that Data are updated accordingly
+
+This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding reactive data to your HTML
+
+## Not buying it?
+
+This library is also built thinking about how YOU might want to scale it up to your specific needs, chances are you DO need data reactivity, but you want it to affect your DOM in your very own specific way, you can create you own HTML Bind Handlers which can interact and take full advantage of the internal data reactivity implementation, don't be shy and take a look at the demo.
 
 Docs/Showcase:
 https://bindrjs.vercel.app/
