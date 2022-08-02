@@ -13,16 +13,16 @@ Just... Data... Binding... This is for you
 
 ## How?
 
-Data updates have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions, using the Proxy API alongside some internal HTML Bind Handlers, anytime a property is updated in JavaScript, all and ONLY the HTML DOM elements that are related to that Data are updated accordingly
+Data updates have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions.
+Using the Proxy API along-side internal HTML Bind Handlers, anytime a property is updated in JavaScript, all and ONLY the HTML DOM elements that are related to that Data are updated accordingly
 
 This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding reactive data to your HTML
 
 ## Not buying it?
 
-This library is also built thinking about how YOU might want to scale it up to your specific needs, chances are you DO need data reactivity, but you want it to affect your DOM in your very own specific way, you can create you own HTML Bind Handlers which can interact and take full advantage of the internal data reactivity implementation, don't be shy and take a look at the demo.
-
-Docs/Showcase:
-https://bindrjs.vercel.app/
+This library is also built thinking about how YOU might want to scale it up to your specific needs.
+Chances are you DO need data reactivity, but you want it to affect your DOM in your very own specific way, with this library you can create you own HTML Bind Handlers which can interact and take full advantage of the internal data reactivity implementation.
+Don't be shy and take a look at the demo: https://bindrjs.vercel.app/
 
 
 ### Download the code
@@ -44,10 +44,7 @@ npm run compile
 npm run examples
 ```
 
-This will open a local browser with an instance of live server running index.html in the examples folder.
-Mind you the examples page looks like 💩 at the moment and more than an examples page is my testing
-environment.
-
+This will run the examples page (https://bindrjs.vercel.app/) locally
 
 ## How to use
 
