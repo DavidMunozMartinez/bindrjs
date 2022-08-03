@@ -63,8 +63,8 @@ export function interpolateText(text: string, context: any) {
  */
 const operators = ['-', '+', '*', '/', '!'];
 const invalidBehindVariable = [']', '.'];
-const validBehindVariable = [' ', '\n', '', '"', "'", "[", ...operators];
-const validAheadVariable = [' ', '', '[', '(', '.', ']', ...operators];
+const validBehindVariable = [' ', '\n', '', '"', "'", "[", '(', ...operators];
+const validAheadVariable = [' ', '', '[', '(', '.', ']', ')', ...operators];
 export function findAndReplaceVariable(
   text: string,
   find: string,
