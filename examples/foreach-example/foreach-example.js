@@ -5,14 +5,9 @@ let ForEachExample = new Bind({
     complex: [
       {
         text: 'Hello world',
-        childArray: [
-          {
-            data: 'text',
-            childTwoArray:  [
-              'One'
-            ]
-          }
-        ]
+      },
+      {
+        text: null
       }
     ]
   }

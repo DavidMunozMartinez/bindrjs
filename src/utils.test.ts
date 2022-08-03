@@ -46,6 +46,10 @@ describe('Find and replace local variable', () => {
       text: 'dataTest + data',
       expected: 'dataTest + array[0]',
     },
+    {
+      text: '!data.title',
+      expected: '!array[0].title'
+    }
   ];
 
   examples.forEach(test => {
