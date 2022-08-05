@@ -1,6 +1,6 @@
 {
   "name": "bindrjs",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Don't mind me just re-inventing the wheel",
   "main": "dist/index.js",
   "scripts": {
