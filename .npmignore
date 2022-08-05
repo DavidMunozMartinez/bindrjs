@@ -10,3 +10,4 @@ examples
 jest.config.ts
 .prettierrc.js
 dist/index.js.map
+.vscode
