@@ -16,24 +16,13 @@ export function ClassBindHandler(
     let truthy = Boolean(evaluateDOMExpression(handler.expression, context));
     let classList = handler.element.classList;
     let classExists = classList.contains(className);
-
     let perform: 'add' | 'remove' | null = truthy && !classExists ? 
       'add' : !truthy && classExists ?
         'remove' : null;
+
     if (perform) {
       classList[perform](className);
     }
-    // In this case the expression is a condition that should be evaluated for truth-ness
-    // rather than as a class string
-    // if (truthy) {
-    //   if (!classList.contains(className)) {
-    //     classList.add(className);
-    //   }
-    // } else {
-    //   if (classList.contains(className)) {
-    //     classList.remove(className);
-    //   }
-    // }
   } else {
     handler.result = evaluateDOMExpression(handler.expression, context);
     const current = String(handler.result);
