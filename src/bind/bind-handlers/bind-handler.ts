@@ -151,7 +151,7 @@ const bindHandlers: BindHandlers = {
       // rather than as a class string
       if (truthy && !classList.contains(className)) {
         classList.add(className);
-      } else if (classList.contains(className)) {
+      } else if (!truthy && classList.contains(className)) {
         classList.remove(className);
       }
     } else {
@@ -175,7 +175,6 @@ const bindHandlers: BindHandlers = {
     handler.result = evaluateDOMExpression(handler.expression, context) || {};
     handler.element;
     let styleProps = Object.keys(handler.result); 
-    // // let element = handler.element as Element;
     styleProps.forEach((key: any) => {
       if (handler.element.style && handler.element.style[key] !== undefined) {
         handler.element.style[key] = handler.result[key];
