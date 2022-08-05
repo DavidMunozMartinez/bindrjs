@@ -128,6 +128,7 @@ export default class Bind {
         const fullPath = path + keyString;
         // Update stored primitive value
         this.values[fullPath] = value;
+        if (this.proxies[fullPath]) this.proxies[fullPath] = value;
         let exists = Boolean(target[prop] !== undefined);
         // Update target value
         target[prop] = value;
