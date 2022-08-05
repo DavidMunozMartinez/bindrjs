@@ -5,9 +5,10 @@ import {
   IHTMLBindHandler,
 } from '../bind-model';
 import {evaluateDOMExpression, interpolateText} from '../../utils';
-import {ForEachBindHandler} from './foreach-handler';
-import {IfBindHandler} from './if-handler';
+import {ForEachBindHandler} from './foreach-handler/foreach-handler';
+import {IfBindHandler} from './if-handler/if-handler';
 import { BindingChar } from '../../constants';
+import { ClassBindHandler } from './class-handler/class-handler';
 
 /**
  * These type of binds don't need the original attribute definition, so we clear them from
@@ -137,40 +138,7 @@ const bindHandlers: BindHandlers = {
   interpolation: (handler: HTMLBindHandler, context: unknown) => {
     handler.element.textContent = interpolateText(handler.expression, context);
   },
-  class: (handler: HTMLBindHandler, context) => {
-    let splitAttribute =
-      (handler.attribute && handler.attribute.split(BindingChar)) || [];
-    let isBooleanClass = splitAttribute.length > 2;
-    if (isBooleanClass) {
-      // The class that we want to apply is in the second part of the attribute
-      handler.result = splitAttribute[2];
-      let className = String(handler.result);
-      let truthy = Boolean(evaluateDOMExpression(handler.expression, context));
-      let classList = handler.element.classList;
-      // In this case the expression is a condition that should be evaluated for truth-ness
-      // rather than as a class string
-      if (truthy && !classList.contains(className)) {
-        classList.add(className);
-      } else if (!truthy && classList.contains(className)) {
-        classList.remove(className);
-      }
-    } else {
-      handler.result = evaluateDOMExpression(handler.expression, context);
-      const current = String(handler.result);
-      const previous = String(handler.previous);
-      if (
-        previous &&
-        current !== previous &&
-        handler.element.classList.contains(previous)
-      ) {
-        handler.element.classList.remove(previous);
-      }
-      if (current) {
-        handler.element.classList.add(current);
-        handler.previous = current;
-      }
-    }
-  },
+  class: ClassBindHandler,
   style: (handler: HTMLBindHandler, context: any) => {
     handler.result = evaluateDOMExpression(handler.expression, context) || {};
     handler.element;

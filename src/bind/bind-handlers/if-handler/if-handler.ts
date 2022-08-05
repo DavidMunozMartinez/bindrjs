@@ -1,5 +1,5 @@
-import { evaluateDOMExpression } from "../../utils";
-import { HTMLBindHandler } from "./bind-handler";
+import { evaluateDOMExpression } from "../../../utils";
+import { HTMLBindHandler } from "../bind-handler";
 
 export function IfBindHandler(handler: HTMLBindHandler, context: unknown): any {
   let rebind: any = false;
