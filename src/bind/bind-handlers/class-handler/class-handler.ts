@@ -17,10 +17,14 @@ export function ClassBindHandler(
     let classList = handler.element.classList;
     // In this case the expression is a condition that should be evaluated for truth-ness
     // rather than as a class string
-    if (truthy && !classList.contains(className)) {
-      classList.add(className);
-    } else if (!truthy && classList.contains(className)) {
-      classList.remove(className);
+    if (truthy) {
+      if (!classList.contains(className)) {
+        classList.add(className);
+      }
+    } else {
+      if (classList.contains(className)) {
+        classList.remove(className);
+      }
     }
   } else {
     handler.result = evaluateDOMExpression(handler.expression, context);
