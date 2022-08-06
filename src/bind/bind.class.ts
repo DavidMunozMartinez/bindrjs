@@ -91,7 +91,7 @@ export default class Bind {
       const value = data[key];
       const keyString = this.isArray(data) ? `[${key}]` : `.${key}`;
       const fullPath = `${path}${keyString}`;
-      if (typeof value === 'object' && value !== null) {
+      if (this.needsProxy(value)) {
         this.objectProxy(value, fullPath);
         // Arrays are still objects that need a proxy for their individual elements
         // but we also store it as value because certain Bind Types depend directly
@@ -107,6 +107,10 @@ export default class Bind {
 
   private isArray(value: any) {
     return typeof value === 'object' && value.length !== undefined;
+  }
+
+  private needsProxy(data: any) {
+    return typeof data === 'object' && data !== null;
   }
 
   private objectProxyHandler(path: string) {
@@ -129,9 +133,23 @@ export default class Bind {
         // Update stored primitive value
         this.values[fullPath] = value;
         let exists = Boolean(target[prop] !== undefined);
+
+        /**
+         * If this path points to a proxy, it means this is an object, which means we are 
+         * reassigning it, which means we need to re-evaluate it deeply to override or
+         * create new proxies
+         */
+        if (this.proxies[fullPath]) {
+          if (this.needsProxy(value)) {
+            this.proxies[fullPath] = this.objectProxy(value, fullPath);
+          } else {
+            delete this.proxies[fullPath];
+            this.values[fullPath] = value;
+          }
+        }
+
         // Update target value
         target[prop] = value;
-        // Execute update on DOM binds
         /**
          * The path is different if the property exists because this could be an array
          * which its getting a new value pushed, in which case we need to update the DOM

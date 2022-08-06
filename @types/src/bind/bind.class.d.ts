@@ -32,6 +32,7 @@ export default class Bind {
     constructor(data: IBind);
     private objectProxy;
     private isArray;
+    private needsProxy;
     private objectProxyHandler;
     private initTemplate;
     /**
