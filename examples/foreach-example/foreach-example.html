@@ -19,6 +19,17 @@
       that it represents in the array
     </p>
 
+    <p>
+      <h4>NOTE: </h4>
+      <p> 
+        There still isn't a solid implementation to keep track of array elements, adding or removing full elements to an array
+        will trigger a full re-render of its elements. but its currently under development so don't worry  c:
+        Targeted modifications to elements in array will ONLY trigger re-renders where that property is referenced on its element
+        This is because when adding or removing  full elements from a list we still haven't figured out a solid way to determine
+        what was added/removed and where to only re-render that specific element
+      </p>
+    </p>
+
     <iframe width="100%" height="300" src="//jsfiddle.net/Damuz/e87q9puL/8/embedded/result,html,js/dark/"
                           allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
   </div>
