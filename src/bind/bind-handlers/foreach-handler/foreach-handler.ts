@@ -25,11 +25,6 @@ export function ForEachBindHandler(
   ) {
     // Item could have been pushed, popped of spliced from the array, so
     // only compute the new element or remove the existing DOM ref
-  } else {
-    // In theory we should not land here if an element in the array was
-    // modified, if that's the case, that specific node should have its own
-    // HTMLBindHandler which should be independent from the :foreach bind
-    // and should compute its own changes.
   }
 
   // Clean the previous elements before creating new ones
@@ -45,22 +40,6 @@ export function ForEachBindHandler(
   }
 
   rebind = [];
-  /**
-   * Look for all instances of the localVar name without taking into account
-   * nested object properties that could have the same name, IE:
-   * localVar = 'data';
-   * match
-   *   V
-   * data.data
-   *                    match
-   *                      V
-   * ${obj.data.count + data.count}
-   * this RegExp is applied to interpolated strings and to bind type attributes
-   */
-  // let findString = `(?<=\\s|^|"|{|\\()\\b(${localVar})\\b`;
-  // Safari doesn't support look-behind, so we replace old regex with this:
-  // let findString = `^\\b(${localVar})\\b|^[=\\-\\+\\(*\\/\\s](${localVar})`;
-  // let localVarRegexp = new RegExp(findString, 'g');
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order
   for (let i = array.length - 1; i > -1; i--) {

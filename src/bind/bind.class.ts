@@ -15,6 +15,7 @@ import {
 } from './bind-model';
 
 import {recurseElementNodes} from '../utils';
+import { BindingChar } from '../constants';
 
 export default class Bind {
   bind: object = {};
@@ -121,35 +122,40 @@ export default class Bind {
        * the opportunity to only return one Proxy object
        */
       get: (target: {[x: string]: unknown}, prop: string) => {
-        const keyString = this.isArray(target) ? `[${prop}]` : `.${prop}`;
+        const isArray = this.isArray(target);
+        const keyString = isArray ? `[${prop}]` : `.${prop}`;
         const fullPath = path + keyString;
         // If path is a proxy, return the proxy so the getter of that proxy returns
         // the value
-        return this.proxies[fullPath] || target[prop];
+        return isArray && this.values[fullPath] || this.proxies[fullPath] || target[prop];
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
-        const keyString = this.isArray(target) ? `[${prop}]` : `.${prop}`;
-        const fullPath = path + keyString;
-        // Update stored primitive value
-        this.values[fullPath] = value;
+        // Update target value
+        target[prop] = value;
         let exists = Boolean(target[prop] !== undefined);
-
+        let isArray = this.isArray(target);
+        let needsProxy = this.needsProxy(value);
+        let isArrayProto = target.hasOwnProperty(prop) && isArray;
+        const useFullPath = exists && !needsProxy && !isArrayProto;
+        const keyString = isArray ? `[${prop}]` : `.${prop}`;
+        const fullPath = path + keyString;
         /**
          * If this path points to a proxy, it means this is an object, which means we are 
          * reassigning it, which means we need to re-evaluate it deeply to override or
          * create new proxies
          */
-        if (this.proxies[fullPath]) {
-          if (this.needsProxy(value)) {
-            this.proxies[fullPath] = this.objectProxy(value, fullPath);
-          } else {
-            delete this.proxies[fullPath];
-            this.values[fullPath] = value;
-          }
+        if (needsProxy) {
+          this.proxies[fullPath] = this.objectProxy(value, fullPath);
+          this.defineBinds();
+        } else {
+          this.values[fullPath] = value;
         }
 
-        // Update target value
-        target[prop] = value;
+        if (this.proxies[fullPath] && !needsProxy) {
+          delete this.proxies[fullPath];
+          this.values[fullPath] = value;
+        }
+
         /**
          * The path is different if the property exists because this could be an array
          * which its getting a new value pushed, in which case we need to update the DOM
@@ -158,7 +164,7 @@ export default class Bind {
          * they are also objects, we store them as values for scenarios like this, so they
          * can also have their own array of affects
          */
-        this.update(exists ? fullPath : path);
+        this.update(useFullPath ? fullPath : path);
 
         return true;
       },
@@ -292,9 +298,9 @@ export default class Bind {
   ): HTMLBindHandler[] {
     return element
       .getAttributeNames()
-      .filter(attrName => attrName.indexOf(':') > -1)
+      .filter(attrName => attrName.indexOf(BindingChar) > -1)
       .map(attrName => {
-        let cleanAttrName = attrName.split(':')[1];
+        let cleanAttrName = attrName.split(BindingChar)[1];
         const type: BindTypes =
           BindValues[BindValues.indexOf(cleanAttrName as BindTypes)];
 
