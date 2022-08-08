@@ -14,7 +14,7 @@ import { ClassBindHandler } from './class-handler/class-handler';
  * These type of binds don't need the original attribute definition, so we clear them from
  * the DOM as soon as we gather all the data we need from them
  */
-const CleanAttribute = ['if', 'foreach', 'class', 'style'];
+const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr'];
 
 export class HTMLBindHandler {
   type: BindTypes;
