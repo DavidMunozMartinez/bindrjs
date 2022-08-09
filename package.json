@@ -3,7 +3,11 @@
   "version": "1.0.30",
   "description": "Don't mind me just re-inventing the wheel",
   "main": "dist/index.js",
-  "typings": "@types",
+  "typings": "declarations",
+  "files": [
+    "dist",
+    "declarations"
+  ],
   "scripts": {
     "start": "webpack --mode=development",
     "examples": "live-server --open=examples",

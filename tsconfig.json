@@ -3,7 +3,7 @@
   "compilerOptions": {
     "downlevelIteration": true,
     "declaration": true,
-    "declarationDir": "@types",
+    "declarationDir": "declarations",
     "rootDir": ".",
     "lib": [
       "dom",
