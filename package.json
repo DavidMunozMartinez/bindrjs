@@ -4,6 +4,9 @@
   "description": "Don't mind me just re-inventing the wheel",
   "main": "dist/index.js",
   "types": "dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "start": "webpack --mode=development",
     "examples": "live-server --open=examples",
