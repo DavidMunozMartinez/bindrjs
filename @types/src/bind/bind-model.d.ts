@@ -53,13 +53,9 @@ export interface IBind {
     /**
      * Executed once all bindings have been checked for the container
      */
-    ready: () => void;
-    templateRendered: () => void;
-    templateBinded: () => void;
-    customBinds: {
-        name: string;
-        compute: (handler: HTMLBindHandler, context: any) => HTMLElement[] | null;
-    }[];
+    ready?: () => void;
+    templateRendered?: () => void;
+    templateBinded?: () => void;
 }
 export interface IHTMLBindHandler {
     element: HTMLElement;

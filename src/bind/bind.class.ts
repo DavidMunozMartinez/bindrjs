@@ -17,7 +17,7 @@ import {
 import {recurseElementNodes} from '../utils';
 import { BindingChar } from '../constants';
 
-export default class Bind {
+export class Bind {
   bind: object = {};
   bindAs?: string | null;
   ready: () => void;
@@ -53,9 +53,9 @@ export default class Bind {
   constructor(data: IBind) {
     this.id = data.id;
     this.bindAs = data.bindAs || null;
-    this.ready = data.ready || Function();
-    this.templateRendered = data.templateRendered || Function();
-    this.templateBinded = data.templateBinded || Function();
+    this.ready = data.ready || (() => {});
+    this.templateRendered = data.templateRendered || (() => {});
+    this.templateBinded = data.templateBinded || (() => {});
     const container = document.getElementById(this.id);
     let template;
     if (data.template) {
@@ -66,12 +66,6 @@ export default class Bind {
       this.container = container;
     } else {
       throw new Error('Could not initialize renderer, container not found');
-    }
-
-    if (data.customBinds) {
-      data.customBinds.forEach((customBind) => {
-        AddCustomHandler(customBind.name, customBind.compute);
-      });
     }
 
     if (template) {

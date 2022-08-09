@@ -1,6 +1,6 @@
 import { HTMLBindHandler } from './bind-handlers/bind-handler';
 import { BindTypes, BindCodeTypes, BindHTMLTypes, BindKeyboardEventTypes, BindMouseEventTypes, IBind } from './bind-model';
-export default class Bind {
+export declare class Bind {
     bind: object;
     bindAs?: string | null;
     ready: () => void;
