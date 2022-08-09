@@ -34,29 +34,25 @@ This is a library written and maintained by a single developer at the moment (if
 
 I am a hobbyist who likes to create and fiddle with IOT a lot so this library is built thinking about the small amount of space and processing power available in devices like RaspberryPI's/Arduino's/ESP32's etc
 
-
-### Download the code
-
-```
-// Clone repository
-git clone https://github.com/DavidMunozMartinez/bindrJS.git
-// Go to directory
-cd bindrjs
-// Install dependencies
-npm run install
-```
-### Compile
-```
-npm run compile
-```
-### Run examples
-```
-npm run examples
-```
-
-This will run the examples page (https://bindrjs.vercel.app/) locally
-
 ## How to use
+
+```
+// Install with npm
+npm install bindrjs
+```
+
+### JS
+#### Include the script tag your HTML
+```html
+<!-- This will make the Bind object available globally in your scripts -->
+<script src="node_modules/dist/index.js"> </script>
+```
+
+### TS
+```typescript
+// Import the Bind class to your file
+import { Bind } from 'bindrjs'
+```
 
 ```javascript
 // New instance of Bind
@@ -85,9 +81,33 @@ MainContent.bind.text = 'Changing reactive data';
 // Now any part of the template that depends on "this.text" property WILL automatically be updated accordingly
 ```
 
-NOTE: If you add new properties to the bind object after it's been instantiated, those will not be reactive, if you need more reactive properties you
-should add all the properties that the template will need with null values when the Bind class is being instantiated
+## Contribute!
 
-Thanks for passing by, more things are under active development.
+### Download the code
+
+```
+// Clone repository
+git clone https://github.com/DavidMunozMartinez/bindrJS.git
+// Go to directory
+cd bindrjs
+// Install dependencies
+npm run install
+```
+### Compile
+```
+npm run compile
+```
+### Examples
+```
+npm run examples
+```
+This will run the examples page (https://bindrjs.vercel.app/) locally
+
+### Test
+```
+npm run test
+```
+
+Thanks for passing by, more things are under active development. HAPPY CODING!
 
 
