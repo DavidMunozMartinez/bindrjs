@@ -1,4 +1,4 @@
-import {AddCustomHandler, HTMLBindHandler, customHandlers} from './bind-handlers/bind-handler';
+import {HTMLBindHandler, customHandlers} from './bind-handlers/bind-handler';
 import {
   BindTypes,
   BindCodeTypes,
@@ -15,7 +15,7 @@ import {
 } from './bind-model';
 
 import {recurseElementNodes} from '../utils';
-import { BindingChar } from '../constants';
+import {BindingChar} from '../constants';
 
 export class Bind {
   bind: object = {};
@@ -23,32 +23,6 @@ export class Bind {
   ready: () => void;
   templateRendered: () => void;
   templateBinded: () => void;
-  private id: string;
-  private container!: HTMLElement;
-
-  /**
-   * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
-   * we can quickly update all the DOM binds that depend on it
-   */
-  private DataBindHandlers: IRendererBindMaps = {};
-  /**
-   * Holds all the DOM Handlers found in the container, these are referenced in the
-   * DataBindHandlers when any value in the bind object is updated
-   */
-  private DOMBindHandlers: HTMLBindHandler[] = [];
-  // private DOMBindHandlersMap: {[key: string]: HTMLBindHandler} = {};
-
-  /**
-   * This is a flattened map of all our values in the bind object, all keys are strings that represent
-   * the path to the value and all values in this object are primitive values strings, numbers, booleans
-   * or arrays, arrays are still tricky, will revisit soon
-   */
-  private values: {[key: string]: unknown} = {};
-  /**
-   * This is a flattened map of all proxies created to handle data reactivity, there should always be
-   * ONE proxy per object found in the bind passed from the user (including the bind itself).
-   */
-  private proxies: any = {};
 
   constructor(data: IBind) {
     this.id = data.id;
@@ -79,6 +53,33 @@ export class Bind {
       this.initTemplate();
     }
   }
+
+  private id: string;
+  private container!: HTMLElement;
+
+  /**
+   * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
+   * we can quickly update all the DOM binds that depend on it
+   */
+  private DataBindHandlers: IRendererBindMaps = {};
+  /**
+   * Holds all the DOM Handlers found in the container, these are referenced in the
+   * DataBindHandlers when any value in the bind object is updated
+   */
+  private DOMBindHandlers: HTMLBindHandler[] = [];
+  // private DOMBindHandlersMap: {[key: string]: HTMLBindHandler} = {};
+
+  /**
+   * This is a flattened map of all our values in the bind object, all keys are strings that represent
+   * the path to the value and all values in this object are primitive values strings, numbers, booleans
+   * or arrays, arrays are still tricky, will revisit soon
+   */
+  private values: {[key: string]: unknown} = {};
+  /**
+   * This is a flattened map of all proxies created to handle data reactivity, there should always be
+   * ONE proxy per object found in the bind passed from the user (including the bind itself).
+   */
+  private proxies: any = {};
 
   private objectProxy(data: any, path: string) {
     this.proxies[path] = new Proxy(data, this.objectProxyHandler(path));
@@ -121,7 +122,11 @@ export class Bind {
         const fullPath = path + keyString;
         // If path is a proxy, return the proxy so the getter of that proxy returns
         // the value
-        return isArray && this.values[fullPath] || this.proxies[fullPath] || target[prop];
+        return (
+          (isArray && this.values[fullPath]) ||
+          this.proxies[fullPath] ||
+          target[prop]
+        );
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
         // Update target value
@@ -134,13 +139,15 @@ export class Bind {
         const keyString = isArray ? `[${prop}]` : `.${prop}`;
         const fullPath = path + keyString;
         /**
-         * If this path points to a proxy, it means this is an object, which means we are 
+         * If this path points to a proxy, it means this is an object, which means we are
          * reassigning it, which means we need to re-evaluate it deeply to override or
          * create new proxies
          */
         if (needsProxy) {
           this.proxies[fullPath] = this.objectProxy(value, fullPath);
-          let keysToRebind = Object.keys(this.values).filter(key => key.indexOf(fullPath) === 0);
+          let keysToRebind = Object.keys(this.values).filter(
+            key => key.indexOf(fullPath) === 0
+          );
           this.defineBinds(undefined, keysToRebind);
         } else {
           this.values[fullPath] = value;
@@ -389,9 +396,5 @@ export class Bind {
   isHTMLBindType(keyInput: BindTypes): keyInput is BindHTMLTypes {
     const test = JSON.parse(JSON.stringify(BindHTMLValues));
     return test.includes(keyInput);
-  }
-
-  CustomHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => HTMLElement[] | null) {
-    AddCustomHandler(name, compute);
   }
 }

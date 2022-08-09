@@ -168,7 +168,7 @@ const bindHandlers: BindHandlers = {
 };
 
 export const customHandlers: {[key: string]: (handler: HTMLBindHandler, context: any) => void} = {};
-export function AddCustomHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => void) {
+export function CustomBindHandler(name: string, compute: (handler: HTMLBindHandler, context: any) => void) {
   if (bindHandlers[name as BindTypes]) {
     throw new Error(`Can't add custom bind handler name: "${name}" since it already exists :(\n
     If you feel like the bind handler doesn't do what you need, feel free to add a pull/feature request at: \n
