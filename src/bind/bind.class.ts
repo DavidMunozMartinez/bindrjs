@@ -146,7 +146,8 @@ export default class Bind {
          */
         if (needsProxy) {
           this.proxies[fullPath] = this.objectProxy(value, fullPath);
-          this.defineBinds();
+          let keysToRebind = Object.keys(this.values).filter(key => key.indexOf(fullPath) === 0);
+          this.defineBinds(undefined, keysToRebind);
         } else {
           this.values[fullPath] = value;
         }
@@ -219,9 +220,9 @@ export default class Bind {
    * TODO: Make is so it only checks the new element for bind data connections instead of re-mapping everything
    * when we add more elements
    */
-  private defineBinds(element?: HTMLElement) {
+  private defineBinds(element?: HTMLElement, props?: string[]) {
     // Functions are event driven not data driven, so we filter them out of this process
-    const bindsPropertyKeys = Object.keys(this.values).filter(
+    const bindsPropertyKeys = (props || Object.keys(this.values) || []).filter(
       key => typeof this.values[key] !== 'function'
     );
 
