@@ -150,9 +150,9 @@ const bindHandlers: BindHandlers = {
     });
   },
   attr: (handler: HTMLBindHandler, context: any) => {
-    let value = handler.element.getAttribute(handler.attribute || '');
+    // let value = handler.element.getAttribute(handler.attribute || '');
     let actualAttr = handler.attribute?.split(BindingChar)[1] || '';
-    if (value && actualAttr) {
+    if (actualAttr) {
       handler.result = evaluateDOMExpression(handler.expression, context);
       handler.element.setAttribute(actualAttr, String(handler.result || ''));
     }

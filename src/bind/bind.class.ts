@@ -257,6 +257,13 @@ export class Bind {
 
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
     container = container ? container : this.container;
+    // TODO: Figure out a way to avoid overriding existing bind handlers
+    /**
+     * There might be cases where properties are added AFTER bind handlers have already been defined, and bind attributes
+     * have been removed, if any of those handlers depends on a property that is being added later, when the defineBinds
+     * function is re-executed, those bind handlers will be deleted and not taken into account, hence data updates will
+     * not take effect on those elements
+     */
     const htmlHandlers: HTMLBindHandler[] = [];
     recurseElementNodes(container, node => {
       switch (node.nodeType) {
