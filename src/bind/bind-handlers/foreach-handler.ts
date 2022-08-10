@@ -1,10 +1,10 @@
-import {HTMLBindHandler} from '../bind-handler';
+import {HTMLBindHandler} from './bind-handler';
 import {
   evaluateDOMExpression,
   findAndReplaceVariable,
   recurseElementNodes,
-} from '../../../utils';
-import {BindingChar, InterpolationRegexp} from '../../../constants';
+} from '../../utils';
+import {BindingChar, InterpolationRegexp} from '../../constants';
 
 export function ForEachBindHandler(
   handler: HTMLBindHandler,

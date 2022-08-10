@@ -5,10 +5,10 @@ import {
   IHTMLBindHandler,
 } from '../bind-model';
 import {evaluateDOMExpression, interpolateText} from '../../utils';
-import {ForEachBindHandler} from './foreach-handler/foreach-handler';
-import {IfBindHandler} from './if-handler/if-handler';
+import {ForEachBindHandler} from './foreach-handler';
+import {IfBindHandler} from './if-handler';
 import { BindingChar } from '../../constants';
-import { ClassBindHandler } from './class-handler/class-handler';
+import { ClassBindHandler } from './class-handler';
 
 /**
  * These type of binds don't need the original attribute definition, so we clear them from

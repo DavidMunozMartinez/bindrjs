@@ -1,5 +1,5 @@
-import { IHTMLBindHandler } from "../../bind-model";
-import { HTMLBindHandler } from "../bind-handler";
+import { IHTMLBindHandler } from "./../bind-model";
+import { HTMLBindHandler } from "./bind-handler";
 
 describe('Class bind handler', () => {
   let classes: string[] = [];
