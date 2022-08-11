@@ -6,7 +6,7 @@ import {BindingChar} from '../constants';
 import {DataChanges, reactive} from './reactive-data';
 
 export class Bind {
-  bind: object = {};
+  bind: any;
   bindAs?: string | null;
   ready: () => void;
   templateRendered: () => void;
@@ -14,7 +14,7 @@ export class Bind {
 
   constructor(data: IBind) {
     this.id = data.id;
-    this.bindAs = data.bindAs || null;
+    // this.bindAs = data.bindAs || null;
     this.ready = data.ready || (() => {});
     this.templateRendered = data.templateRendered || (() => {});
     this.templateBinded = data.templateBinded || (() => {});
@@ -56,15 +56,20 @@ export class Bind {
   }
 
   private onDataChange(changes: DataChanges) {
+    let fullPath = changes.pathArray;
+    if (changes.pathArray.length === 1) {
+      fullPath = changes.pathArray.concat(changes.property);
+    }
+    let curatedPath = fullPath.reduce((previous: any, current: any) => {
+      return previous += !isNaN(current) ? `[${current}]` : `.${current}`;
+    })
     let rebinds: HTMLElement[] = [];
-
-    /**
-     * TODO: find a way to relate DOMBindHandlers with DataChanges interface
-     * so we only compute DOMBindHandlers that are concerned by the property
-     * that is currently being updated
-     */
     this.DOMBindHandlers.forEach(handler => {
-      rebinds = rebinds.concat(handler.compute(this.bind) || []);
+      // There are ways to define javascript  expressions that will not
+      // work with this method, but for now it will work good enough
+      if (handler.expression.indexOf(curatedPath) > -1) {
+        rebinds = rebinds.concat(handler.compute(this.bind) || []);
+      }
     });
 
     rebinds.forEach(el => this.defineBinds(el));
@@ -81,7 +86,7 @@ export class Bind {
      * Store our current DOMBindHandlers in a map so we can later
      * check and avoid repeating handlers
      */
-    const CurrentDOMHandlers = new Map();
+    const CurrentDOMHandlers = new Map<HTMLElement, boolean>();
     // Iterate backwards because we might remove elements from the array
     let i = this.DOMBindHandlers.length - 1;
     while (i >= 0) {

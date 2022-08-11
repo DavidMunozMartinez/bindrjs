@@ -20,7 +20,7 @@ export function ForEachBindHandler(
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
 
   // This bind handler should only compute when the length of the array changes
-  if (handler.result && handler.result.length === array.length) return false;
+  // if (handler.result && handler.result.length === array.length) return false;
 
   // Clean the previous elements before creating new ones
   // TODO: Create a solution to update existing DOM elements instead of re-creating

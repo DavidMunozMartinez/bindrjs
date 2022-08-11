@@ -145,7 +145,7 @@ export interface IBind {
   /**
    * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
    */
-  bindAs?: string | null;
+  // bindAs?: string | null;
   /**
    * Executed once all bindings have been checked for the container
    */

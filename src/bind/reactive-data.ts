@@ -49,7 +49,6 @@ function handler(
 ): ProxyHandler<any> {
   return {
     get: (target: {[key: string]: unknown}, prop: string, receiver: any) => {
-      console.log('Getting prop: ', prop);
       return target[prop];
     },
     set: (target: {[key: string]: unknown}, prop: string, value: any) => {
@@ -66,7 +65,10 @@ function handler(
 
       if (isObject(value)) {
         // If value is an object we create new reactive object, including arrays
-        target[prop] = reactiveData(value, callback, path, pathArray)
+        let isNew = !oldValue;
+        let properPath = isNew ? path += (!isNaN(prop as any) ? `${prop}` : `.${prop}`) : path;
+        let properPathArray = isNew ? pathArray.concat(prop) : pathArray;
+        target[prop] = reactiveData(value, callback, properPath, properPathArray)
       } else {
         target[prop] = value;
       }
