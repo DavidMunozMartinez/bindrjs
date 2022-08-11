@@ -153,30 +153,19 @@ export class Bind {
         const type: BindTypes =
           BindValues[BindValues.indexOf(cleanAttrName as BindTypes)];
 
-        let handler: HTMLBindHandler;
-        if (type) {
-          handler = new HTMLBindHandler({
-            type: type,
-            element: element,
-            expression: element.getAttribute(attrName) || '',
-            attribute: attrName,
-          });
-        } else {
-          // All unhandled types can be considered attribute type handlers
-          handler = new HTMLBindHandler({
-            type: 'attr',
-            element: element,
-            expression: element.getAttribute(attrName) || '',
-            attribute: attrName,
-          });
-          if (customHandlers[cleanAttrName]) handler.isCustom = cleanAttrName;
-        }
+        let handler: HTMLBindHandler = new HTMLBindHandler({
+          type: type ? type : 'attr',
+          element: element,
+          expression: element.getAttribute(attrName) || '',
+          attribute: attrName,
+        });
+        if (customHandlers[cleanAttrName]) handler.isCustom = cleanAttrName;
+
         callback(handler);
         return handler;
       });
   }
 
-  /**Maybe execute this in the entire container once to allow for string interpolation anywhere? */
   private getInterpolationBindsFromElement(
     element: HTMLElement,
     callback: (handler: HTMLBindHandler) => void
