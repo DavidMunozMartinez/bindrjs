@@ -64,10 +64,7 @@ export class Bind {
      * that is currently being updated
      */
     this.DOMBindHandlers.forEach(handler => {
-      let rebind = handler.compute(this.bind);
-      if (rebind && rebind.length) {
-        rebinds = rebinds.concat(rebind);
-      }
+      rebinds = rebinds.concat(handler.compute(this.bind) || []);
     });
 
     rebinds.forEach(el => this.defineBinds(el));
