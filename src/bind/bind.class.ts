@@ -130,27 +130,37 @@ export class Bind {
       },
       set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
         // Update target value
-        target[prop] = value;
         let exists = Boolean(target[prop] !== undefined);
+        target[prop] = value;
         let isArray = this.isArray(target);
         let needsProxy = this.needsProxy(value);
         let isArrayProto = target.hasOwnProperty(prop) && isArray;
-        const useFullPath = exists && !needsProxy && !isArrayProto;
+        const useFullPath =
+          (exists && !needsProxy && !isArrayProto) || (!exists && !needsProxy);
         const keyString = isArray ? `[${prop}]` : `.${prop}`;
         const fullPath = path + keyString;
-        /**
-         * If this path points to a proxy, it means this is an object, which means we are
-         * reassigning it, which means we need to re-evaluate it deeply to override or
-         * create new proxies
-         */
-        if (needsProxy) {
-          this.proxies[fullPath] = this.objectProxy(value, fullPath);
-          let keysToRebind = Object.keys(this.values).filter(
-            key => key.indexOf(fullPath) === 0
-          );
+
+        if (!exists) {
+          /**
+           * If this path points to a proxy, it means this is an object, which means we are
+           * reassigning it, which means we need to re-evaluate it deeply to override or
+           * create new proxies
+           */
+          let keysToRebind = [];
+          if (needsProxy) {
+            this.proxies[fullPath] = this.objectProxy(value, fullPath);
+            keysToRebind = Object.keys(this.values).filter(
+              key => key.indexOf(fullPath) === 0
+            );
+            if (this.isArray(value)) {
+              keysToRebind.push(fullPath);
+              this.values[fullPath] = value
+            }
+          } else {
+            keysToRebind = [fullPath];
+            this.values[fullPath] = value;
+          }
           this.defineBinds(undefined, keysToRebind);
-        } else {
-          this.values[fullPath] = value;
         }
 
         if (this.proxies[fullPath] && !needsProxy) {
@@ -158,16 +168,7 @@ export class Bind {
           this.values[fullPath] = value;
         }
 
-        /**
-         * The path is different if the property exists because this could be an array
-         * which its getting a new value pushed, in which case we need to update the DOM
-         * handlers to that array and not to the specific property (which doesn't exists
-         * because its a new element in the array with a new index), array, even though
-         * they are also objects, we store them as values for scenarios like this, so they
-         * can also have their own array of affects
-         */
         this.update(useFullPath ? fullPath : path);
-
         return true;
       },
     };
@@ -257,15 +258,28 @@ export class Bind {
 
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
     container = container ? container : this.container;
-    // TODO: Figure out a way to avoid overriding existing bind handlers
+
     /**
-     * There might be cases where properties are added AFTER bind handlers have already been defined, and bind attributes
-     * have been removed, if any of those handlers depends on a property that is being added later, when the defineBinds
-     * function is re-executed, those bind handlers will be deleted and not taken into account, hence data updates will
-     * not take effect on those elements
+     * Store our current DOMBindHandlers in a map so we can later
+     * check and avoid repeating handlers
      */
+    const CurrentDOMHandlers = new Map();
+    let i = this.DOMBindHandlers.length - 1;
+    while (i >= 0) {
+      let element = this.DOMBindHandlers[i].element;
+      // Also check if its still connected, otherwise delete it
+      if (element.isConnected) {
+        CurrentDOMHandlers.set(element, true);
+      } else {
+        this.DOMBindHandlers.splice(i, 1);
+      }
+      i--;
+    }
+
     const htmlHandlers: HTMLBindHandler[] = [];
     recurseElementNodes(container, node => {
+      if (CurrentDOMHandlers.get(node)) return;
+
       switch (node.nodeType) {
         // Element
         case 1:
@@ -298,7 +312,8 @@ export class Bind {
       rebinds.forEach((el: HTMLElement) => this.defineBinds(el));
     }
 
-    return htmlHandlers;
+    // Concatenate new handlers to the existing ones
+    return this.DOMBindHandlers.concat(htmlHandlers);
   }
 
   private getAttrBindsFromElement(
