@@ -9,5 +9,4 @@ examples
 **/*.DS_Store
 jest.config.ts
 .prettierrc.js
-dist/index.js.map
 .vscode
