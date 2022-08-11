@@ -65,9 +65,8 @@ function handler(
 
       if (isObject(value)) {
         // If value is an object we create new reactive object, including arrays
-        let isNew = !oldValue;
-        let properPath = isNew ? path += (!isNaN(prop as any) ? `${prop}` : `.${prop}`) : path;
-        let properPathArray = isNew ? pathArray.concat(prop) : pathArray;
+        let properPath = path += `.${prop}`;
+        let properPathArray = pathArray.concat(prop);
         target[prop] = reactiveData(value, callback, properPath, properPathArray)
       } else {
         target[prop] = value;
@@ -83,8 +82,3 @@ function handler(
 function isObject(value: any) {
   return typeof value === 'object' && value !== null;
 }
-
-function isArray(value: any) {
-  return typeof value === 'object' && value.length !== undefined;
-}
-
