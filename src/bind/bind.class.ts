@@ -56,13 +56,18 @@ export class Bind {
   }
 
   private onDataChange(changes: DataChanges) {
+    /**
+     * This reduces the number of HTMLBindHandlers being computed but we still need
+     * to figure out which handlers depend on which property updates more reliably
+     */
     let fullPath = changes.pathArray;
     if (changes.pathArray.length === 1) {
       fullPath = changes.pathArray.concat(changes.property);
     }
     let curatedPath = fullPath.reduce((previous: any, current: any) => {
       return previous += !isNaN(current) ? `[${current}]` : `.${current}`;
-    })
+    });
+
     let rebinds: HTMLElement[] = [];
     this.DOMBindHandlers.forEach(handler => {
       // There are ways to define javascript  expressions that will not
