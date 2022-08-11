@@ -6,11 +6,19 @@ export interface DataChanges {
   property: string
 }
 
-export function reactive(target: any, callback?: (change: DataChanges) => void) {
-  return makeReactive(target, callback);
+export function reactive(target: any, onUpdate?: (change: DataChanges) => void) {
+  return reactiveData(target, onUpdate);
 }
 
-function makeReactive(
+/**
+ * Takes an object and created a deep reactive Proxy representation of it
+ * @param target Object that will be used as reference for reactivity
+ * @param callback Function to execute each time data is updated
+ * @param path current path in object
+ * @param pathArray current path represented by an array
+ * @returns Proxy object
+ */
+function reactiveData(
   target: any,
   callback?: (change: DataChanges) => void,
   path: string = 'this',
@@ -22,7 +30,7 @@ function makeReactive(
     const currentPathArray = pathArray.concat(propertyKey);
 
     if (isObject(value)) {
-      target[propertyKey] = makeReactive(
+      target[propertyKey] = reactiveData(
         value,
         callback,
         currentPath,
@@ -56,10 +64,14 @@ function handler(
         newValue,
       };
 
-      target[prop] = value;
-      if (callback) {
-        callback(dataChanges);
+      if (isObject(value)) {
+        // If value is an object we create new reactive object, including arrays
+        target[prop] = reactiveData(value, callback, path, pathArray)
+      } else {
+        target[prop] = value;
       }
+
+      if (callback) callback(dataChanges);
 
       return true;
     },
@@ -67,7 +79,7 @@ function handler(
 }
 
 function isObject(value: any) {
-  return typeof value === 'object' && value !== null && !isArray(value);
+  return typeof value === 'object' && value !== null;
 }
 
 function isArray(value: any) {

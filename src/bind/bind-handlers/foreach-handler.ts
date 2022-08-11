@@ -19,13 +19,8 @@ export function ForEachBindHandler(
   let arrayVar = expressionVars[1];
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
 
-  if (
-    handler.result &&
-    array.length !== (handler.result as Array<any>).length
-  ) {
-    // Item could have been pushed, popped of spliced from the array, so
-    // only compute the new element or remove the existing DOM ref
-  }
+  // This bind handler should only compute when the length of the array changes
+  if (handler.result && handler.result.length === array.length) return false;
 
   // Clean the previous elements before creating new ones
   // TODO: Create a solution to update existing DOM elements instead of re-creating

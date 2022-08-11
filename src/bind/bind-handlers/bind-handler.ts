@@ -51,8 +51,10 @@ export class HTMLBindHandler {
   }
 
   /**
-   * Can return an array of elements or nothing, if it contains elements
-   * then we need to re-bind them
+   * Can return either nothing, or an array of elements that where created
+   * as a consequence of the HTMLBindHandler being computed, :if handler can
+   * return an array with one element, and :foreach can return n number of
+   * elements
    * @param context Context that will be given to the template
    */
   compute(context: any): HTMLElement[] | void {

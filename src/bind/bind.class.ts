@@ -1,21 +1,9 @@
 import {HTMLBindHandler, customHandlers} from './bind-handlers/bind-handler';
-import {
-  BindTypes,
-  BindCodeTypes,
-  BindHTMLTypes,
-  BindKeyboardEventTypes,
-  BindValues,
-  BindKeyboardEventValues,
-  BindMouseEventTypes,
-  BindMouseEventValues,
-  BindCodeTypeValues,
-  BindHTMLValues,
-  IBind,
-  IRendererBindMaps,
-} from './bind-model';
+import {BindTypes, BindValues, IBind} from './bind-model';
 
 import {recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
+import {DataChanges, reactive} from './reactive-data';
 
 export class Bind {
   bind: object = {};
@@ -36,6 +24,8 @@ export class Bind {
       template = this.validateTemplate(data.template);
     }
 
+    this.bind = reactive(data.bind || {}, this.onDataChange.bind(this));
+
     if (container) {
       this.container = container;
     } else {
@@ -45,134 +35,16 @@ export class Bind {
     if (template) {
       template.then((templateString: string) => {
         this.container.innerHTML = templateString;
-        this.bind = this.objectProxy(data.bind || {}, 'this');
         this.initTemplate();
       });
     } else {
-      this.bind = this.objectProxy(data.bind || {}, 'this');
       this.initTemplate();
     }
   }
 
   private id: string;
   private container!: HTMLElement;
-
-  /**
-   * Holds all bind data and the HTMLBindHandlers that it affects so when its data is updated
-   * we can quickly update all the DOM binds that depend on it
-   */
-  private DataBindHandlers: IRendererBindMaps = {};
-  /**
-   * Holds all the DOM Handlers found in the container, these are referenced in the
-   * DataBindHandlers when any value in the bind object is updated
-   */
   private DOMBindHandlers: HTMLBindHandler[] = [];
-  // private DOMBindHandlersMap: {[key: string]: HTMLBindHandler} = {};
-
-  /**
-   * This is a flattened map of all our values in the bind object, all keys are strings that represent
-   * the path to the value and all values in this object are primitive values strings, numbers, booleans
-   * or arrays, arrays are still tricky, will revisit soon
-   */
-  private values: {[key: string]: unknown} = {};
-  /**
-   * This is a flattened map of all proxies created to handle data reactivity, there should always be
-   * ONE proxy per object found in the bind passed from the user (including the bind itself).
-   */
-  private proxies: any = {};
-
-  private objectProxy(data: any, path: string) {
-    this.proxies[path] = new Proxy(data, this.objectProxyHandler(path));
-    Object.keys(data).forEach(key => {
-      const value = data[key];
-      const keyString = this.isArray(data) ? `[${key}]` : `.${key}`;
-      const fullPath = `${path}${keyString}`;
-      if (this.needsProxy(value)) {
-        this.objectProxy(value, fullPath);
-        // Arrays are still objects that need a proxy for their individual elements
-        // but we also store it as value because certain Bind Types depend directly
-        // on the array and not its values
-        if (this.isArray(value)) this.values[fullPath] = value;
-      } else {
-        this.values[fullPath] = value;
-      }
-    });
-
-    return this.proxies[path];
-  }
-
-  private isArray(value: any) {
-    return typeof value === 'object' && value.length !== undefined;
-  }
-
-  private needsProxy(data: any) {
-    return typeof data === 'object' && data !== null;
-  }
-
-  private objectProxyHandler(path: string) {
-    return {
-      /**
-       * When data is nested this should only return the proper Proxy object, instead its always
-       * returning the root proxy then the nested proxy then the value, this is inefficient if we have
-       * the opportunity to only return one Proxy object
-       */
-      get: (target: {[x: string]: unknown}, prop: string) => {
-        const isArray = this.isArray(target);
-        const keyString = isArray ? `[${prop}]` : `.${prop}`;
-        const fullPath = path + keyString;
-        // If path is a proxy, return the proxy so the getter of that proxy returns
-        // the value
-        return (
-          (isArray && this.values[fullPath]) ||
-          this.proxies[fullPath] ||
-          target[prop]
-        );
-      },
-      set: (target: {[x: string]: unknown}, prop: string, value: unknown) => {
-        // Update target value
-        let exists = Boolean(target[prop] !== undefined);
-        target[prop] = value;
-        let isArray = this.isArray(target);
-        let needsProxy = this.needsProxy(value);
-        let isArrayProto = target.hasOwnProperty(prop) && isArray;
-        const useFullPath =
-          (exists && !needsProxy && !isArrayProto) || (!exists && !needsProxy);
-        const keyString = isArray ? `[${prop}]` : `.${prop}`;
-        const fullPath = path + keyString;
-
-        if (!exists) {
-          /**
-           * If this path points to a proxy, it means this is an object, which means we are
-           * reassigning it, which means we need to re-evaluate it deeply to override or
-           * create new proxies
-           */
-          let keysToRebind = [];
-          if (needsProxy) {
-            this.proxies[fullPath] = this.objectProxy(value, fullPath);
-            keysToRebind = Object.keys(this.values).filter(
-              key => key.indexOf(fullPath) === 0
-            );
-            if (this.isArray(value)) {
-              keysToRebind.push(fullPath);
-              this.values[fullPath] = value
-            }
-          } else {
-            keysToRebind = [fullPath];
-            this.values[fullPath] = value;
-          }
-          this.defineBinds(undefined, keysToRebind);
-        }
-
-        if (this.proxies[fullPath] && !needsProxy) {
-          delete this.proxies[fullPath];
-          this.values[fullPath] = value;
-        }
-
-        this.update(useFullPath ? fullPath : path);
-        return true;
-      },
-    };
-  }
 
   private initTemplate() {
     this.templateRendered();
@@ -183,77 +55,26 @@ export class Bind {
     });
   }
 
-  /**
-   * Finds the BindHandlers that are affected by the updated property and
-   * re-computes any necessary DOM changes
-   * @param path Path to the property being updated
-   */
-  private update(path: string) {
-    if (this.DataBindHandlers[path]) {
-      const rendererBind = this.DataBindHandlers[path];
-      if (rendererBind.affects) {
-        // Update all DOM connections to this data
-        let rebinds: any = [];
-        rendererBind.affects.forEach((handler: HTMLBindHandler) => {
-          let res = handler.compute(this.bind);
-          if (res && res.length) {
-            rebinds = rebinds.concat(res);
-          }
-        });
+  private onDataChange(changes: DataChanges) {
+    let rebinds: HTMLElement[] = [];
 
-        // If the affected handlers returned elements that need re-binding, we do
-        // that here
-        rebinds.forEach((el: any) => {
-          this.defineBinds(el);
-        });
-
-        // If we got new binds we also need to cleanup old disconnected HTMLBindHandlers
-        if (rebinds.length) {
-          this.cleanHandlers(path);
-        }
+    /**
+     * TODO: find a way to relate DOMBindHandlers with DataChanges interface
+     * so we only compute DOMBindHandlers that are concerned by the property
+     * that is currently being updated
+     */
+    this.DOMBindHandlers.forEach(handler => {
+      let rebind = handler.compute(this.bind);
+      if (rebind && rebind.length) {
+        rebinds = rebinds.concat(rebind);
       }
-    }
-  }
-
-  /**
-   * This is a somewhat expensive function in an attempt to keep the data/DOM updates as quick as possible,
-   * we iterate over all nodes in the container and create a BindHandler which holds a reference of the element
-   * and the necessary data to compute DOM changes when a property that concerns the handler is updated
-   * TODO: Make is so it only checks the new element for bind data connections instead of re-mapping everything
-   * when we add more elements
-   */
-  private defineBinds(element?: HTMLElement, props?: string[]) {
-    // Functions are event driven not data driven, so we filter them out of this process
-    const bindsPropertyKeys = (props || Object.keys(this.values) || []).filter(
-      key => typeof this.values[key] !== 'function'
-    );
-
-    this.DOMBindHandlers = this.getTemplateBinds(element);
-
-    bindsPropertyKeys.forEach(propKey => {
-      const affects: HTMLBindHandler[] =
-        (this.DataBindHandlers[propKey] &&
-          this.DataBindHandlers[propKey].affects) ||
-        [];
-
-      this.DOMBindHandlers.forEach((handler: HTMLBindHandler) => {
-        let isUsed = this.propKeyUsedInExpression(propKey, handler.expression);
-        let dataReactiveType =
-          this.isHTMLBindType(handler.type) ||
-          this.isCodeBindType(handler.type);
-        if (isUsed && dataReactiveType) {
-          affects.push(handler);
-        }
-      });
-      this.DataBindHandlers[propKey] = {affects};
     });
+
+    rebinds.forEach(el => this.defineBinds(el));
   }
 
-  private propKeyUsedInExpression(
-    propKey: string,
-    expression: string
-  ): boolean {
-    return propKey.indexOf(expression) > -1 || expression.indexOf(propKey) > -1;
+  private defineBinds(element?: HTMLElement, props?: string[]) {
+    this.DOMBindHandlers = this.getTemplateBinds(element);
   }
 
   private getTemplateBinds(container?: HTMLElement): HTMLBindHandler[] {
@@ -264,6 +85,7 @@ export class Bind {
      * check and avoid repeating handlers
      */
     const CurrentDOMHandlers = new Map();
+    // Iterate backwards because we might remove elements from the array
     let i = this.DOMBindHandlers.length - 1;
     while (i >= 0) {
       let element = this.DOMBindHandlers[i].element;
@@ -279,7 +101,6 @@ export class Bind {
     const htmlHandlers: HTMLBindHandler[] = [];
     recurseElementNodes(container, node => {
       if (CurrentDOMHandlers.get(node)) return;
-
       switch (node.nodeType) {
         // Element
         case 1:
@@ -300,10 +121,7 @@ export class Bind {
     // Compute handlers at the end to avoid DOM modifier binds to
     // modify the DOM as we iterate it
     htmlHandlers.forEach(handler => {
-      let res = handler.compute(this.bind);
-      if (res && res.length) {
-        rebinds = rebinds.concat(res);
-      }
+      rebinds = rebinds.concat(handler.compute(this.bind) || []);
     });
 
     // Some HTMLBindHandlers return new elements that could need computing of their
@@ -386,37 +204,5 @@ export class Bind {
         resolve(template);
       }
     });
-  }
-
-  private cleanHandlers(dataKey: string) {
-    let DataHandler = this.DataBindHandlers[dataKey];
-    let current = DataHandler.affects.length - 1;
-    // Remove from last to first to avoid indexes shifting while
-    // removing
-    while (current >= 0) {
-      let isConnected = DataHandler.affects[current].element.isConnected;
-      if (!isConnected) DataHandler.affects.splice(current, 1);
-      current--;
-    }
-  }
-
-  isMouseEventType(keyInput: BindTypes): keyInput is BindMouseEventTypes {
-    const test = JSON.parse(JSON.stringify(BindMouseEventValues));
-    return test.includes(keyInput);
-  }
-
-  isKeyboardEventType(keyInput: BindTypes): keyInput is BindKeyboardEventTypes {
-    const test = JSON.parse(JSON.stringify(BindKeyboardEventValues));
-    return test.includes(keyInput);
-  }
-
-  isCodeBindType(keyInput: BindTypes): keyInput is BindCodeTypes {
-    const test = JSON.parse(JSON.stringify(BindCodeTypeValues));
-    return test.includes(keyInput);
-  }
-
-  isHTMLBindType(keyInput: BindTypes): keyInput is BindHTMLTypes {
-    const test = JSON.parse(JSON.stringify(BindHTMLValues));
-    return test.includes(keyInput);
   }
 }
