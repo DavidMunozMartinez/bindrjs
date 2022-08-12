@@ -128,7 +128,10 @@ export class Bind {
     // Compute handlers at the end to avoid DOM modifier binds to
     // modify the DOM as we iterate it
     htmlHandlers.forEach(handler => {
-      rebinds = rebinds.concat(handler.compute(this.bind) || []);
+      let result = handler.compute(this.bind);
+      if (result) {
+        rebinds = rebinds.concat(result);
+      }
     });
 
     // Some HTMLBindHandlers return new elements that could need computing of their

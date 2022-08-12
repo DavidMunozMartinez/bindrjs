@@ -17,5 +17,5 @@ export function IfBindHandler(handler: HTMLBindHandler, context: unknown): any {
     }
   }
   handler.previous = handler.result;
-  return [rebind];
+  return rebind ? [rebind] : rebind;
 }
