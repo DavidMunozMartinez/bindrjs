@@ -65,6 +65,7 @@ export class Bind {
       fullPath = changes.pathArray.concat(changes.property);
     }
     let curatedPath = fullPath.reduce((previous: any, current: any) => {
+      // Number keys are usually array indexes
       return previous += !isNaN(current) ? `[${current}]` : `.${current}`;
     });
 
