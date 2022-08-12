@@ -61,7 +61,7 @@ export function interpolateText(text: string, context: any) {
  * .- Attempt to use WebAssembly for string processing related tasks, including this one (even if we figure out
  * the regex thing or the local variable, this is a potential good idea)
  */
-const operators = ['-', '+', '*', '/', '!'];
+const operators = ['-', '+', '*', '/', '!', '<', '>'];
 const invalidBehindVariable = [']', '.'];
 const validBehindVariable = [' ', '\n', '', '"', "'", "[", '(', ...operators];
 const validAheadVariable = [' ', '', '[', '(', '.', ']', ')', ...operators];
