@@ -15,6 +15,7 @@ import { ClassBindHandler } from './class-handler';
  * the DOM as soon as we gather all the data we need from them
  */
 const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr'];
+const ValuePathEnder = [' ', '\n', ')', '<', '>', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
 
 export class HTMLBindHandler {
   type: BindTypes;
@@ -25,6 +26,7 @@ export class HTMLBindHandler {
   outerHTML?: string;
   attribute: string | null;
   isCustom: string | null = null;
+  dependencies: string[] = [];
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -32,6 +34,7 @@ export class HTMLBindHandler {
     this.result = null;
     this.expression = templateBind.expression;
     this.attribute = templateBind.attribute;
+
 
     switch (this.type) {
       case 'if':
@@ -64,10 +67,30 @@ export class HTMLBindHandler {
       } catch (error: any) {
         let errorAt = this.outerHTML ? this.outerHTML : this.element;
         throw new Error(
-          `Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message} `
+          `Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message}`
         );
       }
     }
+  }
+
+  /**
+   * Based on the expression and the reactive data flat map, it determines
+   * which data updates should trigger this handler and returns it as an array
+   * of strings
+   */
+  getExpressionDependencies(flattenData: string[]): string[] {
+    this.dependencies = [];
+    flattenData.forEach((path) => {
+      // Path exists in expression
+      let index = this.expression.indexOf(path);
+      if (index > -1 && ValuePathEnder.indexOf(this.expression[index + path.length]) > -1) {
+        let followingCharacter = this.expression[index + path.length];
+        let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
+        if (isExpressionEnder) this.dependencies.push(path);
+      }
+    });
+
+    return this.dependencies;
   }
 
   /**

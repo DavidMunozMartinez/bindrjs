@@ -3,7 +3,7 @@ import {BindTypes, BindValues, IBind} from './bind-model';
 
 import {recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
-import {DataChanges, reactive} from './reactive-data';
+import {DataChanges, reactive, ReactiveData} from './reactive-data';
 
 export class Bind {
   bind: any;
@@ -24,7 +24,13 @@ export class Bind {
       template = this.validateTemplate(data.template);
     }
 
-    this.bind = reactive(data.bind || {}, this.onDataChange.bind(this));
+    this._reactive = new ReactiveData(data.bind || {});
+
+    this._reactive.onUpdate((changes: DataChanges) => {
+      this.onDataChange(changes);
+    });
+
+    this.bind = this._reactive.reactive;
 
     if (container) {
       this.container = container;
@@ -46,6 +52,9 @@ export class Bind {
   private container!: HTMLElement;
   private DOMBindHandlers: HTMLBindHandler[] = [];
 
+  private _reactive: any;
+  private _data_affects: {[key: string]: HTMLBindHandler[]} = {};
+
   private initTemplate() {
     this.templateRendered();
     this.defineBinds();
@@ -56,29 +65,37 @@ export class Bind {
   }
 
   private onDataChange(changes: DataChanges) {
-    /**
-     * This reduces the number of HTMLBindHandlers being computed but we still need
-     * to figure out which handlers depend on which property updates more reliably
-     */
-    let fullPath = changes.pathArray;
+    let pathArray = changes.pathArray;
     if (changes.pathArray.length === 1) {
-      fullPath = changes.pathArray.concat(changes.property);
+      pathArray = changes.pathArray.concat(changes.property);
     }
-    let curatedPath = fullPath.reduce((previous: any, current: any) => {
+    let curatedPath = pathArray.reduce((previous: any, current: any) => {
       // Number keys are usually array indexes
-      return previous += !isNaN(current) ? `[${current}]` : `.${current}`;
+      return (previous += !isNaN(current) ? `[${current}]` : `.${current}`);
     });
 
-    let rebinds: HTMLElement[] = [];
-    this.DOMBindHandlers.forEach(handler => {
-      // There are ways to define javascript  expressions that will not
-      // work with this method, but for now it will work good enough
-      if (handler.expression.indexOf(curatedPath) > -1) {
-        rebinds = rebinds.concat(handler.compute(this.bind) || []);
+    // Array of HTMLBindHandlers affected by this property change
+    let affect = this._data_affects[curatedPath] || [];
+    // Elements that could come from the result of re-computing handlers
+    let rebind: HTMLElement[] = [];
+    // Handlers which their anchor element is disconnected, so we need to
+    // delete them
+    let isLive: HTMLBindHandler[] = [];
+  
+    affect.forEach(handler => {
+      if (handler.element.isConnected) {
+        isLive.push(handler);
+        let result = handler.compute(this.bind);
+        if (result) rebind = rebind.concat(result);
       }
     });
+    this._data_affects[curatedPath] = isLive;
 
-    rebinds.forEach(el => this.defineBinds(el));
+    rebind.forEach(el => this.defineBinds(el));
+  }
+
+  private computeHandlerForData(path: string) {
+
   }
 
   private defineBinds(element?: HTMLElement, props?: string[]) {
@@ -108,7 +125,7 @@ export class Bind {
 
     const htmlHandlers: HTMLBindHandler[] = [];
     recurseElementNodes(container, node => {
-      if (CurrentDOMHandlers.get(node)) return;
+      if (CurrentDOMHandlers.get(node) || !node.isConnected) return;
       switch (node.nodeType) {
         // Element
         case 1:
@@ -130,6 +147,14 @@ export class Bind {
     // modify the DOM as we iterate it
     htmlHandlers.forEach(handler => {
       let result = handler.compute(this.bind);
+      let dependencies = handler.getExpressionDependencies(
+        this._reactive.flatData
+      );
+      dependencies.forEach(dep =>
+        this._data_affects[dep]
+          ? this._data_affects[dep].push(handler)
+          : (this._data_affects[dep] = [handler])
+      );
       if (result) {
         rebinds = rebinds.concat(result);
       }
