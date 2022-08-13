@@ -3,7 +3,7 @@ import {BindTypes, BindValues, IBind} from './bind-model';
 
 import {recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
-import {DataChanges, reactive, ReactiveData} from './reactive-data';
+import {DataChanges, ReactiveData} from './reactive-data';
 
 export class Bind {
   bind: any;
@@ -65,37 +65,46 @@ export class Bind {
   }
 
   private onDataChange(changes: DataChanges) {
+    let dataPath = this.buildPathFromChanges(changes);
+
+    if (changes.isNew) {
+      let newPropRoot = changes.path += !isNaN(changes.property as any) ? `[${changes.property}]` : `.${changes.property}`; 
+      let relatedProps = this._reactive.flatData.filter((path: string) => path.indexOf(newPropRoot) > -1);
+      // Check for handlers that might require this new property and/or its children
+      this.DOMBindHandlers.forEach(handler => {
+        let originalLength = handler.dependencies.length;
+        handler.assignDependencies(relatedProps, true);
+        let newLength = handler.dependencies.length;
+        if (originalLength < newLength) {
+          this.computeAndRebind([handler]);
+        }
+      });      
+    }
+
+    this.computeHandlersForData(dataPath);
+  }
+
+  private buildPathFromChanges(changes: DataChanges) {
     let pathArray = changes.pathArray;
     if (changes.pathArray.length === 1) {
       pathArray = changes.pathArray.concat(changes.property);
     }
-    let curatedPath = pathArray.reduce((previous: any, current: any) => {
-      // Number keys are usually array indexes
+    return pathArray.reduce((previous: any, current: any) => {
+      // Number keys are array indexes
       return (previous += !isNaN(current) ? `[${current}]` : `.${current}`);
     });
-
-    // Array of HTMLBindHandlers affected by this property change
-    let affect = this._data_affects[curatedPath] || [];
-    // Elements that could come from the result of re-computing handlers
-    let rebind: HTMLElement[] = [];
-    // Handlers which their anchor element is disconnected, so we need to
-    // delete them
-    let isLive: HTMLBindHandler[] = [];
-  
-    affect.forEach(handler => {
-      if (handler.element.isConnected) {
-        isLive.push(handler);
-        let result = handler.compute(this.bind);
-        if (result) rebind = rebind.concat(result);
-      }
-    });
-    this._data_affects[curatedPath] = isLive;
-
-    rebind.forEach(el => this.defineBinds(el));
   }
 
-  private computeHandlerForData(path: string) {
-
+  private computeHandlersForData(path: string) {
+    let affect = this._data_affects[path] || [];
+    let remain: HTMLBindHandler[] = [];
+    affect.forEach(handler => {
+      if (handler.element.isConnected) {
+        remain.push(handler);
+        this.computeAndRebind([handler]);
+      }
+    });
+    this._data_affects[path] = remain;
   }
 
   private defineBinds(element?: HTMLElement, props?: string[]) {
@@ -142,14 +151,21 @@ export class Bind {
       }
     });
 
-    let rebinds: HTMLElement[] = [];
     // Compute handlers at the end to avoid DOM modifier binds to
     // modify the DOM as we iterate it
-    htmlHandlers.forEach(handler => {
+    this.computeAndRebind(htmlHandlers);
+    // Concatenate new handlers to the existing ones
+    return this.DOMBindHandlers.concat(htmlHandlers);
+  }
+
+  private computeAndRebind(handlers: HTMLBindHandler[]) {
+    let rebinds: HTMLElement[] = [];
+    handlers.forEach(handler => {
       let result = handler.compute(this.bind);
-      let dependencies = handler.getExpressionDependencies(
+      let dependencies = handler.assignDependencies(
         this._reactive.flatData
       );
+
       dependencies.forEach(dep =>
         this._data_affects[dep]
           ? this._data_affects[dep].push(handler)
@@ -160,14 +176,11 @@ export class Bind {
       }
     });
 
-    // Some HTMLBindHandlers return new elements that could need computing of their
+    // Some HTMLBindHandlers return new elements that might need computing of their
     // own, so we also check for those
     if (rebinds.length) {
       rebinds.forEach((el: HTMLElement) => this.defineBinds(el));
     }
-
-    // Concatenate new handlers to the existing ones
-    return this.DOMBindHandlers.concat(htmlHandlers);
   }
 
   private getAttrBindsFromElement(

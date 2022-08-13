@@ -74,13 +74,13 @@ export class HTMLBindHandler {
   }
 
   /**
-   * Based on the expression and the reactive data flat map, it determines
-   * which data updates should trigger this handler and returns it as an array
+   * Based on the expression and the data paths, it determines which
+   * data updates should trigger this handler and returns it as an array
    * of strings
    */
-  getExpressionDependencies(flattenData: string[]): string[] {
-    this.dependencies = [];
-    flattenData.forEach((path) => {
+  assignDependencies(paths: string[], append?: boolean): string[] {
+    this.dependencies = append ? this.dependencies : [];
+    paths.forEach((path) => {
       // Path exists in expression
       let index = this.expression.indexOf(path);
       if (index > -1 && ValuePathEnder.indexOf(this.expression[index + path.length]) > -1) {
