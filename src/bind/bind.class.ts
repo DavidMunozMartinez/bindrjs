@@ -98,12 +98,14 @@ export class Bind {
   private computeHandlersForData(path: string) {
     let affect = this._data_affects[path] || [];
     let remain: HTMLBindHandler[] = [];
-    affect.forEach(handler => {
+
+    affect.forEach((handler, i) => {
       if (handler.element.isConnected) {
         remain.push(handler);
         this.computeAndRebind([handler]);
       }
     });
+
     this._data_affects[path] = remain;
   }
 
@@ -166,11 +168,14 @@ export class Bind {
         this._reactive.flatData
       );
 
-      dependencies.forEach(dep =>
-        this._data_affects[dep]
-          ? this._data_affects[dep].push(handler)
-          : (this._data_affects[dep] = [handler])
-      );
+      dependencies.forEach(dep => {
+        if (this._data_affects[dep] && this._data_affects[dep].indexOf(handler) === -1) {
+          this._data_affects[dep].push(handler);
+        } else {
+          this._data_affects[dep] = [handler];
+        }
+      });
+
       if (result) {
         rebinds = rebinds.concat(result);
       }
