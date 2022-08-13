@@ -27,6 +27,7 @@ export class ReactiveData {
   }
 
   private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
+    target.__isProxy = true;
     Object.keys(target).forEach((propKey: any) => {
       const value = target[propKey];
       const currentPath = path + (!isNaN(propKey) ? `[${propKey}]` : `.${propKey}`);
@@ -63,7 +64,7 @@ export class ReactiveData {
           newValue,
           isNew: oldValue === undefined
         };
-  
+
         // If value is an object we create new reactive object, including arrays
         if (isObject(value)) {
           let properPath = path;
@@ -75,7 +76,10 @@ export class ReactiveData {
             this.flatData.push(properPath)
           }
 
-          target[prop] = this._reactiveDeep(value, callback, properPath, properPathArray);
+          // Make sure we do clean objects to avoid making a proxy object out of a proxy
+          if (value.__isProxy) value = JSON.parse(JSON.stringify(value));
+
+          target[prop] = this._reactiveDeep(JSON.parse(JSON.stringify(value)), callback, properPath, properPathArray);
 
         } else {
           target[prop] = value;

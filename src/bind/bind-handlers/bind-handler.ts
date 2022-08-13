@@ -6,7 +6,7 @@ import {
 } from '../bind-model';
 import {evaluateDOMExpression, interpolateText} from '../../utils';
 import {ForEachBindHandler} from './foreach-handler';
-import {IfBindHandler} from './if-handler';
+import {ElseHandler, IfBindHandler} from './if-handler';
 import { BindingChar } from '../../constants';
 import { ClassBindHandler } from './class-handler';
 
@@ -14,8 +14,8 @@ import { ClassBindHandler } from './class-handler';
  * These type of binds don't need the original attribute definition, so we clear them from
  * the DOM as soon as we gather all the data we need from them
  */
-const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr'];
-const ValuePathEnder = [' ', '\n', ')', '<', '>', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
+const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else'];
+const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
 
 export class HTMLBindHandler {
   type: BindTypes;
@@ -24,6 +24,7 @@ export class HTMLBindHandler {
   previous: any;
   expression: string;
   outerHTML?: string;
+  helperHTML?: string;
   attribute: string | null;
   isCustom: string | null = null;
   dependencies: string[] = [];
@@ -38,7 +39,10 @@ export class HTMLBindHandler {
 
     switch (this.type) {
       case 'if':
-      case 'foreach':
+        this.replaceForMarker(this.type, this.expression);
+        this.checkIfElse();
+        break;
+        case 'foreach':
         this.replaceForMarker(this.type, this.expression);
         break;
     }
@@ -65,9 +69,9 @@ export class HTMLBindHandler {
       try {
         return bindHandlers[this.type](this, context);
       } catch (error: any) {
-        let errorAt = this.outerHTML ? this.outerHTML : this.element;
+        let errorAt = this.outerHTML ? this.outerHTML : this.element.outerHTML;
         throw new Error(
-          `Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message}`
+          `\nCouldn't compute HTMLBindHandler.\n\n${errorAt}\n\n${error.message}\n`
         );
       }
     }
@@ -86,11 +90,23 @@ export class HTMLBindHandler {
       if (index > -1 && ValuePathEnder.indexOf(this.expression[index + path.length]) > -1) {
         let followingCharacter = this.expression[index + path.length];
         let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
-        if (isExpressionEnder) this.dependencies.push(path);
+        let isBracket = followingCharacter === '[';
+        let afterBracketIsNumber = !isNaN(this.expression[index + path.length + 1] as any);
+        if (isExpressionEnder && !isBracket || isBracket && !afterBracketIsNumber) this.dependencies.push(path);
       }
     });
 
     return this.dependencies;
+  }
+
+  private checkIfElse() {
+    // This if statement uses else statement too
+    if (this.element.nextElementSibling && this.element.nextElementSibling.hasAttribute(':else')) {
+      let elseElement = this.element.nextElementSibling;
+      elseElement.removeAttribute(':else');
+      this.helperHTML = elseElement.outerHTML;
+      this.element.nextElementSibling.remove();
+    }
   }
 
   /**
@@ -186,7 +202,12 @@ const bindHandlers: BindHandlers = {
       return customHandlers[handler.isCustom](handler, context);
     }
   },
+  reanimate: (handler: HTMLBindHandler, context: any) => {
+    handler.element.style.animation = 'none';
+    setTimeout(() => handler.element.style.animation = '');
+  },
   if: IfBindHandler,
+  else: ElseHandler,
   foreach: ForEachBindHandler,
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,

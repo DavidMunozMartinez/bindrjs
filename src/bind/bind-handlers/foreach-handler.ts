@@ -34,6 +34,7 @@ export function ForEachBindHandler(
     }
   }
 
+  // Array of elements that will be checked for binds
   rebind = [];
   // Iterate it backwards so when we insert the resulting node after the marker
   // they end up in the right order

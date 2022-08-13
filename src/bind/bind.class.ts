@@ -53,7 +53,7 @@ export class Bind {
   private DOMBindHandlers: HTMLBindHandler[] = [];
 
   private _reactive: any;
-  private _data_affects: {[key: string]: HTMLBindHandler[]} = {};
+  private dataDependencies: {[key: string]: HTMLBindHandler[]} = {};
 
   private initTemplate() {
     this.templateRendered();
@@ -96,17 +96,22 @@ export class Bind {
   }
 
   private computeHandlersForData(path: string) {
-    let affect = this._data_affects[path] || [];
-    let remain: HTMLBindHandler[] = [];
+    let affect = this.dataDependencies[path] || [];
+    let deadHandlers: HTMLBindHandler[] = [];
+    if (affect) {
+      affect.forEach(handler => {
+        if (handler.element.isConnected) {
+          this.computeAndRebind([handler]);
+        } else {
+          deadHandlers.push(handler);
+        }
+      });
+    }
 
-    affect.forEach((handler, i) => {
-      if (handler.element.isConnected) {
-        remain.push(handler);
-        this.computeAndRebind([handler]);
-      }
+    deadHandlers.forEach(deadHandler => {
+      let index = this.dataDependencies[path].indexOf(deadHandler);
+      this.dataDependencies[path].splice(index, 1);
     });
-
-    this._data_affects[path] = remain;
   }
 
   private defineBinds(element?: HTMLElement, props?: string[]) {
@@ -169,11 +174,11 @@ export class Bind {
       );
 
       dependencies.forEach(dep => {
-        if (this._data_affects[dep] && this._data_affects[dep].indexOf(handler) === -1) {
-          this._data_affects[dep].push(handler);
-        } else {
-          this._data_affects[dep] = [handler];
+        let dataHandlers = this.dataDependencies[dep] || [];
+        if (dataHandlers.indexOf(handler) === -1) {
+          dataHandlers.push(handler);
         }
+        this.dataDependencies[dep] = dataHandlers;
       });
 
       if (result) {
