@@ -182,13 +182,24 @@ const bindHandlers: BindHandlers = {
   class: ClassBindHandler,
   style: (handler: HTMLBindHandler, context: any) => {
     handler.result = evaluateDOMExpression(handler.expression, context) || {};
-    handler.element;
-    let styleProps = Object.keys(handler.result); 
-    styleProps.forEach((key: any) => {
-      if (handler.element.style && handler.element.style[key] !== undefined) {
-        handler.element.style[key] = handler.result[key];
-      }
-    });
+
+    // console.log(handler.attribute);
+    let splitAttribute = handler.attribute && handler.attribute.split(BindingChar) || [];
+    let isSpecificStyle = splitAttribute.length > 2;
+    
+    if (isSpecificStyle) {
+      let key: any = splitAttribute[2];
+      handler.element.style[key] = handler.result;
+    } else {
+      let styleProps = Object.keys(handler.result); 
+      styleProps.forEach((key: any) => {
+        if (handler.element.style && handler.element.style[key] !== undefined) {
+          handler.element.style[key] = handler.result[key];
+        }
+      });
+    }
+
+    // handler.element;
   },
   attr: (handler: HTMLBindHandler, context: any) => {
     // let value = handler.element.getAttribute(handler.attribute || '');
