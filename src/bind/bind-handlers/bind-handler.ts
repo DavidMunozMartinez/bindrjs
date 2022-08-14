@@ -183,7 +183,6 @@ const bindHandlers: BindHandlers = {
   style: (handler: HTMLBindHandler, context: any) => {
     handler.result = evaluateDOMExpression(handler.expression, context) || {};
 
-    // console.log(handler.attribute);
     let splitAttribute = handler.attribute && handler.attribute.split(BindingChar) || [];
     let isSpecificStyle = splitAttribute.length > 2;
     
@@ -198,11 +197,8 @@ const bindHandlers: BindHandlers = {
         }
       });
     }
-
-    // handler.element;
   },
   attr: (handler: HTMLBindHandler, context: any) => {
-    // let value = handler.element.getAttribute(handler.attribute || '');
     let actualAttr = handler.attribute?.split(BindingChar)[1] || '';
     if (actualAttr) {
       handler.result = evaluateDOMExpression(handler.expression, context);
