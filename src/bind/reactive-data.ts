@@ -28,7 +28,9 @@ export class ReactiveData {
 
   private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
     target.__isProxy = true;
-    Object.keys(target).forEach((propKey: any) => {
+    Object.keys(target)
+    .filter(key => typeof target[key] !== 'function')
+    .forEach((propKey: any) => {
       const value = target[propKey];
       const currentPath = path + (!isNaN(propKey) ? `[${propKey}]` : `.${propKey}`);
       const currentPathArray = pathArray.concat(propKey);
