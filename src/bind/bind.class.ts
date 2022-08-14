@@ -86,7 +86,7 @@ export class Bind {
 
   private buildPathFromChanges(changes: DataChanges) {
     let pathArray = changes.pathArray;
-    if (changes.pathArray.length === 1) {
+    if (changes.pathArray.length === 1 || !isNaN(changes.pathArray[changes.pathArray.length - 1] as any)) {
       pathArray = changes.pathArray.concat(changes.property);
     }
     return pathArray.reduce((previous: any, current: any) => {

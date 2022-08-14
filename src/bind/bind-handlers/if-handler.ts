@@ -1,4 +1,4 @@
-import { evaluateDOMExpression } from "../../utils";
+import { clearMarkerContents, evaluateDOMExpression } from "../../utils";
 import { HTMLBindHandler } from "./bind-handler";
 
 export function IfBindHandler(handler: HTMLBindHandler, context: unknown): any {
@@ -6,25 +6,20 @@ export function IfBindHandler(handler: HTMLBindHandler, context: unknown): any {
   if (!handler.outerHTML) return rebind;
 
   handler.result = Boolean(evaluateDOMExpression(handler.expression, context));
-  if (handler.result !== handler.previous) {
-    if (typeof handler.previous === 'boolean') {
-      handler.element.nextSibling?.remove();
-    }
+  let toRender = handler.result ? handler.outerHTML : handler.helperHTML;
 
-    // if (handler.helperHTML) 
-    if (handler.result) {
+  if (handler.result !== handler.previous) {
+    clearMarkerContents(handler);  
+    if (toRender) {
       let temp = document.createElement('div');
-      temp.innerHTML = handler.outerHTML;
-      handler.element.after(temp.children[0]);
-      rebind = handler.element.nextElementSibling;
-    } else if (handler.helperHTML) {
-      let temp = document.createElement('div');
-      temp.innerHTML = handler.helperHTML;
+      temp.innerHTML = toRender;
       handler.element.after(temp.children[0]);
       rebind = handler.element.nextElementSibling;
     }
   }
+
   handler.previous = handler.result;
+
   return rebind ? [rebind] : rebind;
 }
 
