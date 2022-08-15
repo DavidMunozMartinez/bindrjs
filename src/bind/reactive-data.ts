@@ -3,82 +3,97 @@ export interface DataChanges {
   pathArray: string[];
   oldValue: any;
   newValue: any;
-  property: string
+  property: string,
+  isNew: boolean,
 }
 
-export function reactive(target: any, onUpdate?: (change: DataChanges) => void) {
-  return reactiveData(target, onUpdate);
-}
+export class ReactiveData {
+  constructor(target: any) {
+    this.reactive = this._reactive(target, (changes: DataChanges) => {
+      if (this._onUpdate) this._onUpdate(changes)
+    });
+  }
 
-/**
- * Takes an object and created a deep reactive Proxy representation of it
- * @param target Object that will be used as reference for reactivity
- * @param callback Function to execute each time data is updated
- * @param path current path in object
- * @param pathArray current path represented by an array
- * @returns Proxy object
- */
-function reactiveData(
-  target: any,
-  callback?: (change: DataChanges) => void,
-  path: string = 'this',
-  pathArray: string[] = ['this']
-) {
-  Object.keys(target).forEach(propertyKey => {
-    const value = target[propertyKey];
-    const currentPath = path + '.' + propertyKey;
-    const currentPathArray = pathArray.concat(propertyKey);
+  public reactive: any;
+  public flatData: string[] = [];
+  private _onUpdate?: (changes: DataChanges) => void;
 
-    if (isObject(value)) {
-      target[propertyKey] = reactiveData(
-        value,
-        callback,
-        currentPath,
-        currentPathArray
-      );
-    }
-  });
+  onUpdate(fn: (changes: DataChanges) => void) {
+    this._onUpdate = fn;
+  }
 
-  return new Proxy(target, handler(path, pathArray, callback));
-}
+  private _reactive(target: any, onUpdate?: (change: DataChanges) => void) {
+    return this._reactiveDeep(target, onUpdate);
+  }
 
-function handler(
-  path: string,
-  pathArray: string[],
-  callback?: (change: DataChanges) => void
-): ProxyHandler<any> {
-  return {
-    get: (target: {[key: string]: unknown}, prop: string, receiver: any) => {
-      return target[prop];
-    },
-    set: (target: {[key: string]: unknown}, prop: string, value: any) => {
-      let oldValue = target[prop];
-      let newValue = value;
+  private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
+    target.__isProxy = true;
+    Object.keys(target)
+    .filter(key => typeof target[key] !== 'function')
+    .forEach((propKey: any) => {
+      const value = target[propKey];
+      const currentPath = path + (!isNaN(propKey) ? `[${propKey}]` : `.${propKey}`);
+      const currentPathArray = pathArray.concat(propKey);
 
-      let dataChanges: DataChanges = {
-        path: path,
-        pathArray: pathArray,
-        property: prop,
-        oldValue,
-        newValue,
-      };
+      this.flatData.push(currentPath);
 
       if (isObject(value)) {
-        // If value is an object we create new reactive object, including arrays
-        let properPath = path += `.${prop}`;
-        let properPathArray = pathArray.concat(prop);
-        target[prop] = reactiveData(value, callback, properPath, properPathArray)
-      } else {
-        target[prop] = value;
+        target[propKey] = this._reactiveDeep(value, callback, currentPath, currentPathArray);
       }
+    });
 
-      if (callback) callback(dataChanges);
+    return new Proxy(target, this._handler(path, pathArray, callback));
+  } 
 
-      return true;
-    },
-  };
+  private _handler(
+    path: string,
+    pathArray: string[],
+    callback?: (change: DataChanges) => void
+  ): ProxyHandler<any> {
+    return {
+      get: (target: {[key: string]: unknown}, prop: string, receiver: any) => {
+        return target[prop];
+      },
+      set: (target: {[key: string]: unknown}, prop: string, value: any) => {
+        let oldValue = target[prop];
+        let newValue = value;
+  
+        let dataChanges: DataChanges = {
+          path: path,
+          pathArray: pathArray,
+          property: prop,
+          oldValue,
+          newValue,
+          isNew: oldValue === undefined
+        };
+
+        let properPath = path;
+        let properPathArray = pathArray;
+        // If is new we need to add it to the flat data array and create a new path
+        if (dataChanges.isNew && typeof value !== 'function') {
+          properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
+          properPathArray = pathArray.concat(prop);
+          this.flatData.push(properPath)
+        }
+
+        // If value is an object we create new reactive object, including arrays
+        if (isObject(value)) {
+          // Make sure we do clean objects to avoid making a proxy object out of a proxy
+          if (value.__isProxy) value = JSON.parse(JSON.stringify(value));
+          target[prop] = this._reactiveDeep(JSON.parse(JSON.stringify(value)), callback, properPath, properPathArray);
+
+        } else {
+          target[prop] = value;
+        }
+  
+        if (callback) callback(dataChanges);
+  
+        return true;
+      },
+    };
+  }
 }
 
 function isObject(value: any) {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && typeof value !== 'function';
 }

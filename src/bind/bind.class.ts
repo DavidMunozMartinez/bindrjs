@@ -3,7 +3,7 @@ import {BindTypes, BindValues, IBind} from './bind-model';
 
 import {recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
-import {DataChanges, reactive} from './reactive-data';
+import {DataChanges, ReactiveData} from './reactive-data';
 
 export class Bind {
   bind: any;
@@ -24,7 +24,13 @@ export class Bind {
       template = this.validateTemplate(data.template);
     }
 
-    this.bind = reactive(data.bind || {}, this.onDataChange.bind(this));
+    this._reactive = new ReactiveData(data.bind || {});
+
+    this._reactive.onUpdate((changes: DataChanges) => {
+      this.onDataChange(changes);
+    });
+
+    this.bind = this._reactive.reactive;
 
     if (container) {
       this.container = container;
@@ -46,6 +52,9 @@ export class Bind {
   private container!: HTMLElement;
   private DOMBindHandlers: HTMLBindHandler[] = [];
 
+  private _reactive: any;
+  private dataDependencies: {[key: string]: HTMLBindHandler[]} = {};
+
   private initTemplate() {
     this.templateRendered();
     this.defineBinds();
@@ -56,29 +65,53 @@ export class Bind {
   }
 
   private onDataChange(changes: DataChanges) {
-    /**
-     * This reduces the number of HTMLBindHandlers being computed but we still need
-     * to figure out which handlers depend on which property updates more reliably
-     */
-    let fullPath = changes.pathArray;
-    if (changes.pathArray.length === 1) {
-      fullPath = changes.pathArray.concat(changes.property);
+    let dataPath = this.buildPathFromChanges(changes);
+
+    if (changes.isNew) {
+      let newPropRoot = changes.path += !isNaN(changes.property as any) ? `[${changes.property}]` : `.${changes.property}`; 
+      let relatedProps = this._reactive.flatData.filter((path: string) => path.indexOf(newPropRoot) > -1);
+      // Check for handlers that might require this new property and/or its children
+      this.DOMBindHandlers.forEach(handler => {
+        let originalLength = handler.dependencies.length;
+        handler.assignDependencies(relatedProps, true);
+        let newLength = handler.dependencies.length;
+        if (originalLength < newLength) {
+          this.computeAndRebind([handler]);
+        }
+      });
     }
-    let curatedPath = fullPath.reduce((previous: any, current: any) => {
-      // Number keys are usually array indexes
-      return previous += !isNaN(current) ? `[${current}]` : `.${current}`;
-    });
 
-    let rebinds: HTMLElement[] = [];
-    this.DOMBindHandlers.forEach(handler => {
-      // There are ways to define javascript  expressions that will not
-      // work with this method, but for now it will work good enough
-      if (handler.expression.indexOf(curatedPath) > -1) {
-        rebinds = rebinds.concat(handler.compute(this.bind) || []);
-      }
-    });
+    this.computeHandlersForData(dataPath);
+  }
 
-    rebinds.forEach(el => this.defineBinds(el));
+  private buildPathFromChanges(changes: DataChanges) {
+    let pathArray = changes.pathArray;
+    if (changes.pathArray.length === 1 || !isNaN(changes.pathArray[changes.pathArray.length - 1] as any)) {
+      pathArray = changes.pathArray.concat(changes.property);
+    }
+    return pathArray.reduce((previous: any, current: any) => {
+      // Number keys are array indexes
+      return (previous += !isNaN(current) ? `[${current}]` : `.${current}`);
+    });
+  }
+
+  private computeHandlersForData(path: string) {
+    let affect = this.dataDependencies[path] || [];
+    let deadHandlers: HTMLBindHandler[] = [];
+    if (affect) {
+      affect.forEach(handler => {
+        if (handler.element.isConnected) {
+          this.computeAndRebind([handler]);
+        } else {
+          deadHandlers.push(handler);
+        }
+      });
+    }
+
+    deadHandlers.forEach(deadHandler => {
+      let index = this.dataDependencies[path].indexOf(deadHandler);
+      this.dataDependencies[path].splice(index, 1);
+    });
   }
 
   private defineBinds(element?: HTMLElement, props?: string[]) {
@@ -108,7 +141,7 @@ export class Bind {
 
     const htmlHandlers: HTMLBindHandler[] = [];
     recurseElementNodes(container, node => {
-      if (CurrentDOMHandlers.get(node)) return;
+      if (CurrentDOMHandlers.get(node) || !node.isConnected) return;
       switch (node.nodeType) {
         // Element
         case 1:
@@ -125,24 +158,39 @@ export class Bind {
       }
     });
 
-    let rebinds: HTMLElement[] = [];
     // Compute handlers at the end to avoid DOM modifier binds to
     // modify the DOM as we iterate it
-    htmlHandlers.forEach(handler => {
+    this.computeAndRebind(htmlHandlers);
+    // Concatenate new handlers to the existing ones
+    return this.DOMBindHandlers.concat(htmlHandlers);
+  }
+
+  private computeAndRebind(handlers: HTMLBindHandler[]) {
+    let rebinds: HTMLElement[] = [];
+    handlers.forEach(handler => {
       let result = handler.compute(this.bind);
+      let dependencies = handler.assignDependencies(
+        this._reactive.flatData
+      );
+
+      dependencies.forEach(dep => {
+        let dataHandlers = this.dataDependencies[dep] || [];
+        if (dataHandlers.indexOf(handler) === -1) {
+          dataHandlers.push(handler);
+        }
+        this.dataDependencies[dep] = dataHandlers;
+      });
+
       if (result) {
         rebinds = rebinds.concat(result);
       }
     });
 
-    // Some HTMLBindHandlers return new elements that could need computing of their
+    // Some HTMLBindHandlers return new elements that might need computing of their
     // own, so we also check for those
     if (rebinds.length) {
       rebinds.forEach((el: HTMLElement) => this.defineBinds(el));
     }
-
-    // Concatenate new handlers to the existing ones
-    return this.DOMBindHandlers.concat(htmlHandlers);
   }
 
   private getAttrBindsFromElement(

@@ -95,7 +95,7 @@ export const BindEventValues = [
 /**
  * These are 'custom' bind types that imitate structural directive/components in other frameworks
  */
-export const BindCodeTypeValues = ['if', 'foreach'] as const;
+export const BindCodeTypeValues = ['if', 'else', 'foreach', 'index', 'reanimate'] as const;
 export type BindCodeTypes = typeof BindCodeTypeValues[number];
 
 export const BindHTMLValues = [

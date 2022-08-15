@@ -16,9 +16,11 @@
       Needs to be defined in the object as <code lang="javascript"> let background = { backgroundColor: 'red' } </code>
     </p>
     <p>
-      NOTE: Specific property binding like <code>:style:property-name</code> is still not supported
+      Or you can bind specific properties with the specific property sintax: <code>:style:[property]</code>
+      This type of binding can take any property available in the context including functions, functions will be executed ONCE when computed
+      and again each time an argument being passed to the function changes (if the arguments are reactive)
     </p>
   </div>
-  <!-- <iframe width="100%" height="550" src="//jsfiddle.net/Damuz/w7qc3hgn/16/embedded/result,html,js,css/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe> -->
+
   <iframe width="100%" height="550" src="//jsfiddle.net/Damuz/w7qc3hgn/28/embedded/result,html,js,css/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 </div>

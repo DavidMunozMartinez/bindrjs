@@ -5,8 +5,8 @@ import {
   IHTMLBindHandler,
 } from '../bind-model';
 import {evaluateDOMExpression, interpolateText} from '../../utils';
-import {ForEachBindHandler} from './foreach-handler';
-import {IfBindHandler} from './if-handler';
+import {ForEachBindHandler, IndexHandler} from './foreach-handler';
+import {ElseHandler, IfBindHandler} from './if-handler';
 import { BindingChar } from '../../constants';
 import { ClassBindHandler } from './class-handler';
 
@@ -14,7 +14,8 @@ import { ClassBindHandler } from './class-handler';
  * These type of binds don't need the original attribute definition, so we clear them from
  * the DOM as soon as we gather all the data we need from them
  */
-const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr'];
+const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else'];
+const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
 
 export class HTMLBindHandler {
   type: BindTypes;
@@ -23,8 +24,10 @@ export class HTMLBindHandler {
   previous: any;
   expression: string;
   outerHTML?: string;
+  helperHTML?: string;
   attribute: string | null;
   isCustom: string | null = null;
+  dependencies: string[] = [];
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -33,9 +36,14 @@ export class HTMLBindHandler {
     this.expression = templateBind.expression;
     this.attribute = templateBind.attribute;
 
+
     switch (this.type) {
       case 'if':
-      case 'foreach':
+        this.replaceForMarker(this.type, this.expression);
+        this.checkIfElse();
+        break;
+        case 'foreach':
+        this.checkIndex();
         this.replaceForMarker(this.type, this.expression);
         break;
     }
@@ -62,11 +70,50 @@ export class HTMLBindHandler {
       try {
         return bindHandlers[this.type](this, context);
       } catch (error: any) {
-        let errorAt = this.outerHTML ? this.outerHTML : this.element;
+        let errorAt = this.outerHTML ? this.outerHTML : this.element.outerHTML;
         throw new Error(
-          `Couldn't compute HTMLBindHandler\n${errorAt}\n ${error.message} `
+          `\nCouldn't compute HTMLBindHandler.\n\n${errorAt}\n\n${error.message}\n`
         );
       }
+    }
+  }
+
+  /**
+   * Based on the expression and the data paths, it determines which
+   * data updates should trigger this handler and returns it as an array
+   * of strings
+   */
+  assignDependencies(paths: string[], append?: boolean): string[] {
+    this.dependencies = append ? this.dependencies : [];
+    paths.forEach((path) => {
+      // Path exists in expression
+      let index = this.expression.indexOf(path);
+      if (index > -1 && ValuePathEnder.indexOf(this.expression[index + path.length]) > -1) {
+        let followingCharacter = this.expression[index + path.length];
+        let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
+        let isBracket = followingCharacter === '[';
+        let afterBracketIsNumber = !isNaN(this.expression[index + path.length + 1] as any);
+        if (isExpressionEnder && !isBracket || isBracket && !afterBracketIsNumber) this.dependencies.push(path);
+      }
+    });
+
+    return this.dependencies;
+  }
+
+  private checkIfElse() {
+    // This if statement uses else statement too
+    if (this.element.nextElementSibling && this.element.nextElementSibling.hasAttribute(':else')) {
+      let elseElement = this.element.nextElementSibling;
+      elseElement.removeAttribute(':else');
+      this.helperHTML = elseElement.outerHTML;
+      this.element.nextElementSibling.remove();
+    }
+  }
+
+  private checkIndex() {
+    if (this.element.hasAttribute(':index')) {
+      this.helperHTML = 'true';
+      this.element.removeAttribute(':index');
     }
   }
 
@@ -143,16 +190,23 @@ const bindHandlers: BindHandlers = {
   class: ClassBindHandler,
   style: (handler: HTMLBindHandler, context: any) => {
     handler.result = evaluateDOMExpression(handler.expression, context) || {};
-    handler.element;
-    let styleProps = Object.keys(handler.result); 
-    styleProps.forEach((key: any) => {
-      if (handler.element.style && handler.element.style[key] !== undefined) {
-        handler.element.style[key] = handler.result[key];
-      }
-    });
+
+    let splitAttribute = handler.attribute && handler.attribute.split(BindingChar) || [];
+    let isSpecificStyle = splitAttribute.length > 2;
+    
+    if (isSpecificStyle) {
+      let key: any = splitAttribute[2];
+      handler.element.style[key] = handler.result;
+    } else {
+      let styleProps = Object.keys(handler.result); 
+      styleProps.forEach((key: any) => {
+        if (handler.element.style && handler.element.style[key] !== undefined) {
+          handler.element.style[key] = handler.result[key];
+        }
+      });
+    }
   },
   attr: (handler: HTMLBindHandler, context: any) => {
-    // let value = handler.element.getAttribute(handler.attribute || '');
     let actualAttr = handler.attribute?.split(BindingChar)[1] || '';
     if (actualAttr) {
       handler.result = evaluateDOMExpression(handler.expression, context);
@@ -163,8 +217,14 @@ const bindHandlers: BindHandlers = {
       return customHandlers[handler.isCustom](handler, context);
     }
   },
+  reanimate: (handler: HTMLBindHandler, context: any) => {
+    handler.element.style.animation = 'none';
+    setTimeout(() => handler.element.style.animation = '');
+  },
   if: IfBindHandler,
+  else: ElseHandler,
   foreach: ForEachBindHandler,
+  index: IndexHandler,
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };

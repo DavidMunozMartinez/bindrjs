@@ -1,3 +1,4 @@
+import { HTMLBindHandler } from './bind/bind-handlers/bind-handler';
 import {InterpolationRegexp} from './constants';
 
 // TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
@@ -113,4 +114,12 @@ export function findAndReplaceVariable(
   });
 
   return result;
+}
+
+export function clearMarkerContents(handler: HTMLBindHandler) {
+  if (handler.element.nodeType !== 8) return;
+  let end = `${handler.type}:${handler.expression} end`
+  while (handler.element.nextSibling?.textContent !== end) {
+    handler.element.nextElementSibling?.remove();
+  }
 }
