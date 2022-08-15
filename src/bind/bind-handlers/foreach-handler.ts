@@ -1,5 +1,6 @@
 import {HTMLBindHandler} from './bind-handler';
 import {
+  clearMarkerContents,
   evaluateDOMExpression,
   findAndReplaceVariable,
   recurseElementNodes,
@@ -25,14 +26,15 @@ export function ForEachBindHandler(
   // Clean the previous elements before creating new ones
   // TODO: Create a solution to update existing DOM elements instead of re-creating
   // all of them
-  if (array.length) {
-    while (
-      handler.element.nextSibling?.textContent !==
-      `${handler.type}:${handler.expression} end`
-    ) {
-      handler.element.nextElementSibling?.remove();
-    }
-  }
+  clearMarkerContents(handler);
+  // if (array.length) {
+  //   while (
+  //     handler.element.nextSibling?.textContent !==
+  //     `${handler.type}:${handler.expression} end`
+  //   ) {
+  //     handler.element.nextElementSibling?.remove();
+  //   }
+  // }
 
   // Array of elements that will be checked for binds
   rebind = [];
