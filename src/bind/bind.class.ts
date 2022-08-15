@@ -78,7 +78,7 @@ export class Bind {
         if (originalLength < newLength) {
           this.computeAndRebind([handler]);
         }
-      });      
+      });
     }
 
     this.computeHandlersForData(dataPath);
