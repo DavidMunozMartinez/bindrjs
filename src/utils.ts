@@ -123,3 +123,17 @@ export function clearMarkerContents(handler: HTMLBindHandler) {
     handler.element.nextElementSibling?.remove();
   }
 }
+
+const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
+export function isPathUsedInExpression(path: string, expression: string) {
+  let result = false;
+  let index = expression.indexOf(path);
+  if (index > -1 && ValuePathEnder.indexOf(expression[index + path.length]) > -1) {
+    let followingCharacter = expression[index + path.length];
+    let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
+    let isBracket = followingCharacter === '[';
+    let afterBracketIsNumber = !isNaN(expression[index + path.length + 1] as any);
+    result = isExpressionEnder && !isBracket || isBracket && !afterBracketIsNumber;
+  }
+  return result;
+}

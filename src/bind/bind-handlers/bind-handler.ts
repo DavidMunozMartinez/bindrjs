@@ -4,7 +4,7 @@ import {
   BindTypes,
   IHTMLBindHandler,
 } from '../bind-model';
-import {evaluateDOMExpression, interpolateText} from '../../utils';
+import {evaluateDOMExpression, interpolateText, isPathUsedInExpression} from '../../utils';
 import {ForEachBindHandler, IndexHandler} from './foreach-handler';
 import {ElseHandler, IfBindHandler} from './if-handler';
 import { BindingChar } from '../../constants';
@@ -87,13 +87,8 @@ export class HTMLBindHandler {
     this.dependencies = append ? this.dependencies : [];
     paths.forEach((path) => {
       // Path exists in expression
-      let index = this.expression.indexOf(path);
-      if (index > -1 && ValuePathEnder.indexOf(this.expression[index + path.length]) > -1) {
-        let followingCharacter = this.expression[index + path.length];
-        let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
-        let isBracket = followingCharacter === '[';
-        let afterBracketIsNumber = !isNaN(this.expression[index + path.length + 1] as any);
-        if (isExpressionEnder && !isBracket || isBracket && !afterBracketIsNumber) this.dependencies.push(path);
+      if (isPathUsedInExpression(path, this.expression)) {
+        this.dependencies.push(path);
       }
     });
 

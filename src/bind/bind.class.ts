@@ -1,7 +1,7 @@
 import {HTMLBindHandler, customHandlers} from './bind-handlers/bind-handler';
 import {BindTypes, BindValues, IBind} from './bind-model';
 
-import {recurseElementNodes} from '../utils';
+import {isPathUsedInExpression, recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
 import {DataChanges, ReactiveData} from './reactive-data';
 
@@ -69,14 +69,16 @@ export class Bind {
 
     if (changes.isNew) {
       let newPropRoot = changes.path += !isNaN(changes.property as any) ? `[${changes.property}]` : `.${changes.property}`; 
-      let relatedProps = this._reactive.flatData.filter((path: string) => path.indexOf(newPropRoot) > -1);
+      let relatedProps = this._reactive.flatData.filter((path: string) => {
+        return isPathUsedInExpression(newPropRoot, path);
+      });
       // Check for handlers that might require this new property and/or its children
       this.DOMBindHandlers.forEach(handler => {
         let originalLength = handler.dependencies.length;
         handler.assignDependencies(relatedProps, true);
         let newLength = handler.dependencies.length;
         if (originalLength < newLength) {
-          this.computeAndRebind([handler]);
+          this.computeAndRebind([handler], true);
         }
       });
     }
@@ -165,13 +167,17 @@ export class Bind {
     return this.DOMBindHandlers.concat(htmlHandlers);
   }
 
-  private computeAndRebind(handlers: HTMLBindHandler[]) {
+  private computeAndRebind(handlers: HTMLBindHandler[], skipDependencies?: boolean) {
     let rebinds: HTMLElement[] = [];
     handlers.forEach(handler => {
       let result = handler.compute(this.bind);
-      let dependencies = handler.assignDependencies(
-        this._reactive.flatData
-      );
+      let dependencies = handler.dependencies;
+      // In some cases dependencies have already been appended to the handlers
+      if (!skipDependencies) {
+        dependencies = handler.assignDependencies(
+          this._reactive.flatData
+        );
+      }
 
       dependencies.forEach(dep => {
         let dataHandlers = this.dataDependencies[dep] || [];

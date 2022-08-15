@@ -23,19 +23,7 @@ export function ForEachBindHandler(
 
   // This bind handler should only compute when the length of the array changes
   // if (handler.result && handler.result.length === array.length) return false;
-
-  // Clean the previous elements before creating new ones
-  // TODO: Create a solution to update existing DOM elements instead of re-creating
-  // all of them
   clearMarkerContents(handler);
-  // if (array.length) {
-  //   while (
-  //     handler.element.nextSibling?.textContent !==
-  //     `${handler.type}:${handler.expression} end`
-  //   ) {
-  //     handler.element.nextElementSibling?.remove();
-  //   }
-  // }
 
   // Array of elements that will be checked for binds
   rebind = [];
@@ -52,8 +40,10 @@ export function ForEachBindHandler(
      */
     temp.innerHTML = nodeString.replace(InterpolationRegexp, (a, b) => {
       let replacedWithArray: any = `\${${findAndReplaceVariable(b, localVar, arrayAtIndex)}}`;
-      let result = replacedWithArray.replaceAll(':index', i.toString());
-      return result;
+      if (indexVar) {
+        replacedWithArray = replacedWithArray.replaceAll(':index', i.toString());
+      }
+      return replacedWithArray;
     });
     let item = temp.children[0];
 
@@ -73,9 +63,9 @@ export function ForEachBindHandler(
             localVar,
             arrayAtIndex
           );
-          // ;
+          if (indexVar) value = value.replaceAll(':index', i.toString());
           // Replace instances of local var name with array pointing to the index position
-          el.setAttribute(attr, value.replaceAll(':index', i.toString()));
+          el.setAttribute(attr, value);
         });
     });
 
