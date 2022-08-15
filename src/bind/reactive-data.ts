@@ -70,7 +70,7 @@ export class ReactiveData {
         let properPath = path;
         let properPathArray = pathArray;
         // If is new we need to add it to the flat data array and create a new path
-        if (dataChanges.isNew) {
+        if (dataChanges.isNew && typeof value !== 'function') {
           properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
           properPathArray = pathArray.concat(prop);
           this.flatData.push(properPath)
@@ -95,5 +95,5 @@ export class ReactiveData {
 }
 
 function isObject(value: any) {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && typeof value !== 'function';
 }
