@@ -5,7 +5,7 @@ import {
   IHTMLBindHandler,
 } from '../bind-model';
 import {evaluateDOMExpression, interpolateText} from '../../utils';
-import {ForEachBindHandler} from './foreach-handler';
+import {ForEachBindHandler, IndexHandler} from './foreach-handler';
 import {ElseHandler, IfBindHandler} from './if-handler';
 import { BindingChar } from '../../constants';
 import { ClassBindHandler } from './class-handler';
@@ -43,6 +43,7 @@ export class HTMLBindHandler {
         this.checkIfElse();
         break;
         case 'foreach':
+        this.checkIndex();
         this.replaceForMarker(this.type, this.expression);
         break;
     }
@@ -106,6 +107,13 @@ export class HTMLBindHandler {
       elseElement.removeAttribute(':else');
       this.helperHTML = elseElement.outerHTML;
       this.element.nextElementSibling.remove();
+    }
+  }
+
+  private checkIndex() {
+    if (this.element.hasAttribute(':index')) {
+      this.helperHTML = 'true';
+      this.element.removeAttribute(':index');
     }
   }
 
@@ -216,6 +224,7 @@ const bindHandlers: BindHandlers = {
   if: IfBindHandler,
   else: ElseHandler,
   foreach: ForEachBindHandler,
+  index: IndexHandler,
   // Append all mouse event handlers, which work all the same for the most part
   ...eventBindHandlers,
 };

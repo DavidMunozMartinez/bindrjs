@@ -27,5 +27,5 @@ export function IfBindHandler(handler: HTMLBindHandler, context: unknown): any {
 // can only be used right after an if handler and the if handler is responsible of
 // rendering it
 export function ElseHandler() {
-  throw new Error('Invalid use of else handler, can only be used next to an :if handler');
+  throw new Error('Invalid use of :else handler, can only be used next to an :if handler');
 }

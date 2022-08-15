@@ -18,6 +18,7 @@ export function ForEachBindHandler(
   let expressionVars = handler.expression.split(' in ').map(val => val.trim());
   let localVar = expressionVars[0];
   let arrayVar = expressionVars[1];
+  let indexVar = handler.helperHTML || null;
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
 
   // This bind handler should only compute when the length of the array changes
@@ -50,7 +51,9 @@ export function ForEachBindHandler(
      * the array pointing to the index position
      */
     temp.innerHTML = nodeString.replace(InterpolationRegexp, (a, b) => {
-      return `\${${findAndReplaceVariable(b, localVar, arrayAtIndex)}}`;
+      let replacedWithArray: any = `\${${findAndReplaceVariable(b, localVar, arrayAtIndex)}}`;
+      let result = replacedWithArray.replaceAll(':index', i.toString());
+      return result;
     });
     let item = temp.children[0];
 
@@ -65,13 +68,14 @@ export function ForEachBindHandler(
         // Only iterate bind type attributes
         .filter(attr => attr.indexOf(BindingChar) === 0)
         .forEach(attr => {
-          let value = findAndReplaceVariable(
+          let value: any = findAndReplaceVariable(
             el.getAttribute(attr) || '',
             localVar,
             arrayAtIndex
           );
+          // ;
           // Replace instances of local var name with array pointing to the index position
-          el.setAttribute(attr, value);
+          el.setAttribute(attr, value.replaceAll(':index', i.toString()));
         });
     });
 
@@ -80,4 +84,8 @@ export function ForEachBindHandler(
 
   handler.result = array;
   return rebind;
+}
+
+export function IndexHandler() {
+  throw new Error('Invalid use of :index handler, can only be used in an element which uses :foreach handler')
 }
