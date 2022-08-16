@@ -22,7 +22,6 @@ export function ForEachBindHandler(
   let array: any = evaluateDOMExpression(arrayVar, context) || [];
 
   // This bind handler should only compute when the length of the array changes
-  // if (handler.result && handler.result.length === array.length) return false;
   clearMarkerContents(handler);
 
   // Array of elements that will be checked for binds

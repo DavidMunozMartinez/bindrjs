@@ -4,7 +4,7 @@ import {
   BindTypes,
   IHTMLBindHandler,
 } from '../bind-model';
-import {evaluateDOMExpression, interpolateText, isPathUsedInExpression} from '../../utils';
+import {evaluateDOMExpression, interpolateText, isPathUsedInExpression, snakeToCamel} from '../../utils';
 import {ForEachBindHandler, IndexHandler} from './foreach-handler';
 import {ElseHandler, IfBindHandler} from './if-handler';
 import { BindingChar } from '../../constants';
@@ -14,7 +14,7 @@ import { ClassBindHandler } from './class-handler';
  * These type of binds don't need the original attribute definition, so we clear them from
  * the DOM as soon as we gather all the data we need from them
  */
-const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else'];
+const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else', 'reanimate'];
 const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
 
 export class HTMLBindHandler {
@@ -42,7 +42,7 @@ export class HTMLBindHandler {
         this.replaceForMarker(this.type, this.expression);
         this.checkIfElse();
         break;
-        case 'foreach':
+      case 'foreach':
         this.checkIndex();
         this.replaceForMarker(this.type, this.expression);
         break;
@@ -184,15 +184,16 @@ const bindHandlers: BindHandlers = {
   },
   class: ClassBindHandler,
   style: (handler: HTMLBindHandler, context: any) => {
-    handler.result = evaluateDOMExpression(handler.expression, context) || {};
-
+    
     let splitAttribute = handler.attribute && handler.attribute.split(BindingChar) || [];
     let isSpecificStyle = splitAttribute.length > 2;
     
     if (isSpecificStyle) {
-      let key: any = splitAttribute[2];
-      handler.element.style[key] = handler.result;
+      handler.result = evaluateDOMExpression(handler.expression);
+      let key: any = snakeToCamel(splitAttribute[2]);
+      handler.element.style[key] = String(handler.result);
     } else {
+      handler.result = evaluateDOMExpression(handler.expression, context) || {};
       let styleProps = Object.keys(handler.result); 
       styleProps.forEach((key: any) => {
         if (handler.element.style && handler.element.style[key] !== undefined) {
@@ -213,8 +214,12 @@ const bindHandlers: BindHandlers = {
     }
   },
   reanimate: (handler: HTMLBindHandler, context: any) => {
-    handler.element.style.animation = 'none';
-    setTimeout(() => handler.element.style.animation = '');
+    handler.result = evaluateDOMExpression(handler.expression, context);
+    if (handler.result !== handler.previous) {
+      handler.element.style.animation = 'none';
+      setTimeout(() => handler.element.style.animation = '');
+      handler.previous = handler.result;  
+    }
   },
   if: IfBindHandler,
   else: ElseHandler,

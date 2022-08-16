@@ -120,7 +120,7 @@ export function clearMarkerContents(handler: HTMLBindHandler) {
   if (handler.element.nodeType !== 8) return;
   let end = `${handler.type}:${handler.expression} end`
   while (handler.element.nextSibling?.textContent !== end) {
-    handler.element.nextElementSibling?.remove();
+    handler.element.nextSibling?.remove();
   }
 }
 
@@ -136,4 +136,12 @@ export function isPathUsedInExpression(path: string, expression: string) {
     result = isExpressionEnder && !isBracket || isBracket && !afterBracketIsNumber;
   }
   return result;
+}
+
+export function snakeToCamel(str: string) {
+  return str.toLowerCase().replace(/([-][a-z])/g, group =>
+    group
+      .toUpperCase()
+      .replace('-', '')
+  );
 }
