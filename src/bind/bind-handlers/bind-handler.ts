@@ -24,6 +24,7 @@ export class HTMLBindHandler {
   previous: any;
   expression: string;
   outerHTML?: string;
+  originalNode?: HTMLElement;
   helperHTML?: string;
   attribute: string | null;
   isCustom: string | null = null;
@@ -140,6 +141,7 @@ export class HTMLBindHandler {
      */
     this.element.removeAttribute(`:${type}`);
     this.outerHTML = this.element.outerHTML;
+    this.originalNode = this.element.cloneNode(true) as HTMLElement;
     this.element.replaceWith(markerStart);
     this.element = markerStart as unknown as HTMLElement;
     this.element.after(markerEnd);
