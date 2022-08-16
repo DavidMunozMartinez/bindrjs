@@ -70,7 +70,7 @@ export class ReactiveData {
         let properPath = path;
         let properPathArray = pathArray;
         // If is new we need to add it to the flat data array and create a new path
-        if (dataChanges.isNew && typeof value !== 'function') {
+        if (dataChanges.isNew && typeof value !== 'function' && !isObject(value)) {
           properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
           properPathArray = pathArray.concat(prop);
           this.flatData.push(properPath)
@@ -78,6 +78,9 @@ export class ReactiveData {
 
         // If value is an object we create new reactive object, including arrays
         if (isObject(value)) {
+          properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
+          properPathArray = pathArray.concat(prop);
+          this.flatData.push(properPath)
           // Make sure we do clean objects to avoid making a proxy object out of a proxy
           if (value.__isProxy) value = JSON.parse(JSON.stringify(value));
           target[prop] = this._reactiveDeep(JSON.parse(JSON.stringify(value)), callback, properPath, properPathArray);

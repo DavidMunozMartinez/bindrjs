@@ -15,7 +15,7 @@ import { ClassBindHandler } from './class-handler';
  * the DOM as soon as we gather all the data we need from them
  */
 const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else', 'reanimate'];
-const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
+// const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
 
 export class HTMLBindHandler {
   type: BindTypes;
