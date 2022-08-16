@@ -124,7 +124,7 @@ export function clearMarkerContents(handler: HTMLBindHandler) {
   }
 }
 
-const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
+const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '*', '/', '=', '!', '?', ';', '|', '&', undefined]
 export function isPathUsedInExpression(path: string, expression: string) {
   let result = false;
   let index = expression.indexOf(path);
