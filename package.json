@@ -1,6 +1,6 @@
 {
   "name": "bindrjs",
-  "version": "1.2.15",
+  "version": "1.2.16",
   "description": "Don't mind me just re-inventing the wheel",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
