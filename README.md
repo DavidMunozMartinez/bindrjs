@@ -8,14 +8,19 @@ If you are like me and often want to spin up a quick project that uses just plai
  - No compilation process
  - No bundle bigger than my actual project
  - No complex setup or strict framework "rules"
+ - No Virtual DOM
 
 Just... Data... Binding... This is for you
 
 ## How?
 
+All you need to know to get this library working is:
+
+Colon (```:```) before any attribute or text within a (```${}```) in a text node become Bind Handlers.
+
 Data updates have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions.
 
-Using the Proxy API along-side internal HTML Bind Handlers, anytime a property is updated in JavaScript, all and ONLY the HTML DOM elements that are related to that Data are updated accordingly.
+Using the Proxy API along-side internal Bind Handlers, anytime a property is updated, all and ONLY the DOM elements that are related to that data are updated accordingly.
 
 This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding reactive data to your HTML
 
