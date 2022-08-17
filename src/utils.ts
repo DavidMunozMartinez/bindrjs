@@ -118,8 +118,7 @@ export function findAndReplaceVariable(
 
 export function clearMarkerContents(handler: HTMLBindHandler) {
   if (handler.element.nodeType !== 8) return;
-  let end = `${handler.type}:${handler.expression} end`
-  while (handler.element.nextSibling?.textContent !== end) {
+  while (handler.element.nextSibling !== handler.markerEnd) {
     handler.element.nextSibling?.remove();
   }
 }

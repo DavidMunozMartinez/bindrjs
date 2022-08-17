@@ -14,8 +14,7 @@ import { ClassBindHandler } from './class-handler';
  * These type of binds don't need the original attribute definition, so we clear them from
  * the DOM as soon as we gather all the data we need from them
  */
-const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else', 'reanimate'];
-// const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '=', '!', '?', ';', '|', '&', undefined]
+const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else', 'reanimate', ...BindEventValues];
 
 export class HTMLBindHandler {
   type: BindTypes;
@@ -29,6 +28,9 @@ export class HTMLBindHandler {
   attribute: string | null;
   isCustom: string | null = null;
   dependencies: string[] = [];
+  markerEnd?: Comment
+  // tracked?: any;
+  // trackProp?: string;
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -40,12 +42,12 @@ export class HTMLBindHandler {
 
     switch (this.type) {
       case 'if':
-        this.replaceForMarker(this.type, this.expression);
+        this.replaceForMarker(this.type);
         this.checkIfElse();
         break;
       case 'foreach':
         this.checkIndex();
-        this.replaceForMarker(this.type, this.expression);
+        this.replaceForMarker(this.type);
         break;
     }
 
@@ -111,6 +113,11 @@ export class HTMLBindHandler {
       this.helperHTML = 'true';
       this.element.removeAttribute(':index');
     }
+
+    if (this.element.hasAttribute(':id')) {
+      // this.trackProp = this.element.getAttribute(':id') || '';
+      // this.tracked = {};
+    }
   }
 
   /**
@@ -131,9 +138,9 @@ export class HTMLBindHandler {
    * contents of these binds won't be checked (because its replaced by a comment marker), which is expected. Only
    * when they are computed, and the content is actually rendered, we validate its content for more HTMLBindHandlers
    */
-  private replaceForMarker(type: string, expression: string) {
-    let markerStart = new Comment(`${type}:${expression} start`);
-    let markerEnd = new Comment(`${type}:${expression} end`);
+  private replaceForMarker(type: string) {
+    let markerStart = new Comment(`${type}: start`);
+    this.markerEnd = new Comment(`${type}: end`);
     /**
      * Remove attribute to keep a clean DOM and to avoid
      * re-binding the same HTMLBindHandler when these type
@@ -144,7 +151,7 @@ export class HTMLBindHandler {
     this.originalNode = this.element.cloneNode(true) as HTMLElement;
     this.element.replaceWith(markerStart);
     this.element = markerStart as unknown as HTMLElement;
-    this.element.after(markerEnd);
+    this.element.after(this.markerEnd);
   }
 }
 
