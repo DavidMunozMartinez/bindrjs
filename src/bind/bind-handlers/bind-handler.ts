@@ -22,15 +22,32 @@ export class HTMLBindHandler {
   result: any;
   previous: any;
   expression: string;
-  outerHTML?: string;
-  originalNode?: HTMLElement;
-  helperHTML?: string;
   attribute: string | null;
-  isCustom: string | null = null;
+
+  /**
+   * Original node refers to the original HTML element that makes use of
+   * this bind handler, we only use this property in if/foreach bind
+   * handlers
+   */
+  originalNode?: HTMLElement;
+  outerHTML?: string;
+  helperHTML?: string;
+
+  /**
+   * Defines if this is a custom handler, meaning its compute function
+   * is user defined
+   */
+  isCustom?: string;
+
+  /**
+   * Array of property paths that when change, trigger the compute
+   * function in this bind handler
+   */
   dependencies: string[] = [];
-  markerEnd?: Comment
-  // tracked?: any;
-  // trackProp?: string;
+
+  // Delimits the start and end for if/foreach bind handlers
+  markerStart?: Comment;
+  markerEnd?: Comment;
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -139,7 +156,7 @@ export class HTMLBindHandler {
    * when they are computed, and the content is actually rendered, we validate its content for more HTMLBindHandlers
    */
   private replaceForMarker(type: string) {
-    let markerStart = new Comment(`${type}: start`);
+    this.markerStart = new Comment(`${type}: start`);
     this.markerEnd = new Comment(`${type}: end`);
     /**
      * Remove attribute to keep a clean DOM and to avoid
@@ -149,8 +166,8 @@ export class HTMLBindHandler {
     this.element.removeAttribute(`:${type}`);
     this.outerHTML = this.element.outerHTML;
     this.originalNode = this.element.cloneNode(true) as HTMLElement;
-    this.element.replaceWith(markerStart);
-    this.element = markerStart as unknown as HTMLElement;
+    this.element.replaceWith(this.markerStart);
+    this.element = this.markerStart as unknown as HTMLElement;
     this.element.after(this.markerEnd);
   }
 }

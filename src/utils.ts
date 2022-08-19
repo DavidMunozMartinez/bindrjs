@@ -18,13 +18,11 @@ export function recurseElementNodes(
   callback: (element: HTMLElement) => void,
   ignoreSelf?: boolean
 ): any {
-  const root = element;
-  const children = root.childNodes;
   if (!ignoreSelf) {
-    callback(root);
+    callback(element);
   }
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
+  for (let i = 0; i < element.childNodes.length; i++) {
+    const child = element.childNodes[i];
     recurseElementNodes(child as HTMLElement, callback);
   }
 }

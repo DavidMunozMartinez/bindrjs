@@ -203,9 +203,25 @@ export class Bind {
     element: HTMLElement,
     callback: (handler: HTMLBindHandler) => void
   ): HTMLBindHandler[] {
+
+    /**
+     * IF the element contains an if/foreach handler, we only compute the first one 
+     * of these we encounter since it will remove itself from the DOM and re-compute
+     * itself once we are done recursing the DOM, we do this because all the
+     * handlers created before an if/foreach handler are immediately disconnected
+     * from the DOM and basically "dead"
+     */
+    let hasIf = element.hasAttribute(':if');
+    let hasForeach = element.hasAttribute(':foreach');
+    let modifiesDOM = hasIf || hasForeach;
+
     return element
       .getAttributeNames()
-      .filter(attrName => attrName.indexOf(BindingChar) > -1)
+      .filter(attrName => {
+        let isBindHandler = attrName.indexOf(BindingChar) > -1;
+        return isBindHandler && !modifiesDOM ||
+          modifiesDOM && attrName === ':if' || attrName === ':foreach';
+      })
       .map(attrName => {
         let cleanAttrName = attrName.split(BindingChar)[1];
         const type: BindTypes =
