@@ -30,9 +30,8 @@ export function ForEachBindHandler(
   for (let i = array.length - 1; i > -1; i--) {
     let arrayAtIndex = `${arrayVar}[${i}]`;
     /**
-     * Find and replace all instances of the local variable name used in string
-     * interpolation within the HTML string of the :foreach and replace it with
-     * the array pointing to the index position
+     * Find and replace all instances of the local variable name within the HTML
+     * and replace it with the array pointing to the index position
      */
     let item = handler.originalNode?.cloneNode(true) as HTMLElement;
     recurseElementNodes(item, (el: Element) => {

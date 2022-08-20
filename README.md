@@ -18,9 +18,12 @@ All you need to know to get this library working is:
 
 Colon (```:```) before any attribute or text within a (```${}```) in a text node become Bind Handlers.
 
-Data updates have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions.
+A Bind Handler is what Binds the Reactive Data and the HTML, expressions defined within Bind Handlers get re-evaluated
+ONLY when data changes that concern that Bind Handler happen
 
-Using the Proxy API along-side internal Bind Handlers, anytime a property is updated, all and ONLY the DOM elements that are related to that data are updated accordingly.
+Data changes have direct effect on DOM updates thanks to native JavaScript Proxy API, which gets rid of the need for expensive dirty checking or setter functions.
+
+Using the Proxy API along-side Bind Handlers, anytime a property is updated, all and ONLY the DOM elements that are related to that data are updated accordingly.
 
 This library requires no configuration, or setup, just include the js bundle into your page and you are ready to start binding reactive data to your HTML
 

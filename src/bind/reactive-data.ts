@@ -51,12 +51,18 @@ export class ReactiveData {
     callback?: (change: DataChanges) => void
   ): ProxyHandler<any> {
     return {
-      get: (target: {[key: string]: unknown}, prop: string, receiver: any) => {
+      get: (target: {[key: string]: any}, prop: string, receiver: any) => {
         return target[prop];
       },
-      set: (target: {[key: string]: unknown}, prop: string, value: any) => {
+      set: (target: {[key: string]: any}, prop: string, value: any) => {
         let oldValue = target[prop];
         let newValue = value;
+
+        // Skip all custom logic if property being updated is from prototype
+        if (target.__proto__ && prop in target.__proto__ as any) {
+          target[prop] = value;
+          return true;
+        }
   
         let dataChanges: DataChanges = {
           path: path,
