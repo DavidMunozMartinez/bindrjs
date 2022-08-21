@@ -27,7 +27,7 @@ export class HTMLBindHandler {
   /**
    * Original node refers to the original HTML element that makes use of
    * this bind handler, we only use this property in if/foreach bind
-   * handlers
+   * handlers to use cloneNode for performance reasons
    */
   originalNode?: HTMLElement;
   outerHTML?: string;
@@ -48,6 +48,9 @@ export class HTMLBindHandler {
   // Delimits the start and end for if/foreach bind handlers
   markerStart?: Comment;
   markerEnd?: Comment;
+
+  // trackProp?: string;
+  tracking?: any[]
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;

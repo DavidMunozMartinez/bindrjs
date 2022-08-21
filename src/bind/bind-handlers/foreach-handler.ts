@@ -7,66 +7,45 @@ import {
 } from '../../utils';
 import {BindingChar, InterpolationRegexp} from '../../constants';
 
+interface IArrayAction {
+  action: 'add' | 'remove' | 're-render' | null,
+  atIndexes: number[]
+}
+
+interface ILocalVars {
+  localVar: string,
+  arrayVar: string,
+  usesIndex: boolean
+}
+
+// This bind handler should only compute when the length of the array changes
 export function ForEachBindHandler(
   handler: HTMLBindHandler,
   context: unknown
 ): any {
   let rebind: any = false;
   if (!handler.outerHTML) return rebind;
+  if (!handler.tracking) handler.tracking = [];
 
-  let expressionVars = handler.expression.split(' in ').map(val => val.trim());
-  let localVar = expressionVars[0];
-  let arrayVar = expressionVars[1];
-  let indexVar = handler.helperHTML || null;
-  let array: any = evaluateDOMExpression(arrayVar, context) || [];
+  let vars = getVarsFromExpression(handler);
+  let array: any = evaluateDOMExpression(vars.arrayVar, context) || [];
+  let actionData: IArrayAction = getActionData(handler); 
 
-  // This bind handler should only compute when the length of the array changes
-  clearMarkerContents(handler);
+  // If null do nothing
+  if (actionData.action === null) return rebind;
 
-  // Array of elements that will be checked for binds
+  // These elements will be checked for new binds to compute
   rebind = [];
-  // Iterate it backwards so when we insert the resulting node after the marker
-  // they end up in the right order
-  for (let i = array.length - 1; i > -1; i--) {
-    let arrayAtIndex = `${arrayVar}[${i}]`;
-    /**
-     * Find and replace all instances of the local variable name within the HTML
-     * and replace it with the array pointing to the index position
-     */
-    let item = handler.originalNode?.cloneNode(true) as HTMLElement;
-    recurseElementNodes(item, (el: Element) => {
-      switch (el.nodeType) {
-        // Element
-        case 1:
-          el.getAttributeNames()
-            // Only iterate bind type attributes
-            .filter(attr => attr.indexOf(BindingChar) === 0)
-            .forEach(attr => {
-              let value: any = findAndReplaceVariable(
-                el.getAttribute(attr) || '',
-                localVar,
-                arrayAtIndex
-              );
-              if (indexVar) value = value.replaceAll(':index', i.toString());
-              // Replace instances of local var name with array pointing to the index position
-              el.setAttribute(attr, value);
-            });
-          break;
-        // Text
-        case 3:
-          el.textContent = el.textContent?.replace(InterpolationRegexp, (a, b) => {
-            let replacedWithArray: any = `\${${findAndReplaceVariable(b, localVar, arrayAtIndex)}}`;
-            if (indexVar) {
-              replacedWithArray = replacedWithArray.replaceAll(':index', String(i));
-            }
-            return replacedWithArray;
-          }) || null;
-          break;
-      }
-    });
-    handler.element.after(item);
-
-    rebind.push(item);
+  switch (actionData.action) {
+    case 're-render':
+      // Re-render the entire array
+      clearMarkerContents(handler);
+      rebind = renderAll(handler, context);
+      break;
+    case 'add':
+      // Just add at index
+    case 'remove':
+      // Just remove at index
   }
 
   handler.result = array;
@@ -75,4 +54,74 @@ export function ForEachBindHandler(
 
 export function IndexHandler() {
   throw new Error('Invalid use of :index handler, can only be used in an element which uses :foreach handler')
+}
+
+function getActionData(handler: HTMLBindHandler): IArrayAction {
+  let action: 'add' | 'remove' | 're-render' | null = 're-render';
+  let atIndexes: number[] = [];
+
+  if (true) return { action, atIndexes };
+}
+
+function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
+  let expressionVars = handler.expression.split(' in ').map(val => val.trim());
+  let localVar = expressionVars[0];
+  let arrayVar = expressionVars[1];
+  let usesIndex = Boolean(handler.helperHTML);
+  return { localVar, arrayVar, usesIndex }
+}
+
+function renderAll(handler: HTMLBindHandler, context: any): HTMLElement[] {
+  let vars = getVarsFromExpression(handler);
+  let array: any = evaluateDOMExpression(vars.arrayVar, context) || [];
+  let rebinds: HTMLElement[] = [];
+
+  array.forEach((item: any, index: number) => {
+    let domItem = makeDOMItem(handler, vars, index);
+    rebinds.push(domItem);
+    handler.markerEnd?.before(domItem);
+  });
+
+  return rebinds;
+}
+
+function makeDOMItem(handler: HTMLBindHandler, vars: ILocalVars, index: number) {
+  let item: HTMLElement = handler.originalNode?.cloneNode(true) as HTMLElement;
+  recurseElementNodes(item, (node: HTMLElement) => {
+    switch (node.nodeType) {
+      // Element
+      case 1:
+        node
+          .getAttributeNames()
+          .filter(attribute => attribute.indexOf(BindingChar) === 0)
+          .forEach(attribute => {
+            let value: any = node.getAttribute(attribute) || '';
+            if (value.indexOf(vars.localVar) > -1) {
+              value = parseLocalVar(value, vars, index);
+            }
+            if (vars.usesIndex && value.indexOf(':index') > -1) {
+              value = value.replaceAll(':index', index);
+            };
+            node.setAttribute(attribute, value);
+          });
+        break;
+      // Text node
+      case 3:
+        node.textContent = node.textContent?.replace(InterpolationRegexp, (a, b) => {
+          let value: any = parseLocalVar(b, vars, index);
+          if (vars.usesIndex && value.indexOf(':index') > -1) {
+            value = value.replaceAll(':index', index);
+          }
+          return `\${${value}}`;
+        }) || null;
+        break;
+    }
+  });
+  return item;
+}
+
+function parseLocalVar(text: string, vars: ILocalVars, index: number) {
+  let arrayAtIndex = `${vars.arrayVar}[${index}]`
+  let result = findAndReplaceVariable(text, vars.localVar, arrayAtIndex);
+  return result;
 }
