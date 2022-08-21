@@ -27,7 +27,7 @@ export class ReactiveData {
   }
 
   private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
-    target.__isProxy = true;
+    target.__proto__.__isProxy = true;
     Object.keys(target)
     .filter(key => typeof target[key] !== 'function')
     .forEach((propKey: any) => {
@@ -88,7 +88,7 @@ export class ReactiveData {
           properPathArray = pathArray.concat(prop);
           this.flatData.push(properPath)
           // Make sure we do clean objects to avoid making a proxy object out of a proxy
-          if (value.__isProxy) value = JSON.parse(JSON.stringify(value));
+          if (value && value.__proto__ && value.__isProxy) value = JSON.parse(JSON.stringify(value));
           target[prop] = this._reactiveDeep(JSON.parse(JSON.stringify(value)), callback, properPath, properPathArray);
 
         } else {
