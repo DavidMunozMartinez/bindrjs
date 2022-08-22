@@ -28,7 +28,7 @@ export function ForEachBindHandler(
   if (!handler.tracking) handler.tracking = [];
 
   let vars = getVarsFromExpression(handler);
-  let array: any = evaluateDOMExpression(vars.arrayVar, context) || [];
+  handler.result = evaluateDOMExpression(vars.arrayVar, context) || [];
   let actionData: IArrayAction = getActionData(handler); 
 
   // If null do nothing
@@ -40,15 +40,18 @@ export function ForEachBindHandler(
     case 're-render':
       // Re-render the entire array
       clearMarkerContents(handler);
-      rebind = renderAll(handler, context);
+      rebind = renderAll(handler, vars, context);
       break;
     case 'add':
       // Just add at index
+      rebind = renderAtIndex(handler, vars, context, actionData.atIndexes);
+      break;
     case 'remove':
       // Just remove at index
+      rebind = removeAtIndex(handler, vars, context, actionData.atIndexes);
+      break;
   }
 
-  handler.result = array;
   return rebind;
 }
 
@@ -57,10 +60,30 @@ export function IndexHandler() {
 }
 
 function getActionData(handler: HTMLBindHandler): IArrayAction {
+  // Re-render as default
   let action: 'add' | 'remove' | 're-render' | null = 're-render';
   let atIndexes: number[] = [];
+  let actionData: IArrayAction = { action, atIndexes };
 
-  if (true) return { action, atIndexes };
+  return actionData;
+
+  // // No array set in result, re-render all
+  // if (!handler.result || !handler.tracking?.length) return actionData;
+  // // No changes, do nothing
+  // if (handler.result && handler.tracking && handler.result.length === handler.tracking?.length) {
+  //   actionData.action = null;
+  //   return actionData;
+  // }
+
+  // let difference = handler.result.length - handler.tracking?.length;
+  // action = difference > 0 ? 'add' : 'remove';
+  // handler.result.forEach((item: any, index: number) => {
+  //   if (handler.tracking && handler.tracking.indexOf(item) === -1) {
+  //     atIndexes.push(index);
+  //   } 
+  // });
+
+  // return actionData;
 }
 
 function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
@@ -71,8 +94,8 @@ function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
   return { localVar, arrayVar, usesIndex }
 }
 
-function renderAll(handler: HTMLBindHandler, context: any): HTMLElement[] {
-  let vars = getVarsFromExpression(handler);
+function renderAll(handler: HTMLBindHandler, vars: ILocalVars, context: any): HTMLElement[] {
+  // let vars = getVarsFromExpression(handler);
   let array: any = evaluateDOMExpression(vars.arrayVar, context) || [];
   let rebinds: HTMLElement[] = [];
 
@@ -80,8 +103,23 @@ function renderAll(handler: HTMLBindHandler, context: any): HTMLElement[] {
     let domItem = makeDOMItem(handler, vars, index);
     rebinds.push(domItem);
     handler.markerEnd?.before(domItem);
+    handler.tracking?.push(item);
   });
 
+  return rebinds;
+}
+
+/**Not fully implemented yet so just duplicate the renderAll behavior */
+function renderAtIndex(handler: HTMLBindHandler, vars: ILocalVars, context: any, indexes: number[]) {
+  let rebinds = [];
+  clearMarkerContents(handler);
+  rebinds = renderAll(handler, vars, context);
+  return rebinds;
+}
+function removeAtIndex(handler: HTMLBindHandler, vars: ILocalVars, context: any, indexes: number[]) {
+  let rebinds = [];
+  clearMarkerContents(handler);
+  rebinds = renderAll(handler, vars, context);
   return rebinds;
 }
 
