@@ -65,25 +65,23 @@ function getActionData(handler: HTMLBindHandler): IArrayAction {
   let atIndexes: number[] = [];
   let actionData: IArrayAction = { action, atIndexes };
 
+  // No array set in result, or tracker re-render all
+  if (!handler.result || !handler.tracking?.length) return actionData;
+  // No changes, do nothing
+  if (handler.result && handler.tracking && handler.result.length === handler.tracking?.length) {
+    actionData.action = null;
+    return actionData;
+  }
+
+  let difference = handler.result.length - handler.tracking?.length;
+  actionData.action = difference > 0 ? 'add' : 'remove';
+  handler.result.forEach((item: any, index: number) => {
+    if (handler.tracking && handler.tracking.indexOf(item) === -1) {
+      atIndexes.push(index);
+    } 
+  });
+
   return actionData;
-
-  // // No array set in result, re-render all
-  // if (!handler.result || !handler.tracking?.length) return actionData;
-  // // No changes, do nothing
-  // if (handler.result && handler.tracking && handler.result.length === handler.tracking?.length) {
-  //   actionData.action = null;
-  //   return actionData;
-  // }
-
-  // let difference = handler.result.length - handler.tracking?.length;
-  // action = difference > 0 ? 'add' : 'remove';
-  // handler.result.forEach((item: any, index: number) => {
-  //   if (handler.tracking && handler.tracking.indexOf(item) === -1) {
-  //     atIndexes.push(index);
-  //   } 
-  // });
-
-  // return actionData;
 }
 
 function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
@@ -95,9 +93,9 @@ function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
 }
 
 function renderAll(handler: HTMLBindHandler, vars: ILocalVars, context: any): HTMLElement[] {
-  // let vars = getVarsFromExpression(handler);
   let array: any = evaluateDOMExpression(vars.arrayVar, context) || [];
   let rebinds: HTMLElement[] = [];
+  handler.tracking = [];
 
   array.forEach((item: any, index: number) => {
     let domItem = makeDOMItem(handler, vars, index);
@@ -109,13 +107,27 @@ function renderAll(handler: HTMLBindHandler, vars: ILocalVars, context: any): HT
   return rebinds;
 }
 
-/**Not fully implemented yet so just duplicate the renderAll behavior */
 function renderAtIndex(handler: HTMLBindHandler, vars: ILocalVars, context: any, indexes: number[]) {
   let rebinds = [];
-  clearMarkerContents(handler);
-  rebinds = renderAll(handler, vars, context);
+  // This is basically a push, so just make one new element and return it for rebinding
+  if (indexes.length === 1 && indexes[0] === handler.result.length - 1) {
+    let item = makeDOMItem(handler, vars, indexes[0]); 
+    rebinds = [item];
+    handler.markerEnd?.before(item);
+    if (handler.tracking) {
+      handler.tracking.push(handler.result[indexes[0]]);
+    }
+  } else {
+    // Any other case re-render all because still no track-by implemented
+    clearMarkerContents(handler);
+    rebinds = renderAll(handler, vars, context);
+  }
+
   return rebinds;
+
 }
+
+// Not implemented yet so we just duplicate re-render logic
 function removeAtIndex(handler: HTMLBindHandler, vars: ILocalVars, context: any, indexes: number[]) {
   let rebinds = [];
   clearMarkerContents(handler);

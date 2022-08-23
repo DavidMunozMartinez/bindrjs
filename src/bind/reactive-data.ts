@@ -99,6 +99,32 @@ export class ReactiveData {
   
         return true;
       },
+      deleteProperty: (target: any, prop: string) => {
+        let oldValue = target[prop];
+        let newValue = undefined;  
+        let dataChanges: DataChanges = {
+          path: path,
+          pathArray: pathArray,
+          property: prop,
+          oldValue,
+          newValue,
+          isNew: oldValue === undefined
+        };
+
+        let properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
+        let index = this.flatData.indexOf(properPath);
+        if (index > -1) {
+          let deleteCount = Object.values(target[prop]).length;
+          this.flatData.splice(index, deleteCount + 1);
+        }
+
+        if (prop in target) delete target[prop];
+        if (target.length !== undefined) target.length -= 1; 
+
+        if (callback) callback(dataChanges);
+  
+        return true;
+      }
     };
   }
 }
