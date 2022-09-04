@@ -116,7 +116,7 @@ export class Bind {
     });
   }
 
-  private defineBinds(element?: HTMLElement, props?: string[]) {
+  private defineBinds(element?: HTMLElement) {
     this.DOMBindHandlers = this.getTemplateBinds(element);
   }
 
@@ -141,30 +141,37 @@ export class Bind {
       i--;
     }
 
-    const htmlHandlers: HTMLBindHandler[] = [];
+    const attributeHandlers: HTMLBindHandler[] = [];
+    const interpolationHandlers: HTMLBindHandler[] = [];
+
     recurseElementNodes(container, node => {
       if (CurrentDOMHandlers.get(node) || !node.isConnected) return;
       switch (node.nodeType) {
         // Element
         case 1:
           this.getAttrBindsFromElement(node, handler => {
-            htmlHandlers.push(handler);
+            attributeHandlers.push(handler);
           });
           break;
         // Text
         case 3:
           this.getInterpolationBindsFromElement(node, handler => {
-            htmlHandlers.push(handler);
+            interpolationHandlers.push(handler);
+            // Compute this when found to avoid having visual expression in the HTML
+            // longer than necessary
+            handler.compute(this.bind);
           });
           break;
       }
     });
 
-    // Compute handlers at the end to avoid DOM modifier binds to
-    // modify the DOM as we iterate it
-    this.computeAndRebind(htmlHandlers);
+    // Compute the handlers that might modify the DOM at the end
+    this.computeAndRebind(attributeHandlers);
+
+    const handlers = attributeHandlers.concat(interpolationHandlers);
+
     // Concatenate new handlers to the existing ones
-    return this.DOMBindHandlers.concat(htmlHandlers);
+    return this.DOMBindHandlers.concat(handlers);
   }
 
   private computeAndRebind(handlers: HTMLBindHandler[], skipDependencies?: boolean) {
