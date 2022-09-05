@@ -150,16 +150,17 @@ export class Bind {
         // Element
         case 1:
           this.getAttrBindsFromElement(node, handler => {
+            // htmlHandlers.push(handler);
             attributeHandlers.push(handler);
           });
           break;
         // Text
         case 3:
           this.getInterpolationBindsFromElement(node, handler => {
-            interpolationHandlers.push(handler);
             // Compute this when found to avoid having visual expression in the HTML
             // longer than necessary
-            handler.compute(this.bind);
+            this.computeAndRebind([handler]);
+            interpolationHandlers.push(handler);
           });
           break;
       }
@@ -168,7 +169,7 @@ export class Bind {
     // Compute the handlers that might modify the DOM at the end
     this.computeAndRebind(attributeHandlers);
 
-    const handlers = attributeHandlers.concat(interpolationHandlers);
+    const handlers = interpolationHandlers.concat(attributeHandlers);
 
     // Concatenate new handlers to the existing ones
     return this.DOMBindHandlers.concat(handlers);
