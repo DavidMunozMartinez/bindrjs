@@ -116,6 +116,10 @@ This will run the examples page (https://bindrjs.vercel.app/) locally
 npm run test
 ```
 
+### Things that have been built using BindrJS
+https://github.com/DavidMunozMartinez/files-sorter
+
+
 Thanks for passing by, more things are under active development. HAPPY CODING!
 
 

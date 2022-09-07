@@ -1,3 +1,4 @@
+import { DataChanges } from 'bindrjs';
 import {HTMLBindHandler} from './bind-handlers/bind-handler';
 
 /**
@@ -152,6 +153,7 @@ export interface IBind {
   ready?: () => void;
   templateRendered?: () => void;
   templateBinded?: () => void;
+  onChange?: (changes: DataChanges) => void;
 }
 
 export interface IHTMLBindHandler {

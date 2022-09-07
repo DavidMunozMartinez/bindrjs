@@ -48,6 +48,12 @@ let LeftNavbar = new Bind({
         name: 'Custom',
         anchor: '#custom-example',
         codeRef: 'Custom'
+      },
+      {
+        id: 'life-cycle-hooks',
+        name: 'Hooks',
+        anchor: '#hooks',
+        codeRef: 'Hooks' 
       }
     ],
   },

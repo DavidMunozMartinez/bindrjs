@@ -6,18 +6,31 @@ import {BindingChar} from '../constants';
 import {DataChanges, ReactiveData} from './reactive-data';
 
 export class Bind {
+  /**
+   * Reference to reactive data
+   */
   bind: any;
-  bindAs?: string | null;
   ready: () => void;
+  /**
+   * Template has been renderer/appended to the DOM
+   */
   templateRendered: () => void;
+  /**
+   * Template has been processed and all binds have been triggered once
+   */
   templateBinded: () => void;
+  /**
+   * Reactive data has changes
+   */
+  onChange?: (changes: DataChanges) => void;
 
   constructor(data: IBind) {
     this.id = data.id;
-    // this.bindAs = data.bindAs || null;
     this.ready = data.ready || (() => {});
     this.templateRendered = data.templateRendered || (() => {});
     this.templateBinded = data.templateBinded || (() => {});
+    if (data.onChange) this.onChange = data.onChange;
+    
     const container = document.getElementById(this.id);
     let template;
     if (data.template) {
@@ -82,8 +95,8 @@ export class Bind {
         }
       });
     }
-
     this.computeHandlersForData(dataPath);
+    if (this.onChange) this.onChange(changes);
   }
 
   private buildPathFromChanges(changes: DataChanges) {

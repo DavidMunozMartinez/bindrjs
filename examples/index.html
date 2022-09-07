@@ -5,8 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BindrJS</title>
-  <!-- <script src="../../dist/index.js" defer></script> -->
-  <script src="https://unpkg.com/bindrjs@latest/dist/index.js" defer></script>
+  <script src="index.js" defer></script>
   <script src="examples.js" defer></script>
   <script src="if-example/if-example.js" defer></script>
   <script src="interpolation-example/interpolation.js" defer></script>
@@ -24,7 +23,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"
                         integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
                         crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/themes/prism.min.css" />
+
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/themes/prism.min.css" /> -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/prism.min.js"></script>
 
 </head>
@@ -143,6 +144,38 @@
             <li>You can't create custom binds which are already coded in the library</li>
           </p>
           <iframe width="100%" height="600" src="//jsfiddle.net/Damuz/g41kce9L/51/embedded/result,html,js,css/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div id="hooks">
+      <div class="example-section">
+        <div class="example">
+          <h2>Event hooks</h2>
+          <p>
+            When a new Bind instance is created there are a few life hooks you can tap on for your own needs:
+            <pre style="white-space: pre-wrap" class="language-javascript">
+              <code class="language-javascript">
+  new Bind({
+    /**
+    * Executed when the template has been appended but binds are still not processed
+    * (useful with the template property)
+    */
+    templateRendered() {}
+
+    /** 
+    * Executed when the template has been rendered and binds have been processed
+    */
+    ready() {},
+
+    /**
+    * Executed when reactive data changes
+    */
+    onChange(changes) {}
+  });
+              </code>
+            </pre>
+          </p>
         </div>
       </div>
     </div>
