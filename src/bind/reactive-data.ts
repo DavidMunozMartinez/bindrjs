@@ -28,6 +28,11 @@ export class ReactiveData {
 
   private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
     target.__proto__.__isProxy = true;
+
+    if (target.length !== undefined) {
+      this.flatData.push(path + '.length');
+    }
+
     Object.keys(target)
     .filter(key => typeof target[key] !== 'function')
     .forEach((propKey: any) => {
@@ -59,7 +64,7 @@ export class ReactiveData {
         let newValue = value;
 
         // Skip all custom logic if property being updated is from prototype
-        if (target.__proto__ && prop in target.__proto__ as any) {
+        if (target.__proto__ && prop in target.__proto__ as any && prop !== 'length') {
           target[prop] = value;
           return true;
         }

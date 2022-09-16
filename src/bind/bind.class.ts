@@ -101,9 +101,10 @@ export class Bind {
 
   private buildPathFromChanges(changes: DataChanges) {
     let pathArray = changes.pathArray;
-    if (changes.pathArray.length === 1 || !isNaN(changes.pathArray[changes.pathArray.length - 1] as any)) {
+    if (changes.pathArray.length === 1 || !isNaN(changes.pathArray[changes.pathArray.length - 1] as any) || changes.property === 'length') {
       pathArray = changes.pathArray.concat(changes.property);
     }
+
     return pathArray.reduce((previous: any, current: any) => {
       // Number keys are array indexes
       return (previous += !isNaN(current) ? `[${current}]` : `.${current}`);
