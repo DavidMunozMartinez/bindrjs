@@ -1,4 +1,4 @@
-import { DataChanges } from 'bindrjs';
+import { DataChanges } from '../bind/reactive-data';
 import {HTMLBindHandler} from './bind-handlers/bind-handler';
 
 /**

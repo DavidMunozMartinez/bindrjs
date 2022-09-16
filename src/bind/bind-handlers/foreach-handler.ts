@@ -65,23 +65,30 @@ function getActionData(handler: HTMLBindHandler): IArrayAction {
   let atIndexes: number[] = [];
   let actionData: IArrayAction = { action, atIndexes };
 
-  // No array set in result, or tracker re-render all
-  if (!handler.result || !handler.tracking?.length) return actionData;
-  // No changes, do nothing
-  if (handler.result && handler.tracking && handler.result.length === handler.tracking?.length) {
-    actionData.action = null;
-    return actionData;
-  }
-
-  let difference = handler.result.length - handler.tracking?.length;
-  actionData.action = difference > 0 ? 'add' : 'remove';
-  handler.result.forEach((item: any, index: number) => {
-    if (handler.tracking && handler.tracking.indexOf(item) === -1) {
-      atIndexes.push(index);
-    } 
-  });
-
+  /**
+   * In the name of stability and sacrificing performance, we always
+   * re-render when an array changes, this IS temporary while the track
+   * system is under development
+   */
   return actionData;
+
+  // // No array set in result, or tracker re-render all
+  // if (!handler.result || !handler.tracking?.length) return actionData;
+  // // No changes, do nothing
+  // if (handler.result && handler.tracking && handler.result.length === handler.tracking?.length) {
+  //   actionData.action = null;
+  //   return actionData;
+  // }
+
+  // let difference = handler.result.length - handler.tracking?.length;
+  // actionData.action = difference > 0 ? 'add' : 'remove';
+  // handler.result.forEach((item: any, index: number) => {
+  //   if (handler.tracking && handler.tracking.indexOf(item) === -1) {
+  //     atIndexes.push(index);
+  //   } 
+  // });
+
+  // return actionData;
 }
 
 function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
