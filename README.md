@@ -34,14 +34,6 @@ Chances are you DO need data reactivity, but you want it to affect your DOM in y
 
 Don't be shy and take a look at the demo: https://bindrjs.vercel.app/
 
-## Real talk here
-
-Do not use this library if you intend to scale your app into a full enterprise product with huge room for scalability.
-
-This is a library written and maintained by a single developer at the moment (if you are interested in helping you are more than welcome!) and its not intended for large enterprise size projects (right now), it will still work, but you might wanna consider other options with scalability in mind like React/Vue/Svelte/Angular.
-
-I am a hobbyist who likes to create and fiddle with IOT a lot so this library is built thinking about the small amount of space and processing power available in devices like RaspberryPI's/Arduino's/ESP32's etc
-
 ## How to use
 
 ```
