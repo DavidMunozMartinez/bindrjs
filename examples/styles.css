@@ -153,22 +153,21 @@ body {
        100% {
          stroke-dashoffset: 0;
          /* fill: #ffffff; */
-       }
-       
+       } 
    }
    /* Most browsers */
    @keyframes svg-text-anim {
       40% {
-         stroke-dashoffset: 0;
-         fill: transparent;
+         /* stroke-dashoffset: 0; */
+         /* fill: transparent; */
        }
        60% {
-         stroke-dashoffset: 0;
-         /* fill: #ffffff; */
+         /* stroke-dashoffset: f 0; */
+         fill: rgb(180, 180, 180);
        }
        100% {
-         stroke-dashoffset: 0;
-         /* fill: #ffffff; */
+         /* stroke-dashoffset: 0; */
+         fill: rgb(180, 180, 180);
        }
        
    }

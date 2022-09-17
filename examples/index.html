@@ -70,8 +70,9 @@
     </a>
   </div>
 
-  <div class="content">
-    <svg width="297.76" height="63.441" viewBox="0 0 297.76 63.441" xmlns="http://www.w3.org/2000/svg" style="overflow: visible; margin-bottom: 20px;">
+  <div class="content" style="padding-top: 25px">
+
+    <svg width="297.76" height="63.441" viewBox="0 0 297.76 63.441" xmlns="http://www.w3.org/2000/svg" style="overflow: visible; margin-bottom: 20px; margin-left: 20px;">
       <g id="svgGroup" stroke-linecap="round" fill-rule="evenodd" font-size="9pt" stroke="#000" stroke-width="0.25mm" fill="none" style="stroke:#000;stroke-width:0.25mm;fill:none">
         <path d="M 24.08 62.72 L 0 62.72 L 0 6.88 L 23.04 6.88 A 29.435 29.435 0 0 1 27.672 7.226 Q 30.241 7.636 32.398 8.53 A 17.797 17.797 0 0 1 32.84 8.72 A 16.036 16.036 0 0 1 36.263 10.762 A 12.689 12.689 0 0 1 39.08 13.84 A 13.296 13.296 0 0 1 41.192 20.764 A 16.012 16.012 0 0 1 41.2 21.28 Q 41.2 26.16 38.6 29.44 A 13.695 13.695 0 0 1 32.54 33.784 A 16.875 16.875 0 0 1 31.68 34.08 Q 36.4 34.96 39.44 38.8 Q 42.48 42.64 42.48 47.6 A 15.442 15.442 0 0 1 41.841 52.117 A 13.273 13.273 0 0 1 40.28 55.48 Q 38.08 58.88 33.92 60.8 A 20.146 20.146 0 0 1 28.915 62.326 Q 26.654 62.72 24.08 62.72 Z M 22.24 38.56 L 11.2 38.56 L 11.2 53.6 L 22.48 53.6 A 13.995 13.995 0 0 0 24.964 53.394 Q 26.356 53.142 27.461 52.585 A 7.064 7.064 0 0 0 28.84 51.68 A 6.25 6.25 0 0 0 30.986 47.852 A 9.278 9.278 0 0 0 31.12 46.24 A 8.662 8.662 0 0 0 30.789 43.783 A 6.507 6.507 0 0 0 28.72 40.6 Q 26.32 38.56 22.24 38.56 Z M 11.2 15.92 L 11.2 29.92 L 21.44 29.92 A 14.265 14.265 0 0 0 23.814 29.736 Q 25.081 29.521 26.095 29.058 A 6.657 6.657 0 0 0 27.6 28.12 A 5.835 5.835 0 0 0 29.608 24.635 A 8.757 8.757 0 0 0 29.76 22.96 A 8.363 8.363 0 0 0 29.493 20.786 A 5.881 5.881 0 0 0 27.6 17.76 A 7.074 7.074 0 0 0 25.088 16.413 Q 24.053 16.09 22.805 15.979 A 15.386 15.386 0 0 0 21.44 15.92 L 11.2 15.92 Z" id="0" vector-effect="non-scaling-stroke"/>
         <path d="M 51.44 18.4 L 62.64 18.4 L 62.64 62.72 L 51.44 62.72 L 51.44 18.4 Z M 54.643 12.734 A 7.655 7.655 0 0 0 57.12 13.12 A 8.866 8.866 0 0 0 57.711 13.101 A 6.694 6.694 0 0 0 62.04 11.24 A 6.279 6.279 0 0 0 63.479 9.203 A 6.561 6.561 0 0 0 64 6.56 A 7.879 7.879 0 0 0 63.998 6.386 A 6.196 6.196 0 0 0 62.04 1.88 A 6.528 6.528 0 0 0 59.597 0.386 A 7.655 7.655 0 0 0 57.12 0 A 8.866 8.866 0 0 0 56.529 0.02 A 6.694 6.694 0 0 0 52.2 1.88 A 6.279 6.279 0 0 0 50.761 3.917 A 6.561 6.561 0 0 0 50.24 6.56 A 7.879 7.879 0 0 0 50.242 6.734 A 6.196 6.196 0 0 0 52.2 11.24 A 6.528 6.528 0 0 0 54.643 12.734 Z" id="1" vector-effect="non-scaling-stroke"/>
@@ -168,7 +169,7 @@
 
 
     <h1>Examples: </h1>
-    <div id="interpolation-example"></div>
+    <div id="interpolation-example"></div> fsvg
     <div id="class-example"></div>
     <div id="style-example"></div>
     <div id="if-example"></div>
@@ -249,7 +250,7 @@ function setTextAnimation(delay, duration, strokeWidth, timingFunction, strokeCo
                 path.style["animation-delay"] = `${i * delay}s`;
             }
         }
- setTextAnimation(0, 1 , 2, 'ease-out','rgb(180, 180, 180)', false);
+ setTextAnimation(0, 0, 2, 'ease-out','rgb(180, 180, 180)', false);
 </script>
 
 </html>
