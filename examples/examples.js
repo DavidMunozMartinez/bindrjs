@@ -75,7 +75,7 @@ setTimeout(() => {
       });
     }
   });
-})
+}, 50)
 
 function getPackageData() {
   fetch('https://api.npmjs.org/downloads/point/2021-03-17:2022-09-17/bindrjs')
