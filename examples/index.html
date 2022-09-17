@@ -48,6 +48,19 @@
 
     </a>
 
+    <div>
+      Currently with
+    </div>
+    <div style="color: var(--bs-pink);">
+      ${this.totalDownloads}
+    </div>
+    <div>
+      total npm downloads!
+    </div>
+    <div>
+      (according to npm)
+    </div>
+
     <a href="https://github.com/DavidMunozMartinez/bindrJS" target="_blank" class="btn btn-outline-primary gh">
       <div class="code-ref">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Pro 6.1.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
@@ -69,6 +82,8 @@
         <path d="M 257.28 46.64 L 269.28 46.64 A 9.449 9.449 0 0 0 269.767 49.108 A 7.125 7.125 0 0 0 271.72 52.08 A 7.336 7.336 0 0 0 274.812 53.724 Q 276.14 54.08 277.76 54.08 A 13.194 13.194 0 0 0 280.23 53.863 Q 281.647 53.593 282.763 52.987 A 6.976 6.976 0 0 0 283.92 52.2 Q 286.16 50.32 286.16 47.28 Q 286.16 44.8 284.64 43.2 A 10.232 10.232 0 0 0 281.867 41.149 A 12.422 12.422 0 0 0 280.84 40.68 A 35.671 35.671 0 0 0 279.247 40.086 Q 277.582 39.505 275.317 38.855 A 119.809 119.809 0 0 0 274.56 38.64 A 99.48 99.48 0 0 1 271.061 37.545 Q 269.506 37.025 268.171 36.508 A 43.556 43.556 0 0 1 265.72 35.48 A 15.362 15.362 0 0 1 260.194 31.155 A 18.056 18.056 0 0 1 259.88 30.76 A 11.046 11.046 0 0 1 257.981 26.821 Q 257.44 24.806 257.44 22.32 A 16.714 16.714 0 0 1 258.08 17.613 A 14.037 14.037 0 0 1 259.92 13.68 Q 262.4 10 266.88 8.04 Q 271.36 6.08 277.12 6.08 Q 285.76 6.08 291.16 10.28 A 15.179 15.179 0 0 1 296.922 20.283 A 20.968 20.968 0 0 1 297.12 22 L 284.8 22 A 6.364 6.364 0 0 0 282.569 17.419 A 8.047 8.047 0 0 0 282.36 17.24 Q 280.2 15.46 276.712 15.366 A 14.581 14.581 0 0 0 276.32 15.36 A 10.394 10.394 0 0 0 274.133 15.577 Q 272.701 15.886 271.612 16.632 A 6.232 6.232 0 0 0 271.08 17.04 A 5.413 5.413 0 0 0 269.331 19.984 A 8.356 8.356 0 0 0 269.12 21.92 A 5.561 5.561 0 0 0 269.44 23.839 A 4.901 4.901 0 0 0 270.6 25.64 A 10.607 10.607 0 0 0 272.975 27.411 A 13.155 13.155 0 0 0 274.28 28.04 Q 276.267 28.871 279.723 29.931 A 131.458 131.458 0 0 0 280.48 30.16 Q 285.92 31.76 289.36 33.36 A 15.825 15.825 0 0 1 294.964 37.764 A 18.561 18.561 0 0 1 295.28 38.16 A 11.308 11.308 0 0 1 297.285 42.393 Q 297.693 44.019 297.751 45.928 A 21.049 21.049 0 0 1 297.76 46.56 Q 297.76 51.04 295.44 54.88 A 15.717 15.717 0 0 1 290.497 59.928 A 19.768 19.768 0 0 1 288.64 61 A 20.31 20.31 0 0 1 283.068 62.844 A 28.021 28.021 0 0 1 278 63.28 Q 272.16 63.28 267.48 61.28 A 18.497 18.497 0 0 1 262.724 58.38 A 16.234 16.234 0 0 1 260.08 55.52 Q 257.36 51.76 257.28 46.64 Z" id="6" vector-effect="non-scaling-stroke"/>
       </g>
     </svg>
+
+
 
     <div>
       <div class="example-section">
@@ -220,7 +235,8 @@
 
 <script>
 function setTextAnimation(delay, duration, strokeWidth, timingFunction, strokeColor,repeat) {
-            let paths = document.querySelectorAll("path");
+            let title = document.querySelector('g#svgGroup');
+            let paths = title.querySelectorAll('path');
             let mode=repeat?'infinite':'forwards'
             for (let i = 0; i < paths.length; i++) {
                 const path = paths[i];
@@ -233,7 +249,7 @@ function setTextAnimation(delay, duration, strokeWidth, timingFunction, strokeCo
                 path.style["animation-delay"] = `${i * delay}s`;
             }
         }
- setTextAnimation(0.05, 2 , 3,'ease-in-out','rgb(180, 180, 180)',false);
+ setTextAnimation(0, 1 , 2, 'ease-out','rgb(180, 180, 180)', false);
 </script>
 
 </html>
