@@ -89,10 +89,46 @@
           In addition to the out of the box binding types, you are able to add your own binding types and take advantage of the data reactivity system however you see fit
         </p>
         <p>
-          All you need to know is:
+          All you need to know is how to create <strong>HTML Bind Handlers</strong>
+
+          You can create them with attributes that have a colon ( <code>:</code> ) before them or content inside ( <code>${}</code> )
+          
           <p>
-            <li>Colon (<code>:</code>) before any attribute makes it a Bind Handler</li>
-            <li>Content within a (<code>${}</code>) in a text node will be interpolated</li>
+            For example:
+          </p>
+
+          <p>
+            <pre style="white-space: pre-wrap; padding: 0" class="language-javascript">
+              <code class="language-javascript">
+  new Bind({
+    id: 'main',
+    bind: {
+      bindClass: 'bind-class',
+      bindValue: 'Bind value'
+    }
+  });
+              </code>
+            </pre>
+          </p>
+
+          <pre style="white-space: pre-wrap; padding: 0" class="language-html">
+            <code class="language-markup">
+              <script type="prism-html-markup">
+  <div id="main" :class="this.bindClass">
+    This is a regular text node
+    ${this.bindValue}
+  </div>
+              </script>              
+            </code>
+          </pre>
+
+          <p>
+            Both the <code>:class</code> attribute and <code>${this.bindValue}</code> will become bind handlers.
+          </p>
+          <p>
+            Where the <code>:class</code> bind handler
+            will depend on <code>this.bindClass</code> and <code>${this.bindValue}</code> depends on <code>this.bindValue</code>.
+            And every time each handler dependency is updated, the <strong>HTML Bind Handler</strong>'s will be re-computed
           </p>
         </p>
       </div>
