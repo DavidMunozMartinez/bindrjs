@@ -1,7 +1,3 @@
-CustomBindHandler('test', (handler, context) => {
-  console.log('Hello from custom handler');
-});
-
 let LeftNavbar = new Bind({
   id: 'navbar',
   bind: {
@@ -81,7 +77,3 @@ let LeftNavbar = new Bind({
       });
   }
 });
-
-setTimeout(() => {
-  LeftNavbar.bind.bindTypes[0].testData = 'Something else!';
-}, 2000);
