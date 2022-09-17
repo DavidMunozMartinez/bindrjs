@@ -1,4 +1,6 @@
-let LeftNavbar = new Bind({
+
+getPackageData();
+const LeftNavbar = new Bind({
   id: 'navbar',
   bind: {
     bindTypes: [
@@ -53,11 +55,33 @@ let LeftNavbar = new Bind({
       }
     ],
     totalDownloads: 0
-  },
-  ready: () => {
-    fetch('https://api.npmjs.org/downloads/point/2021-03-17:2022-09-17/bindrjs')
+  }
+});
+
+// Wait to initialize this Bind because some parts of it use PrismJS, and some DOM elements get
+// removed, we wait for PrismJS to do its thing then we do our bindings
+setTimeout(() => {
+  const ContentBind = new Bind({
+    id: 'install-example',
+    bind: {
+      latestVersion: 'test'
+    },
+    ready: () => {
+      fetch('https://registry.npmjs.org/bindrjs')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data['dist-tags'].latest);
+        ContentBind.bind.latestVersion = data['dist-tags'].latest;
+      });
+    }
+  });
+})
+
+function getPackageData() {
+  fetch('https://api.npmjs.org/downloads/point/2021-03-17:2022-09-17/bindrjs')
       .then((response) => response.json())
       .then(data => {
+        console.log(data);
         const formatter = Intl.NumberFormat('en', { notation: 'standard' });
         let increment = 1;
         let current = 0;
@@ -75,5 +99,4 @@ let LeftNavbar = new Bind({
           }
         }, 89);
       });
-  }
-});
+}

@@ -5,7 +5,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BindrJS</title>
-  <script src="index.js" defer></script>
+  <!-- <script src="index.js" defer></script> -->
+  <script src="../dist/index.js"></script>
   <script src="examples.js" defer></script>
   <script src="if-example/if-example.js" defer></script>
   <script src="interpolation-example/interpolation.js" defer></script>
@@ -151,7 +152,7 @@
       </div>
     </div>
     <h1>Install: </h1>
-    <div>
+    <div id="install-example">
       <div class="example-section">
         <p>
           To install locally:
@@ -162,7 +163,7 @@
         </p>
         <p>
           Or add the script tag with the CDN:
-          <pre><code class="language-markup"> &lt;script src="https://unpkg.com/bindrjs@1.2.24/dist/index.js"&gt;&lt;/script&gt; </code></pre>
+          <pre><code class="language-markup"> &lt;script src="https://unpkg.com/bindrjs@${this.latestVersion}/dist/index.js"&gt;&lt;/script&gt; </code></pre>
           provided by: <a href="https://unpkg.com/">https://unpkg.com/</a>
         </p>
       </div>
