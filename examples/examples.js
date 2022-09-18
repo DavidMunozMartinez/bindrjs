@@ -1,4 +1,3 @@
-
 getPackageData();
 const LeftNavbar = new Bind({
   id: 'navbar',
@@ -9,7 +8,7 @@ const LeftNavbar = new Bind({
         name: 'Interpolation',
         anchor: '#interpolation-example',
         codeRef: '${string}',
-        testData: 'something'
+        testData: 'something',
       },
       {
         id: 'class-example',
@@ -45,17 +44,18 @@ const LeftNavbar = new Bind({
         id: 'custom-example',
         name: 'Custom',
         anchor: '#custom-example',
-        codeRef: 'Custom'
+        codeRef: 'Custom',
       },
       {
         id: 'life-cycle-hooks',
         name: 'Hooks',
         anchor: '#hooks',
-        codeRef: 'Hooks' 
-      }
+        codeRef: 'Hooks',
+      },
     ],
-    totalDownloads: 0
-  }
+    totalDownloads: 0,
+    showMenu: true
+  },
 });
 
 // Wait to initialize this Bind because some parts of it use PrismJS, and some DOM elements get
@@ -64,39 +64,63 @@ setTimeout(() => {
   const ContentBind = new Bind({
     id: 'install-example',
     bind: {
-      latestVersion: 'test'
+      latestVersion: 'test',
     },
     ready: () => {
       fetch('https://registry.npmjs.org/bindrjs')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data['dist-tags'].latest);
-        ContentBind.bind.latestVersion = data['dist-tags'].latest;
-      });
-    }
+        .then(response => response.json())
+        .then(data => {
+          ContentBind.bind.latestVersion = data['dist-tags'].latest;
+        });
+    },
   });
-}, 50)
+}, 50);
 
 function getPackageData() {
   fetch('https://api.npmjs.org/downloads/point/2021-03-17:2022-09-17/bindrjs')
-      .then((response) => response.json())
-      .then(data => {
-        console.log(data);
-        const formatter = Intl.NumberFormat('en', { notation: 'standard' });
-        let increment = 1;
-        let current = 0;
-        let interval = setInterval(() => {
-          if (current < data.downloads) {
-            current = current + increment
-            let val = formatter.format(current);
-            LeftNavbar.bind.totalDownloads = val;
-            increment = increment + 31;
-          } else {
-            if (current > data.downloads) {
-              LeftNavbar.bind.totalDownloads = formatter.format(data.downloads)
-            }
-            clearInterval(interval);
+    .then(response => response.json())
+    .then(data => {
+      const formatter = Intl.NumberFormat('en', {notation: 'standard'});
+      let increment = 1;
+      let current = 0;
+      let interval = setInterval(() => {
+        if (current < data.downloads) {
+          current = current + increment;
+          let val = formatter.format(current);
+          LeftNavbar.bind.totalDownloads = val;
+          increment = increment + 31;
+        } else {
+          if (current > data.downloads) {
+            LeftNavbar.bind.totalDownloads = formatter.format(data.downloads);
           }
-        }, 89);
-      });
+          clearInterval(interval);
+        }
+      }, 89);
+    });
 }
+
+function setTextAnimation(
+  delay,
+  duration,
+  strokeWidth,
+  timingFunction,
+  strokeColor,
+  repeat
+) {
+  let title = document.querySelector('g#svgGroup');
+  let paths = title.querySelectorAll('path');
+  let mode = repeat ? 'infinite' : 'forwards';
+  for (let i = 0; i < paths.length; i++) {
+    const path = paths[i];
+    const length = path.getTotalLength();
+    path.style['stroke-dashoffset'] = `${length}px`;
+    path.style['stroke-dasharray'] = `${length}px`;
+    path.style['stroke-width'] = `${strokeWidth}px`;
+    path.style['stroke'] = `${strokeColor}`;
+    path.style[
+      'animation'
+    ] = `${duration}s svg-text-anim ${mode} ${timingFunction}`;
+    path.style['animation-delay'] = `${i * delay}s`;
+  }
+}
+setTextAnimation(0, 0, 2, 'ease-out', 'rgb(180, 180, 180)', false);

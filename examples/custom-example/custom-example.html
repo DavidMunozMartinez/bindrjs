@@ -1,0 +1,39 @@
+<div class="example-section">
+  <div class="example">
+    <h2>Custom bindings:</h2>
+    <p>
+      You are able to get all the benefit from the data reactivity however you
+      want by defining your own custom bind handlers!
+    </p>
+    <p>
+      <code>CustomBindHandler</code> is a global function added by BindrJS that
+      you can access anywhere, it takes 2 arguments:
+      <li>
+        <code>name</code>: is the string that will decide how you bind this
+        handler to your HTML
+      </li>
+      <li>
+        <code>compute</code>: is the function that will be called every time
+        data attached to this handler changes
+      </li>
+    </p>
+    <p>
+      NOTES:
+      <li>
+        You have to make sure your custom handlers are defined before any new
+        instance of Bind that might need them
+      </li>
+      <li>
+        You can't create custom binds which are already coded in the library
+      </li>
+    </p>
+    <iframe
+      width="100%"
+      height="600"
+      src="//jsfiddle.net/Damuz/g41kce9L/51/embedded/result,html,js,css/dark/"
+      allowfullscreen="allowfullscreen"
+      allowpaymentrequest
+      frameborder="0"
+    ></iframe>
+  </div>
+</div>

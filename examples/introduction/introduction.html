@@ -1,0 +1,47 @@
+<div class="example-section">
+    <p>
+      BindrJS is a lightweight data reactivity library built to handle HTML data binding, the most efficient way possible,
+      DOM updates are as close as possible to data updates thanks to native JavaScript Proxy API
+    </p>
+    <p>
+      In addition to the classic HTML string interpolation, it provides the most basic data binding types out of the box and
+      virtually any attribute to help make your HTML powerful, dynamic and
+      with the smoothest learning curve, mirroring vanilla JavaScript and HTML as much as possible
+    </p>
+    <p>This library is also meant to be easily adoptable by ongoing projects that are not currently using any data-binding solutions,
+      and require the least amount of setup as possible, making it an easy pick for quick small projects or to provide a simple data binding solution to large
+      legacy projects
+    </p>
+    <p>
+      In addition to the out of the box binding types, you are able to add your own binding types and take advantage of the data reactivity system however you see fit
+    </p>
+    <p>
+      All you need to know is how to create <strong>HTML Bind Handlers</strong>
+
+      You can create them with attributes that have a colon ( <code>:</code> ) before them or content inside ( <code>${this.interpolateText}</code> )
+      
+      <p>
+        For example:
+      </p>
+
+      <p>
+        <pre style="white-space: pre-wrap;" class="language-javascript">
+          <code class="language-javascript" :innerHTML="this.js">
+          </code>
+        </pre>
+      </p>
+
+      <pre style="white-space: pre-wrap;" class="language-html">
+        <code class="language-markup" :innerHTML="this.html"></code>
+      </pre>
+
+      <p>
+        Both the <code>:class</code> attribute and <code>${this.bindValue}</code> will become bind handlers.
+      </p>
+      <p>
+        Where the <code>:class</code> bind handler
+        will depend on <code>this.bindClass</code> and <code>${this.bindValue}</code> depends on <code>this.bindValue</code>.
+        And every time each handler dependency is updated, the <strong>HTML Bind Handler</strong>'s will be re-computed
+      </p>
+    </p>
+  </div>

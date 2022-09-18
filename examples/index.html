@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BindrJS</title>
   <script src="index.js" defer></script>
-  <!-- <script src="../dist/index.js"></script> -->
   <script src="examples.js" defer></script>
   <script src="if-example/if-example.js" defer></script>
   <script src="interpolation-example/interpolation.js" defer></script>
@@ -14,6 +13,9 @@
   <script src="class-example/class-example.js" defer></script>
   <script src="style-example/style-example.js" defer></script>
   <script src="attribute-example/attribute-example.js" defer></script>
+  <script src="hooks-example/hooks-example.js" defer></script>
+  <script src="custom-example/custom-example.js" defer></script>
+  <script src="introduction/introduction.js" defer></script>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,19 +23,18 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet"
                         integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx"
                         crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lucaburgio/iconoir@main/css/iconoir.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"
                         integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
                         crossorigin="anonymous"></script>
-
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/themes/prism.min.css" /> -->
-
+    
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.0/prism.min.js"></script>
 
 </head>
 
 <!-- To run this examples run "npm run examples" -->
 <body class="bg-dark text-light">
-  <div id="navbar" class="left-navbar">
+  <div id="navbar" class="left-navbar" :class:show="this.showMenu">
     <div class="btn navbar-button logo" title="Logo will go here" :onclick="window.open('https://github.com/DavidMunozMartinez/bindrJS', '_blank')">
       <span>
         I wish we had a logo
@@ -72,9 +73,18 @@
         </svg>
       </div>
     </a>
+
+    <div class="toggle-navbar">
+      <i
+        :class="this.showMenu ? 'iconoir-cancel' : 'iconoir-menu'"
+        style="font-size: 2em;"
+        :onclick="this.showMenu = !this.showMenu">
+      </i>
+    </div>
   </div>
 
-  <div class="content" style="padding-top: 25px">
+
+  <div class="content">
 
     <svg width="297.76" height="63.441" viewBox="0 0 297.76 63.441" xmlns="http://www.w3.org/2000/svg" style="overflow: visible; margin-bottom: 20px; margin-left: 20px;">
       <g id="svgGroup" stroke-linecap="round" fill-rule="evenodd" font-size="9pt" stroke="#000" stroke-width="0.25mm" fill="none" style="stroke:#000;stroke-width:0.25mm;fill:none">
@@ -88,70 +98,10 @@
       </g>
     </svg>
 
-    <div>
-      <div class="example-section">
-        <p>
-          BindrJS is a lightweight data reactivity library built to handle HTML data binding, the most efficient way possible,
-          DOM updates are as close as possible to data updates thanks to native JavaScript Proxy API
-        </p>
-        <p>
-          In addition to the classic HTML string interpolation, it provides the most basic data binding types out of the box and
-          virtually any attribute to help make your HTML powerful, dynamic and
-          with the smoothest learning curve, mirroring vanilla JavaScript and HTML as much as possible
-        </p>
-        <p>This library is also meant to be easily adoptable by ongoing projects that are not currently using any data-binding solutions,
-          and require the least amount of setup as possible, making it an easy pick for quick small projects or to provide a simple data binding solution to large
-          legacy projects
-        </p>
-        <p>
-          In addition to the out of the box binding types, you are able to add your own binding types and take advantage of the data reactivity system however you see fit
-        </p>
-        <p>
-          All you need to know is how to create <strong>HTML Bind Handlers</strong>
+    <div id="introduction"></div>
 
-          You can create them with attributes that have a colon ( <code>:</code> ) before them or content inside ( <code>${}</code> )
-          
-          <p>
-            For example:
-          </p>
-
-          <p>
-            <pre style="white-space: pre-wrap; padding: 0" class="language-javascript">
-              <code class="language-javascript">
-  new Bind({
-    id: 'main',
-    bind: {
-      bindClass: 'bind-class',
-      bindValue: 'Bind value'
-    }
-  });
-              </code>
-            </pre>
-          </p>
-
-          <pre style="white-space: pre-wrap; padding: 0" class="language-html">
-            <code class="language-markup">
-              <script type="prism-html-markup">
-  <div id="main" :class="this.bindClass">
-    This is a regular text node
-    ${this.bindValue}
-  </div>
-              </script>              
-            </code>
-          </pre>
-
-          <p>
-            Both the <code>:class</code> attribute and <code>${this.bindValue}</code> will become bind handlers.
-          </p>
-          <p>
-            Where the <code>:class</code> bind handler
-            will depend on <code>this.bindClass</code> and <code>${this.bindValue}</code> depends on <code>this.bindValue</code>.
-            And every time each handler dependency is updated, the <strong>HTML Bind Handler</strong>'s will be re-computed
-          </p>
-        </p>
-      </div>
-    </div>
     <h1>Install: </h1>
+
     <div id="install-example">
       <div class="example-section">
         <p>
@@ -177,82 +127,9 @@
     <div id="if-example"></div>
     <div id="foreach-example"></div>
     <div id="attribute-example"></div>
-
-    <div id="custom-example">
-      <div class="example-section">
-        <div class="example">
-          <h2>
-            Custom bindings:
-          </h2>
-          <p>
-            You are able to get all the benefit from the data reactivity however you want by defining your own custom bind handlers!
-          </p>
-          <p>
-            <code>CustomBindHandler</code> is a global function added by BindrJS that you can access anywhere, it takes 2 arguments:
-            <li><code>name</code>: is the string that will decide how you bind this handler to your HTML</li>
-            <li><code>compute</code>: is the function that will be called every time data attached to this handler changes</li>
-          </p>
-          <p>
-            NOTES:
-            <li>You have to make sure your custom handlers are defined before any new instance of Bind that might need them</li>
-            <li>You can't create custom binds which are already coded in the library</li>
-          </p>
-          <iframe width="100%" height="600" src="//jsfiddle.net/Damuz/g41kce9L/51/embedded/result,html,js,css/dark/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
-        </div>
-      </div>
-    </div>
-
-    <div id="hooks">
-      <div class="example-section">
-        <div class="example">
-          <h2>Event hooks</h2>
-          <p>
-            When a new Bind instance is created there are a few life hooks you can tap on for your own needs:
-            <pre style="white-space: pre-wrap" class="language-javascript">
-              <code class="language-javascript">
-  new Bind({
-    /**
-    * Executed when the template has been appended but binds are still not processed
-    * (useful with the template property)
-    */
-    templateRendered() {}
-
-    /** 
-    * Executed when the template has been rendered and binds have been processed
-    */
-    ready() {},
-
-    /**
-    * Executed when reactive data changes
-    */
-    onChange(changes) {}
-  });
-              </code>
-            </pre>
-          </p>
-        </div>
-      </div>
-    </div>
+    <div id="custom-example"></div>
+    <div id="hooks"></div>
   </div>
 </body>
-
-<script>
-function setTextAnimation(delay, duration, strokeWidth, timingFunction, strokeColor,repeat) {
-            let title = document.querySelector('g#svgGroup');
-            let paths = title.querySelectorAll('path');
-            let mode=repeat?'infinite':'forwards'
-            for (let i = 0; i < paths.length; i++) {
-                const path = paths[i];
-                const length = path.getTotalLength();
-                path.style["stroke-dashoffset"] = `${length}px`;
-                path.style["stroke-dasharray"] = `${length}px`;
-                path.style["stroke-width"] = `${strokeWidth}px`;
-                path.style["stroke"] = `${strokeColor}`;
-                path.style["animation"] = `${duration}s svg-text-anim ${mode} ${timingFunction}`;
-                path.style["animation-delay"] = `${i * delay}s`;
-            }
-        }
- setTextAnimation(0, 0, 2, 'ease-out','rgb(180, 180, 180)', false);
-</script>
 
 </html>
