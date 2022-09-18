@@ -21,7 +21,9 @@ const Introduction = new Bind({
     bind: {
         html: '',
         js: '',
-        interpolateText: '${}'
+        interpolateText: '${}',
+        interpolateStart: '${',
+        interpolateEnd: '}'
     },
     ready: () => {
         Introduction.bind.js = Prism.highlight(JSCode, Prism.languages.javascript, 'javascript');

@@ -54,7 +54,7 @@ const LeftNavbar = new Bind({
       },
     ],
     totalDownloads: 0,
-    showMenu: true
+    showMenu: false
   },
 });
 

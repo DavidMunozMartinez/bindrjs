@@ -36,11 +36,11 @@
       </pre>
 
       <p>
-        Both the <code>:class</code> attribute and <code>${this.bindValue}</code> will become bind handlers.
+        Both the <code>:class</code> attribute and <code> ${this.interpolateStart}this.bindValue${this.interpolateEnd}</code> will become bind handlers.
       </p>
       <p>
         Where the <code>:class</code> bind handler
-        will depend on <code>this.bindClass</code> and <code>${this.bindValue}</code> depends on <code>this.bindValue</code>.
+        will depend on <code>this.bindClass</code> and <code>${this.interpolateStart}this.bindValue${this.interpolateEnd}</code> depends on <code>this.bindValue</code>.
         And every time each handler dependency is updated, the <strong>HTML Bind Handler</strong>'s will be re-computed
       </p>
     </p>
