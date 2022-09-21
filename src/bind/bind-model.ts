@@ -62,6 +62,14 @@ export const BindMouseEventValues = [
 ] as const;
 export type BindMouseEventTypes = typeof BindMouseEventValues[number];
 
+export const BindTouchEventValues = [
+  'ontouchcancel',
+  'ontouchend',
+  'ontouchmove',
+  'ontouchstart',
+] as const;
+export type BindTouchEventTypes = typeof BindTouchEventValues[number];
+
 export const BindDragEventValues = [
   'ondrag',
   'ondragend',
@@ -89,6 +97,7 @@ export const BindEventValues = [
   ...BindFormEventValues,
   ...BindKeyboardEventValues,
   ...BindMouseEventValues,
+  ...BindTouchEventValues,
   ...BindDragEventValues,
   ...BindClipboardEventValues,
 ];
