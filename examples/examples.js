@@ -1,3 +1,4 @@
+const formatter = new Intl.DateTimeFormat('en-GB');
 getPackageData();
 const LeftNavbar = new Bind({
   id: 'navbar',
@@ -77,7 +78,9 @@ setTimeout(() => {
 }, 50);
 
 function getPackageData() {
-  fetch('https://api.npmjs.org/downloads/point/2021-03-17:2022-09-17/bindrjs')
+  // YEAR - MONTH - DAY
+  let today = formatter.format().split('/').reverse().join('-');
+  fetch(`https://api.npmjs.org/downloads/point/2021-03-17:${today}/bindrjs`)
     .then(response => response.json())
     .then(data => {
       const formatter = Intl.NumberFormat('en', {notation: 'standard'});
