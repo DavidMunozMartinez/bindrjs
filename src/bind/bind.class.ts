@@ -164,8 +164,16 @@ export class Bind {
         // Element
         case 1:
           this.getAttrBindsFromElement(node, handler => {
-            // htmlHandlers.push(handler);
-            attributeHandlers.push(handler);
+            // This guy adds to the HTML, so we make sure to compute it immediately in case
+            // the HTML being added contains more attributes that need to be processed
+            if (handler.attribute === ':innerhtml') {
+              // We don't worry about rebinding because the HTML being added
+              // is being recursed in this function, so it will eventually pass trough here
+              handler.compute(this.bind);
+              interpolationHandlers.push(handler);
+            } else {
+              attributeHandlers.push(handler);
+            }
           });
           break;
         // Text
