@@ -9,7 +9,11 @@ export function evaluateDOMExpression(
   // I probably need to sanitize this
   let needsToReturn = expression.indexOf('return') === -1;
   return new Function(`
-    ${needsToReturn ? 'return' : ''} ${expression};
+    try {
+      ${needsToReturn ? 'return' : ''} ${expression};
+    } catch(err) {
+      return err;
+    }
     `).apply(context);
 }
 

@@ -34,13 +34,14 @@ export class ReactiveData {
     }
 
     Object.keys(target)
-    .filter(key => typeof target[key] !== 'function')
     .forEach((propKey: any) => {
       const value = target[propKey];
       const currentPath = path + (!isNaN(propKey) ? `[${propKey}]` : `.${propKey}`);
       const currentPathArray = pathArray.concat(propKey);
 
-      this.flatData.push(currentPath);
+      if (!isFunction(value)) {
+        this.flatData.push(currentPath);
+      }
 
       if (isObject(value)) {
         target[propKey] = this._reactiveDeep(value, callback, currentPath, currentPathArray);
@@ -80,6 +81,7 @@ export class ReactiveData {
 
         let properPath = path;
         let properPathArray = pathArray;
+
         // If is new we need to add it to the flat data array and create a new path
         if (dataChanges.isNew && typeof value !== 'function' && !isObject(value)) {
           properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
@@ -91,10 +93,12 @@ export class ReactiveData {
         if (isObject(value)) {
           properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
           properPathArray = pathArray.concat(prop);
-          this.flatData.push(properPath)
+          this.flatData.push(properPath);
+
           // Make sure we do clean objects to avoid making a proxy object out of a proxy
-          if (value && value.__proto__ && value.__isProxy) value = JSON.parse(JSON.stringify(value));
-          target[prop] = this._reactiveDeep(JSON.parse(JSON.stringify(value)), callback, properPath, properPathArray);
+          value = cloneObj(value);
+          // if (value && value.__proto__ && value.__isProxy) value = JSON.parse(JSON.stringify(value));
+          target[prop] = this._reactiveDeep(value, callback, properPath, properPathArray);
 
         } else {
           target[prop] = value;
@@ -136,4 +140,15 @@ export class ReactiveData {
 
 function isObject(value: any) {
   return typeof value === 'object' && value !== null && typeof value !== 'function';
+}
+
+function isFunction(value: any) {
+  return typeof value === 'function';
+}
+
+function cloneObj(obj: any) {
+  if (obj.length !== undefined) {
+    return Object.assign([], obj);
+  }
+  return Object.assign({}, obj);
 }
