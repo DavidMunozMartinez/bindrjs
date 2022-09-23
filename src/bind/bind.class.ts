@@ -30,7 +30,7 @@ export class Bind {
     this.templateRendered = data.templateRendered || (() => {});
     this.templateBinded = data.templateBinded || (() => {});
     if (data.onChange) this.onChange = data.onChange;
-    
+
     const container = document.getElementById(this.id);
     let template;
     if (data.template) {
@@ -81,7 +81,9 @@ export class Bind {
     let dataPath = this.buildPathFromChanges(changes);
 
     if (changes.isNew) {
-      let newPropRoot = changes.path += !isNaN(changes.property as any) ? `[${changes.property}]` : `.${changes.property}`; 
+      let newPropRoot = (changes.path += !isNaN(changes.property as any)
+        ? `[${changes.property}]`
+        : `.${changes.property}`);
       let relatedProps = this._reactive.flatData.filter((path: string) => {
         return isPathUsedInExpression(newPropRoot, path);
       });
@@ -101,7 +103,11 @@ export class Bind {
 
   private buildPathFromChanges(changes: DataChanges) {
     let pathArray = changes.pathArray;
-    if (changes.pathArray.length === 1 || !isNaN(changes.pathArray[changes.pathArray.length - 1] as any) || changes.property === 'length') {
+    if (
+      changes.pathArray.length === 1 ||
+      !isNaN(changes.pathArray[changes.pathArray.length - 1] as any) ||
+      changes.property === 'length'
+    ) {
       pathArray = changes.pathArray.concat(changes.property);
     }
 
@@ -197,16 +203,17 @@ export class Bind {
     return this.DOMBindHandlers.concat(handlers);
   }
 
-  private computeAndRebind(handlers: HTMLBindHandler[], skipDependencies?: boolean) {
+  private computeAndRebind(
+    handlers: HTMLBindHandler[],
+    skipDependencies?: boolean
+  ) {
     let rebinds: HTMLElement[] = [];
     handlers.forEach(handler => {
       let result = handler.compute(this.bind);
       let dependencies = handler.dependencies;
       // In some cases dependencies have already been appended to the handlers
       if (!skipDependencies) {
-        dependencies = handler.assignDependencies(
-          this._reactive.flatData
-        );
+        dependencies = handler.assignDependencies(this._reactive.flatData);
       }
 
       dependencies.forEach(dep => {
@@ -233,9 +240,8 @@ export class Bind {
     element: HTMLElement,
     callback: (handler: HTMLBindHandler) => void
   ): HTMLBindHandler[] {
-
     /**
-     * IF the element contains an if/foreach handler, we only compute the first one 
+     * IF the element contains an if/foreach handler, we only compute the first one
      * of these we encounter since it will remove itself from the DOM and re-compute
      * itself once we are done recursing the DOM, we do this because all the
      * handlers created before an if/foreach handler are immediately disconnected
@@ -249,19 +255,28 @@ export class Bind {
       .getAttributeNames()
       .filter(attrName => {
         let isBindHandler = attrName.indexOf(BindingChar) > -1;
-        return isBindHandler && !modifiesDOM ||
-          modifiesDOM && attrName === ':if' || attrName === ':foreach';
+        return (
+          (isBindHandler && !modifiesDOM) ||
+          (modifiesDOM && attrName === ':if') ||
+          attrName === ':foreach'
+        );
       })
       .map(attrName => {
         let cleanAttrName = attrName.split(BindingChar)[1];
-        const type: BindTypes =
+        // Check if is known binding type
+        let type: BindTypes =
           BindValues[BindValues.indexOf(cleanAttrName as BindTypes)];
+        // Check if is event type
+        if (!type && cleanAttrName.indexOf('on') === 0) {
+          type = 'event';
+        }
 
         let handler: HTMLBindHandler = new HTMLBindHandler({
+          // If not found, threat it as an attribute type
           type: type ? type : 'attr',
           element: element,
           expression: element.getAttribute(attrName) || '',
-          attribute: attrName,
+          attribute: type === 'event' ? cleanAttrName : attrName,
         });
         if (customHandlers[cleanAttrName]) handler.isCustom = cleanAttrName;
 

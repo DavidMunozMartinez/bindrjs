@@ -1,114 +1,20 @@
-import { DataChanges } from '../bind/reactive-data';
+import {DataChanges} from '../bind/reactive-data';
 import {HTMLBindHandler} from './bind-handlers/bind-handler';
-
-/**
- * Events triggered for the window object (applies to the <body> tag):
- */
-export const BindWindowEventAttributeValues = [
-  'onafterprint',
-  'onbeforeprint',
-  'onbeforeunload',
-  'onerror',
-  'onhashchange',
-  'onload',
-  'onmessage',
-  'onoffline',
-  'ononline',
-  'onpagehide',
-  'onpageshow',
-  'onpopstate',
-  'onresize',
-  'onstorage',
-  'onunload',
-] as const;
-export type BindWindowEventAttributeTypes =
-  typeof BindWindowEventAttributeValues[number];
-
-/**
- * Events triggered by actions inside a HTML form (applies to almost all HTML elements, but is most used in form elements):
- */
-export const BindFormEventValues = [
-  'onblur',
-  'onchange',
-  'oncontextmenu',
-  'onfocus',
-  'oninput',
-  'oninvalid',
-  'onreset',
-  'onsearch',
-  'onselect',
-  'onsubmit',
-] as const;
-export type BindFormEventTypes = typeof BindFormEventValues[number];
-
-export const BindKeyboardEventValues = [
-  'onkeydown',
-  'onkeypress',
-  'onkeyup',
-] as const;
-export type BindKeyboardEventTypes = typeof BindKeyboardEventValues[number];
-
-export const BindMouseEventValues = [
-  'onclick',
-  'ondblclick',
-  'onmousedown',
-  'onmousemove',
-  'onmouseleave',
-  'onmouseout',
-  'onmouseover',
-  'onmouseup',
-  'onmousewheel',
-  'onwheel',
-] as const;
-export type BindMouseEventTypes = typeof BindMouseEventValues[number];
-
-export const BindTouchEventValues = [
-  'ontouchcancel',
-  'ontouchend',
-  'ontouchmove',
-  'ontouchstart',
-] as const;
-export type BindTouchEventTypes = typeof BindTouchEventValues[number];
-
-export const BindDragEventValues = [
-  'ondrag',
-  'ondragend',
-  'ondragenter',
-  'ondragleave',
-  'ondragover',
-  'ondragstart',
-  'ondrop',
-  'onscroll',
-] as const;
-export type BindDragEventTypes = typeof BindDragEventValues[number];
-
-export const BindClipboardEventValues = [
-  'oncopy',
-  'oncut',
-  'onpaste',
-] as const;
-export type BindClipboardEventTypes = typeof BindClipboardEventValues[number];
-
-// export const BindFocusEventValues = ['onblur', 'onfocus'] as const;
-// export type BindFocusEventTypes = typeof BindFocusEventValues[number];
-
-export const BindEventValues = [
-  ...BindWindowEventAttributeValues,
-  ...BindFormEventValues,
-  ...BindKeyboardEventValues,
-  ...BindMouseEventValues,
-  ...BindTouchEventValues,
-  ...BindDragEventValues,
-  ...BindClipboardEventValues,
-];
 
 /**
  * These are 'custom' bind types that imitate structural directive/components in other frameworks
  */
-export const BindCodeTypeValues = ['if', 'else', 'foreach', 'index', 'reanimate'] as const;
+export const BindCodeTypeValues = [
+  'if',
+  'else',
+  'foreach',
+  'index',
+  'reanimate',
+] as const;
 export type BindCodeTypes = typeof BindCodeTypeValues[number];
 
 export const BindHTMLValues = [
+  'event',
   'innerhtml',
   'innertext',
   'interpolation',
@@ -124,8 +30,6 @@ export const BindValues = [
   ...BindHTMLValues,
   // Code like binds
   ...BindCodeTypeValues,
-  // Event binds
-  ...BindEventValues,
 ] as const;
 export type BindTypes = typeof BindValues[number];
 // export const LowerCasedBindValues = BindValues.map(value =>
@@ -133,7 +37,10 @@ export type BindTypes = typeof BindValues[number];
 // );
 
 export type BindHandlers = {
-  [key in BindTypes]: (bind: IHTMLBindHandler, context: any) => HTMLElement[] | void;
+  [key in BindTypes]: (
+    bind: HTMLBindHandler,
+    context: any
+  ) => void | HTMLElement[];
 };
 
 export interface IBind {

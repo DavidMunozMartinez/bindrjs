@@ -1,5 +1,4 @@
 import {
-  BindEventValues,
   BindHandlers,
   BindTypes,
   IHTMLBindHandler,
@@ -14,7 +13,7 @@ import { ClassBindHandler } from './class-handler';
  * These type of binds don't need the original attribute definition, so we clear them from
  * the DOM as soon as we gather all the data we need from them
  */
-const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else', 'reanimate', ...BindEventValues];
+const CleanAttribute = ['if', 'foreach', 'class', 'style', 'attr', 'else', 'reanimate', 'event'];
 
 export class HTMLBindHandler {
   type: BindTypes;
@@ -133,11 +132,6 @@ export class HTMLBindHandler {
       this.helperHTML = 'true';
       this.element.removeAttribute(':index');
     }
-
-    if (this.element.hasAttribute(':id')) {
-      // this.trackProp = this.element.getAttribute(':id') || '';
-      // this.tracked = {};
-    }
   }
 
   /**
@@ -176,29 +170,18 @@ export class HTMLBindHandler {
 }
 
 /**
- * Dynamically create all bindHandler functions for HTML Events, since they all behave the same
- */
-const eventBindHandlers = BindEventValues.reduce(
-  (functions: any, event: string) => (
-    // Lets think of a way to not use 'any' here
-    (functions[event] = (handler: any, context: any) => {
-      if (handler.type in handler.element) {
-        handler.element[handler.type] = () => {
-          evaluateDOMExpression(handler.expression, context);
-        };
-      }
-    }),
-    functions
-  ),
-  {}
-);
-
-/**
  * These functions are the core functionality of this library, each bind type ends up executing one of these functions which
  * each manipulates a referenced HTMLElement or DOM in a very specific way that should react to the data changes or events
  * These are executed when data changes and there is a DOM bind that depends on that data
  */
 const bindHandlers: BindHandlers = {
+  event: (handler: any, context: any) => {
+    if (handler.attribute in handler.element) {
+      handler.element[handler.attribute] = () => {
+        evaluateDOMExpression(handler.expression, context);
+      };
+    }
+  },
   // Probably shouldn't use this, since seems unsafe
   innerhtml: (handler: HTMLBindHandler, context: unknown) => {
     handler.result = evaluateDOMExpression(handler.expression, context);
@@ -254,8 +237,6 @@ const bindHandlers: BindHandlers = {
   else: ElseHandler,
   foreach: ForEachBindHandler,
   index: IndexHandler,
-  // Append all mouse event handlers, which work all the same for the most part
-  ...eventBindHandlers,
 };
 
 export const customHandlers: {[key: string]: (handler: HTMLBindHandler, context: any) => void} = {};

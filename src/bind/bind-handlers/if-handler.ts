@@ -1,7 +1,7 @@
 import { clearMarkerContents, evaluateDOMExpression } from "../../utils";
 import { HTMLBindHandler } from "./bind-handler";
 
-export function IfBindHandler(handler: HTMLBindHandler, context: unknown): any {
+export function IfBindHandler(handler: HTMLBindHandler, context: unknown): void | HTMLElement[] {
   let rebind: any = false;
   if (!handler.outerHTML) return rebind;
 
