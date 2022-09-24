@@ -65,7 +65,7 @@ setTimeout(() => {
   const ContentBind = new Bind({
     id: 'install-example',
     bind: {
-      latestVersion: 'test',
+      latestVersion: '1.2.28',
     },
     ready: () => {
       fetch('https://registry.npmjs.org/bindrjs')
