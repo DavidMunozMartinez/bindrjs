@@ -79,6 +79,10 @@ export class Bind {
 
   private onDataChange(changes: DataChanges) {
     let dataPath = this.buildPathFromChanges(changes);
+    // Make sure to also trigger child data updates
+    let childData = this._reactive.flatData.filter(
+      (data: string) => data.indexOf(dataPath) > -1 && data !== dataPath
+    );
 
     if (changes.isNew) {
       let newPropRoot = (changes.path += !isNaN(changes.property as any)
@@ -98,6 +102,8 @@ export class Bind {
       });
     }
     this.computeHandlersForData(dataPath);
+    childData.forEach((path: string) => this.computeHandlersForData(path));
+
     if (this.onChange) this.onChange(changes);
   }
 
