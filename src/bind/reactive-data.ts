@@ -39,7 +39,7 @@ export class ReactiveData {
       const currentPath = path + (!isNaN(propKey) ? `[${propKey}]` : `.${propKey}`);
       const currentPathArray = pathArray.concat(propKey);
 
-      if (!isFunction(value)) {
+      if (!isFunction(value) && this.flatData.indexOf(currentPath) === -1) {
         this.flatData.push(currentPath);
       }
 
@@ -86,14 +86,17 @@ export class ReactiveData {
         if (dataChanges.isNew && typeof value !== 'function' && !isObject(value)) {
           properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
           properPathArray = pathArray.concat(prop);
-          this.flatData.push(properPath)
+          // this.flatData.push(properPath);
+          if (this.flatData.indexOf(properPath) === -1) this.flatData.push(properPath);
+
         }
 
         // If value is an object we create new reactive object, including arrays
         if (isObject(value)) {
           properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
           properPathArray = pathArray.concat(prop);
-          this.flatData.push(properPath);
+          // this.flatData.push(properPath);
+          if (this.flatData.indexOf(properPath) === -1) this.flatData.push(properPath);
 
           // Make sure we do clean objects to avoid making a proxy object out of a proxy
           value = cloneObj(value);
