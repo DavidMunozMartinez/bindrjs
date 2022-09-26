@@ -201,7 +201,7 @@ const bindHandlers: BindHandlers = {
     let isSpecificStyle = splitAttribute.length > 2;
     
     if (isSpecificStyle) {
-      handler.result = evaluateDOMExpression(handler.expression);
+      handler.result = evaluateDOMExpression(handler.expression, context);
       let key: any = snakeToCamel(splitAttribute[2]);
       handler.element.style[key] = String(handler.result);
     } else {
