@@ -94,7 +94,10 @@ export class HTMLBindHandler {
       } catch (error: any) {
         let errorAt = this.outerHTML ? this.outerHTML : this.element.outerHTML;
         throw new Error(
-          `\nCouldn't compute HTMLBindHandler.\n\n${errorAt}\n\n${error.message}\n`
+          `\nCouldn't compute HTMLBindHandler.\n
+          \nexpression: ${this.expression}\n
+          \n${errorAt}\n
+          \n${error.message}\n`
         );
       }
     }
