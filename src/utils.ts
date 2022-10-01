@@ -1,4 +1,4 @@
-import { HTMLBindHandler } from './bind/bind-handlers/bind-handler';
+import {HTMLBindHandler} from './bind/bind-handlers/bind-handler';
 import {InterpolationRegexp} from './constants';
 
 // TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
@@ -9,12 +9,8 @@ export function evaluateDOMExpression(
   // I probably need to sanitize this
   let needsToReturn = expression.indexOf('return') === -1;
   return new Function(`
-    try {
-      ${needsToReturn ? 'return' : ''} ${expression};
-    } catch(err) {
-      return err;
-    }
-    `).apply(context);
+    ${needsToReturn ? 'return' : ''} ${expression};
+  `).apply(context);
 }
 
 export function recurseElementNodes(
@@ -51,22 +47,22 @@ export function interpolateText(text: string, context: any) {
  * on regex to figure out how to properly match only for uses of a variable, for now this will do,
  * if you ever modify this, just make sure to RUN THE TESTS in utils.test.ts and keep all known
  * scenarios passing.
- * 
+ *
  * I see 3 options that should get rid of this function
- * 
+ *
  * .- Figure out a regex that works on safari to find and replace all uses of the variable with the array
  * pointing at its index
- * 
+ *
  * .- Get rid of the concept of find-and-replace when we need for a 'local' variable and implement a way
  * to actually store the local values for all nested children of HTMLBindHandlers that can potentially
  * generate 'local' variables
- * 
+ *
  * .- Attempt to use WebAssembly for string processing related tasks, including this one (even if we figure out
  * the regex thing or the local variable, this is a potential good idea)
  */
 const operators = ['-', '+', '*', '/', '!', '<', '>'];
 const invalidBehindVariable = [']', '.'];
-const validBehindVariable = [' ', '\n', '', '"', "'", "[", '(', ...operators];
+const validBehindVariable = [' ', '\n', '', '"', "'", '[', '(', ...operators];
 const validAheadVariable = [' ', '', '[', '(', '.', ']', ')', ...operators];
 export function findAndReplaceVariable(
   text: string,
@@ -90,8 +86,7 @@ export function findAndReplaceVariable(
     let validCharBehind =
       invalidBehindVariable.indexOf(charBehind) === -1 &&
       validBehindVariable.indexOf(charBehind) > -1;
-    let validAheadChar = 
-      validAheadVariable.indexOf(charAhead) > -1;
+    let validAheadChar = validAheadVariable.indexOf(charAhead) > -1;
 
     // We count the single and double quotes behind the match to make sure this
     // match is not within quotes
@@ -105,14 +100,22 @@ export function findAndReplaceVariable(
     }
 
     // Final check of all the processing we did before
-    if (validCharBehind && validAheadChar && numberOfSingleQuotes % 2 === 0 && numberOfDoubleQuotes % 2 === 0) {
+    if (
+      validCharBehind &&
+      validAheadChar &&
+      numberOfSingleQuotes % 2 === 0 &&
+      numberOfDoubleQuotes % 2 === 0
+    ) {
       replaceAtIndexes.unshift(textStartIndex);
     }
   });
 
   // Iterate backwards to avoid messing with the indexes we found
-  replaceAtIndexes.forEach((index) => {
-    result = `${result.substring(0, index)}${replace}${result.substring(index + find.length, result.length)}`;
+  replaceAtIndexes.forEach(index => {
+    result = `${result.substring(0, index)}${replace}${result.substring(
+      index + find.length,
+      result.length
+    )}`;
   });
 
   return result;
@@ -125,24 +128,49 @@ export function clearMarkerContents(handler: HTMLBindHandler) {
   }
 }
 
-const ValuePathEnder = [' ', '\n', ')', '<', '>', '[', ']', '{', '}', '+', '-', '*', '/', '=', '!', '?', ';', '|', '&', undefined]
+const ValuePathEnder = [
+  ' ',
+  '\n',
+  ')',
+  '<',
+  '>',
+  '[',
+  ']',
+  '{',
+  '}',
+  '+',
+  '-',
+  '*',
+  '/',
+  '=',
+  '!',
+  '?',
+  ';',
+  '|',
+  '&',
+  undefined,
+];
 export function isPathUsedInExpression(path: string, expression: string) {
   let result = false;
   let index = expression.indexOf(path);
-  if (index > -1 && ValuePathEnder.indexOf(expression[index + path.length]) > -1) {
+  if (
+    index > -1 &&
+    ValuePathEnder.indexOf(expression[index + path.length]) > -1
+  ) {
     let followingCharacter = expression[index + path.length];
     let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
     let isBracket = followingCharacter === '[';
-    let afterBracketIsNumber = !isNaN(expression[index + path.length + 1] as any);
-    result = isExpressionEnder && !isBracket || isBracket && !afterBracketIsNumber;
+    let afterBracketIsNumber = !isNaN(
+      expression[index + path.length + 1] as any
+    );
+    result =
+      (isExpressionEnder && !isBracket) || (isBracket && !afterBracketIsNumber);
   }
   return result;
 }
 
 export function snakeToCamel(str: string) {
-  return str.toLowerCase().replace(/([-][a-z])/g, group =>
-    group
-      .toUpperCase()
-      .replace('-', '')
-  );
+  return str
+    .toLowerCase()
+    .replace(/([-][a-z])/g, group => group.toUpperCase().replace('-', ''));
 }
