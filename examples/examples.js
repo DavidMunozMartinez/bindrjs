@@ -75,7 +75,7 @@ setTimeout(() => {
         });
     },
   });
-}, 50);
+}, 100);
 
 function getPackageData() {
   // YEAR - MONTH - DAY

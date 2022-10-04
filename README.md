@@ -81,6 +81,24 @@ MainContent.bind.text = 'Changing reactive data';
 // Now any part of the template that depends on "this.text" property WILL automatically be updated accordingly
 ```
 
+### TS type safety:
+You can have type safety when using TS by providing your own interface to the Bind class
+```ts
+interface IHomeView {
+  header: string
+}
+
+let HomeBind = new Bind<IHomeView>({
+  id: 'home',
+  bind: {
+    header: 0 // This will error out because IHomeView interface requests a string
+  }
+});
+
+let bind = HomeBind.bind // The reactive bind object will follow the IHomeView interface, and provide any intellisense available from your IDE
+```
+
+
 ## Contribute!
 
 ### Download the code

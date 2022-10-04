@@ -1,4 +1,5 @@
 <div class="example-section">
+  <h2>Introduction</h2>
     <p>
       BindrJS is a lightweight data reactivity library built to handle HTML data binding, the most efficient way possible,
       DOM updates are as close as possible to data updates thanks to native JavaScript Proxy API
@@ -25,8 +26,8 @@
       </p>
 
       <p>
-        <pre style="white-space: pre-wrap;" class="language-javascript">
-          <code class="language-javascript" :innerHTML="this.js">
+        <pre style="white-space: pre-wrap;" class="language-typescript">
+          <code class="language-typescript" :innerHTML="this.js">
           </code>
         </pre>
       </p>
@@ -42,6 +43,15 @@
         Where the <code>:class</code> bind handler
         will depend on <code>this.bindClass</code> and <code>${this.interpolateStart}this.bindValue${this.interpolateEnd}</code> depends on <code>this.bindValue</code>.
         And every time each handler dependency is updated, the <strong>HTML Bind Handler</strong>'s will be re-computed
+      </p>
+
+      <h3>TS Type Safety</h3>
+      <p>
+        Although this library is build for being simple to use with plain JS, it also provides solid support for TS projects with type safety
+        <pre style="white-space: pre-wrap;" class="language-javascript">
+          <code class="language-javascript" :innerHTML="this.typeSafety">
+          </code>
+        </pre>
       </p>
     </p>
   </div>
