@@ -43,7 +43,7 @@ export type BindHandlers = {
   ) => void | HTMLElement[];
 };
 
-export interface IBind {
+export interface IBind<T> {
   /**
    * Id of the element that will benefit from the context of this renderer
    */
@@ -58,7 +58,7 @@ export interface IBind {
    * This object will be attached to the container (found by the id property) and it will make the
    * data accessible to the entire container and its children trough the 'this' keyword
    */
-  bind?: object;
+  bind?: T;
   /**
    * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
    */
