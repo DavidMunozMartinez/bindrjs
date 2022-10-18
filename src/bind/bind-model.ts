@@ -10,9 +10,7 @@ export const BindCodeTypeValues = [
   'foreach',
   'index',
   'reanimate',
-] as const;
-export type BindCodeTypes = typeof BindCodeTypeValues[number];
-
+];
 export const BindHTMLValues = [
   'event',
   'innerhtml',
@@ -21,9 +19,7 @@ export const BindHTMLValues = [
   'class',
   'attr',
   'style',
-] as const;
-export type BindHTMLTypes = typeof BindHTMLValues[number];
-
+];
 // To add more binding types/logic first add them to this array then, for behavior add its function to the BindHandlers Object
 export const BindValues = [
   // HTMLElement binds
@@ -59,10 +55,6 @@ export interface IBind<T> {
    * data accessible to the entire container and its children trough the 'this' keyword
    */
   bind?: T;
-  /**
-   * Alias that will be used within the template context, so you can use that alias instead of the 'this' keyword
-   */
-  // bindAs?: string | null;
   /**
    * Executed once all bindings have been checked for the container
    */

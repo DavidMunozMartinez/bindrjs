@@ -1,11 +1,11 @@
-import {HTMLBindHandler} from './bind-handler';
+import {HTMLBindHandler} from '../bind-handler';
 import {
   clearMarkerContents,
   evaluateDOMExpression,
   findAndReplaceVariable,
   recurseElementNodes,
-} from '../../utils';
-import {BindingChar, InterpolationRegexp} from '../../constants';
+} from '../../../utils';
+import {BindingChar, InterpolationRegexp} from '../../../constants';
 
 interface IArrayAction {
   action: 'add' | 'remove' | 're-render' | null,

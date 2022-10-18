@@ -1,6 +1,6 @@
-import {HTMLBindHandler} from './bind-handler';
-import {evaluateDOMExpression} from '../../utils';
-import {BindingChar} from '../../constants';
+import {HTMLBindHandler} from '../bind-handler';
+import {evaluateDOMExpression} from '../../../utils';
+import {BindingChar} from '../../../constants';
 
 export function ClassBindHandler(
   handler: HTMLBindHandler,

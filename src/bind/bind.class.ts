@@ -185,7 +185,7 @@ export class Bind<T> {
             // the HTML being added contains more attributes that need to be processed
             if (handler.attribute === ':innerhtml') {
               // We don't worry about rebinding because the HTML being added
-              // is being recursed in this function, so it will eventually pass trough here
+              // is being recursed in this function, so it will eventually pass trough it
               handler.compute(this.bind);
               interpolationHandlers.push(handler);
             } else {
