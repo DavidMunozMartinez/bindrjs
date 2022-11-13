@@ -58,7 +58,6 @@ export class HTMLBindHandler {
     this.expression = templateBind.expression;
     this.attribute = templateBind.attribute;
 
-
     switch (this.type) {
       case 'if':
         this.replaceForMarker(this.type);

@@ -5,9 +5,15 @@ import {isPathUsedInExpression, recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
 import {DataChanges, ReactiveData} from './reactive-data';
 
-type BindState<T> = T extends object ? 
-  { [K in keyof T]: BindState<T[K]> } : T extends number ? 
-  number : T extends boolean ? boolean : T extends string ? string : any;
+type BindState<T> = T extends object
+  ? {[K in keyof T]: BindState<T[K]>}
+  : T extends number
+  ? number
+  : T extends boolean
+  ? boolean
+  : T extends string
+  ? string
+  : any;
 
 export class Bind<T> {
   /**
@@ -158,20 +164,7 @@ export class Bind<T> {
      * Store our current DOMBindHandlers in a map so we can later
      * check and avoid repeating handlers
      */
-    const CurrentDOMHandlers = new Map<HTMLElement, boolean>();
-    // Iterate backwards because we might remove elements from the array
-    let i = this.DOMBindHandlers.length - 1;
-    while (i >= 0) {
-      let element = this.DOMBindHandlers[i].element;
-      // Also check if its still connected, otherwise delete it
-      if (element.isConnected) {
-        CurrentDOMHandlers.set(element, true);
-      } else {
-        this.DOMBindHandlers.splice(i, 1);
-      }
-      i--;
-    }
-
+    const CurrentDOMHandlers = this.getConnectedHandlers();
     const attributeHandlers: HTMLBindHandler[] = [];
     const interpolationHandlers: HTMLBindHandler[] = [];
 
@@ -207,11 +200,31 @@ export class Bind<T> {
 
     // Compute the handlers that might modify the DOM at the end
     this.computeAndRebind(attributeHandlers);
-
     const handlers = interpolationHandlers.concat(attributeHandlers);
-
     // Concatenate new handlers to the existing ones
     return this.DOMBindHandlers.concat(handlers);
+  }
+
+  private getConnectedHandlers(): Map<HTMLElement, boolean> {
+    /**
+     * Store our current DOMBindHandlers in a map so we can later
+     * check and avoid repeating handlers
+     */
+    const CurrentDOMHandlers = new Map<HTMLElement, boolean>();
+    // Iterate backwards because we might remove elements from the array
+    let i = this.DOMBindHandlers.length - 1;
+    while (i >= 0) {
+      let element = this.DOMBindHandlers[i].element;
+      // Also check if its still connected, otherwise delete it
+      if (element.isConnected) {
+        CurrentDOMHandlers.set(element, true);
+      } else {
+        this.DOMBindHandlers.splice(i, 1);
+      }
+      i--;
+    }
+
+    return CurrentDOMHandlers;
   }
 
   private computeAndRebind(
