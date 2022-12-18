@@ -5,21 +5,12 @@ import {isPathUsedInExpression, recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
 import {DataChanges, ReactiveData} from './reactive-data';
 
-type BindState<T> = T extends object
-  ? {[K in keyof T]: BindState<T[K]>}
-  : T extends number
-  ? number
-  : T extends boolean
-  ? boolean
-  : T extends string
-  ? string
-  : any;
 
 export class Bind<T> {
   /**
    * Reference to reactive data with type safety
    */
-  bind: BindState<T>;
+  bind: T;
 
   ready: () => void;
   /**
