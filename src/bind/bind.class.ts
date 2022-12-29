@@ -75,7 +75,7 @@ export class Bind<T> {
     this.defineBinds();
     setTimeout(() => {
       this.templateBinded();
-      this.ready();
+      this.ready.apply(this.bind, []);
     });
   }
 
