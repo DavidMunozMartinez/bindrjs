@@ -56,10 +56,10 @@ export class Bind<T> {
     if (template) {
       template.then((templateString: string) => {
         this.container.innerHTML = templateString;
-        this.initTemplate();
+        this.initTemplate.apply(this);
       });
     } else {
-      this.initTemplate();
+      this.initTemplate.apply(this);
     }
   }
 
@@ -75,7 +75,7 @@ export class Bind<T> {
     this.defineBinds();
     setTimeout(() => {
       this.templateBinded();
-      this.ready.bind(this.bind)
+      this.ready.apply(this.bind)
     });
   }
 
