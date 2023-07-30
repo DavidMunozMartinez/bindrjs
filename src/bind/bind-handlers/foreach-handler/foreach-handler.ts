@@ -98,8 +98,13 @@ function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
   let arrayVar = expressionVars[1];
   let usesIndex = Boolean(handler.helperHTML);
   let indexToken = handler.helperHTML === 'true' ? ':index' : handler.helperHTML || ':index';
+  indexToken = indexToken.trim();
+  const errorText = 'Invalid custom index name for ' + ':index="'+indexToken+'"'
   if (indexToken !== ':index' && indexToken.indexOf('@') !== 0) {
-    throw new Error('Invalid custom index name for ' + ':index="'+indexToken+'", index name must start with "@",\ntry :index="@'+indexToken+'" instead');
+    throw new Error(errorText + ', index name must start with "@",\ntry :index="@'+indexToken+'" instead');
+  }
+  if (indexToken.indexOf(' ') > -1) {
+    throw new Error(errorText + ', index name can\'t contain inbetween spaces')
   }
   return { localVar, arrayVar, usesIndex, indexToken };
 }
