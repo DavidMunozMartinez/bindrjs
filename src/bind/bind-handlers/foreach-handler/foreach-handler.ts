@@ -15,7 +15,8 @@ interface IArrayAction {
 interface ILocalVars {
   localVar: string,
   arrayVar: string,
-  usesIndex: boolean
+  usesIndex: boolean,
+  indexToken: string,
 }
 
 // This bind handler should only compute when the length of the array changes
@@ -96,7 +97,11 @@ function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
   let localVar = expressionVars[0];
   let arrayVar = expressionVars[1];
   let usesIndex = Boolean(handler.helperHTML);
-  return { localVar, arrayVar, usesIndex }
+  let indexToken = handler.helperHTML === 'true' ? ':index' : handler.helperHTML || ':index';
+  if (indexToken !== ':index' && indexToken.indexOf('@') !== 0) {
+    throw new Error('Invalid custom index name for ' + ':index="'+indexToken+'", index name must start with "@",\ntry :index="@'+indexToken+'" instead');
+  }
+  return { localVar, arrayVar, usesIndex, indexToken };
 }
 
 function renderAll(handler: HTMLBindHandler, vars: ILocalVars, context: any): HTMLElement[] {
@@ -156,8 +161,8 @@ function makeDOMItem(handler: HTMLBindHandler, vars: ILocalVars, index: number) 
             if (value.indexOf(vars.localVar) > -1) {
               value = parseLocalVar(value, vars, index);
             }
-            if (vars.usesIndex && value.indexOf(':index') > -1) {
-              value = value.replaceAll(':index', index);
+            if (vars.usesIndex && value.indexOf(vars.indexToken) > -1) {
+              value = value.replaceAll(vars.indexToken, index);
             };
             node.setAttribute(attribute, value);
           });
@@ -166,8 +171,8 @@ function makeDOMItem(handler: HTMLBindHandler, vars: ILocalVars, index: number) 
       case 3:
         node.textContent = node.textContent?.replace(InterpolationRegexp, (a, b) => {
           let value: any = parseLocalVar(b, vars, index);
-          if (vars.usesIndex && value.indexOf(':index') > -1) {
-            value = value.replaceAll(':index', index);
+          if (vars.usesIndex && value.indexOf(vars.indexToken) > -1) {
+            value = value.replaceAll(vars.indexToken, index);
           }
           return `\${${value}}`;
         }) || null;

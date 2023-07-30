@@ -12,7 +12,7 @@ export class Bind<T> {
    */
   bind: T;
 
-  ready: () => void;
+  ready: (() => void) | undefined;
   /**
    * Template has been renderer/appended to the DOM
    */
@@ -28,7 +28,7 @@ export class Bind<T> {
 
   constructor(data: IBind<T>) {
     this.id = data.id;
-    this.ready = data.ready || (() => {});
+    this.ready = data.ready;
     this.templateRendered = data.templateRendered || (() => {});
     this.templateBinded = data.templateBinded || (() => {});
     if (data.onChange) this.onChange = data.onChange;
@@ -71,11 +71,14 @@ export class Bind<T> {
   private dataDependencies: {[key: string]: HTMLBindHandler[]} = {};
 
   private initTemplate() {
+    const that = this;
     this.templateRendered();
     this.defineBinds();
     setTimeout(() => {
       this.templateBinded();
-      this.ready.apply(this.bind)
+      if (this.ready) {
+        this.ready.apply(that.bind)
+      }
     });
   }
 

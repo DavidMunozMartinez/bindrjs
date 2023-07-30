@@ -92,12 +92,7 @@ export class HTMLBindHandler {
         return bindHandlers[this.type](this, context);
       } catch (error: any) {
         let errorAt = this.outerHTML ? this.outerHTML : this.element.outerHTML;
-        throw new Error(
-          `\nCouldn't compute HTMLBindHandler.\n
-          \nexpression: ${this.expression}\n
-          \n${errorAt}\n
-          \n${error.message}\n`
-        );
+        throw new Error(`\nCouldn't compute HTMLBindHandler(${this.type}).\n\nexpression: ${this.expression}\n\n${errorAt.trim()}\n\n${error.message}\n`);
       }
     }
   }
@@ -131,7 +126,7 @@ export class HTMLBindHandler {
 
   private checkIndex() {
     if (this.element.hasAttribute(':index')) {
-      this.helperHTML = 'true';
+      this.helperHTML = this.element.getAttribute(':index') || 'true';
       this.element.removeAttribute(':index');
     }
   }
