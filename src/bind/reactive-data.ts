@@ -99,7 +99,7 @@ export class ReactiveData {
           if (this.flatData.indexOf(properPath) === -1) this.flatData.push(properPath);
 
           // Make sure we do clean objects to avoid making a proxy object out of a proxy
-          value = cloneObj(value);
+          value = value.__isProxy ? cloneObj(value) : value;
           // if (value && value.__proto__ && value.__isProxy) value = JSON.parse(JSON.stringify(value));
           target[prop] = this._reactiveDeep(value, callback, properPath, properPathArray);
 
@@ -153,5 +153,5 @@ function cloneObj(obj: any) {
   if (obj.length !== undefined) {
     return Object.assign([], obj);
   }
-  return Object.assign({}, obj);
+  return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
 }
