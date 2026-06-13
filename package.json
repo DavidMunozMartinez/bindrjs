@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/index.js",
-    "dist/index.d.ts"
+    "dist/index.d.ts",
+    "LLM.md"
   ],
   "scripts": {
     "start": "webpack --mode=development",
@@ -14,7 +15,8 @@
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "webpack --mode=production",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run compile"
   },
   "repository": {
     "type": "git",
