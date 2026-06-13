@@ -1,16 +1,38 @@
 import {HTMLBindHandler} from './bind/bind-handlers/bind-handler';
 import {InterpolationRegexp} from './constants';
 
+/**
+ * Compiled expressions are cached by their source string. The function body
+ * only depends on the expression text (the data context is supplied at call
+ * time via .apply), so the same compiled Function can be reused across every
+ * re-render. This avoids re-parsing identical expressions on each data change,
+ * which is the hot path for a long-running app.
+ */
+const compiledExpressionCache = new Map<string, Function>();
+
+// Matches the `return` keyword as a whole word, so identifiers/strings that
+// merely contain the substring "return" (e.g. this.returnLabel) aren't treated
+// as already returning a value.
+const ReturnKeywordRegexp = /\breturn\b/;
+
+function compileExpression(expression: string): Function {
+  let compiled = compiledExpressionCache.get(expression);
+  if (!compiled) {
+    let needsToReturn = !ReturnKeywordRegexp.test(expression);
+    compiled = new Function(`
+      ${needsToReturn ? 'return' : ''} ${expression};
+    `);
+    compiledExpressionCache.set(expression, compiled);
+  }
+  return compiled;
+}
+
 // TODO: Look for a way to not need the 'this' keyword in the DOM maybe?
 export function evaluateDOMExpression(
   expression: string,
   context?: any
 ): unknown {
-  // I probably need to sanitize this
-  let needsToReturn = expression.indexOf('return') === -1;
-  return new Function(`
-    ${needsToReturn ? 'return' : ''} ${expression};
-  `).apply(context);
+  return compileExpression(expression).apply(context);
 }
 
 export function recurseElementNodes(
@@ -28,17 +50,9 @@ export function recurseElementNodes(
 }
 
 export function interpolateText(text: string, context: any) {
-  let matches = text.matchAll(InterpolationRegexp);
-  let current = matches.next();
-  let interpolated = text;
-  while (!current.done) {
-    let primitiveValue = String(
-      evaluateDOMExpression(current.value[1], context)
-    );
-    interpolated = interpolated.replace(current.value[0], primitiveValue);
-    current = matches.next();
-  }
-  return interpolated;
+  return text.replace(InterpolationRegexp, (_, expr) =>
+    String(evaluateDOMExpression(expr, context))
+  );
 }
 
 /**
@@ -128,46 +142,13 @@ export function clearMarkerContents(handler: HTMLBindHandler) {
   }
 }
 
-const ValuePathEnder = [
-  ' ',
-  '\n',
-  ')',
-  '<',
-  '>',
-  '[',
-  ']',
-  '{',
-  '}',
-  '+',
-  '-',
-  '*',
-  '/',
-  '=',
-  '!',
-  '?',
-  ';',
-  '|',
-  '&',
-  undefined,
-];
-export function isPathUsedInExpression(path: string, expression: string) {
-  let result = false;
-  let index = expression.indexOf(path);
-  if (
-    index > -1 &&
-    ValuePathEnder.indexOf(expression[index + path.length]) > -1
-  ) {
-    let followingCharacter = expression[index + path.length];
-    let isExpressionEnder = ValuePathEnder.indexOf(followingCharacter) > -1;
-    let isBracket = followingCharacter === '[';
-    let afterBracketIsNumber = !isNaN(
-      expression[index + path.length + 1] as any
-    );
-    result =
-      (isExpressionEnder && !isBracket) || (isBracket && !afterBracketIsNumber);
-  }
-  return result;
-}
+// NOTE: `isPathUsedInExpression` was removed here. It used to statically guess
+// a handler's dependencies by substring-matching data paths against the
+// expression text (with all the bracket/quote/Safari-lookbehind caveats that
+// came with it). Dependency detection is now done at runtime via getter-based
+// tracking in ReactiveData.collect(), so this heuristic is no longer needed.
+// `findAndReplaceVariable` below is still required — but only for :foreach
+// rendering (rewriting the local var to an indexed path), not for deps.
 
 export function snakeToCamel(str: string) {
   return str

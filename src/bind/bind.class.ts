@@ -1,7 +1,7 @@
 import {HTMLBindHandler, customHandlers} from './bind-handlers/bind-handler';
 import {BindTypes, BindValues, IBind} from './bind-model';
 
-import {isPathUsedInExpression, recurseElementNodes} from '../utils';
+import {recurseElementNodes} from '../utils';
 import {BindingChar} from '../constants';
 import {DataChanges, ReactiveData} from './reactive-data';
 
@@ -86,26 +86,17 @@ export class Bind<T> {
     let dataPath = this.buildPathFromChanges(changes);
     // Make sure to also trigger child data updates
     let childData = this._reactive.flatData.filter(
-      (data: string) => data.indexOf(dataPath) > -1 && data !== dataPath
+      (data: string) => (data.startsWith(dataPath + '.') || data.startsWith(dataPath + '[')) && data !== dataPath
     );
 
-    if (changes.isNew) {
-      let newPropRoot = (changes.path += !isNaN(changes.property as any)
-        ? `[${changes.property}]`
-        : `.${changes.property}`);
-      let relatedProps = this._reactive.flatData.filter((path: string) => {
-        return isPathUsedInExpression(newPropRoot, path);
-      });
-      // Check for handlers that might require this new property and/or its children
-      this.DOMBindHandlers.forEach(handler => {
-        let originalLength = handler.dependencies.length;
-        handler.assignDependencies(relatedProps, true);
-        let newLength = handler.dependencies.length;
-        if (originalLength < newLength) {
-          this.computeAndRebind([handler], true);
-        }
-      });
-    }
+    // NOTE: There used to be a special `changes.isNew` block here that scanned
+    // every handler to see if a brand-new property matched its expression
+    // (via string matching). With getter-based tracking this is unnecessary:
+    // when a handler first computed, reading the (then-undefined) property
+    // already recorded its path as a dependency, so the handler is ALREADY
+    // subscribed and the normal computeHandlersForData call below re-runs it
+    // once the property is set. Each re-run re-collects deps, so it also
+    // self-heals once intermediate objects come into existence.
     this.computeHandlersForData(dataPath);
     childData.forEach((path: string) => this.computeHandlersForData(path));
 
@@ -208,12 +199,18 @@ export class Bind<T> {
     // Iterate backwards because we might remove elements from the array
     let i = this.DOMBindHandlers.length - 1;
     while (i >= 0) {
-      let element = this.DOMBindHandlers[i].element;
+      let handler = this.DOMBindHandlers[i];
+      let element = handler.element;
       // Also check if its still connected, otherwise delete it
       if (element.isConnected) {
         CurrentDOMHandlers.set(element, true);
       } else {
         this.DOMBindHandlers.splice(i, 1);
+        // Purge the dead handler from every dependency bucket so it can be
+        // garbage collected. Otherwise handlers from removed elements (e.g.
+        // every :foreach re-render) accumulate in dataDependencies for paths
+        // that may never change again, leaking memory in long-running apps.
+        this.purgeHandlerDependencies(handler);
       }
       i--;
     }
@@ -221,26 +218,32 @@ export class Bind<T> {
     return CurrentDOMHandlers;
   }
 
-  private computeAndRebind(
-    handlers: HTMLBindHandler[],
-    skipDependencies?: boolean
-  ) {
+  private purgeHandlerDependencies(handler: HTMLBindHandler) {
+    handler.dependencies.forEach(dep => {
+      let bucket = this.dataDependencies[dep];
+      if (!bucket) return;
+      let index = bucket.indexOf(handler);
+      if (index > -1) bucket.splice(index, 1);
+      if (bucket.length === 0) delete this.dataDependencies[dep];
+    });
+  }
+
+  private computeAndRebind(handlers: HTMLBindHandler[]) {
     let rebinds: HTMLElement[] = [];
     handlers.forEach(handler => {
-      let result = handler.compute(this.bind);
-      let dependencies = handler.dependencies;
-      // In some cases dependencies have already been appended to the handlers
-      if (!skipDependencies) {
-        dependencies = handler.assignDependencies(this._reactive.flatData);
-      }
-
-      dependencies.forEach(dep => {
-        let dataHandlers = this.dataDependencies[dep] || [];
-        if (dataHandlers.indexOf(handler) === -1) {
-          dataHandlers.push(handler);
-        }
-        this.dataDependencies[dep] = dataHandlers;
+      let result: HTMLElement[] | undefined;
+      // Compute the handler INSIDE a collection window. Every reactive path the
+      // expression reads while computing is captured and becomes this handler's
+      // dependency set. This is the heart of getter-based tracking: deps are
+      // observed from actual reads instead of guessed from the expression text.
+      const dependencies = this._reactive.collect(() => {
+        result = handler.compute(this.bind) || undefined;
       });
+
+      // Dependencies can change between runs (e.g. a ternary or :if that reads
+      // different paths depending on the data), so we re-sync subscriptions
+      // every compute rather than only appending.
+      this.updateHandlerDependencies(handler, dependencies);
 
       if (result) {
         rebinds = rebinds.concat(result);
@@ -252,6 +255,40 @@ export class Bind<T> {
     if (rebinds.length) {
       rebinds.forEach((el: HTMLElement) => this.defineBinds(el));
     }
+  }
+
+  /**
+   * Re-syncs a handler's subscriptions in `dataDependencies` to match the paths
+   * it just read. Removes it from buckets it no longer depends on and adds it to
+   * the new ones, then stores the fresh list on the handler. Keeping this in
+   * sync each compute is what makes dynamic/branchy dependencies correct and
+   * prevents stale subscriptions from piling up.
+   */
+  private updateHandlerDependencies(
+    handler: HTMLBindHandler,
+    nextDeps: string[]
+  ) {
+    const previousDeps = handler.dependencies;
+    const nextSet = new Set(nextDeps);
+
+    // Unsubscribe from paths that are no longer read by this handler.
+    previousDeps.forEach(dep => {
+      if (nextSet.has(dep)) return;
+      const bucket = this.dataDependencies[dep];
+      if (!bucket) return;
+      const index = bucket.indexOf(handler);
+      if (index > -1) bucket.splice(index, 1);
+      if (bucket.length === 0) delete this.dataDependencies[dep];
+    });
+
+    // Subscribe to the paths this handler now reads.
+    nextDeps.forEach(dep => {
+      const bucket = this.dataDependencies[dep] || [];
+      if (bucket.indexOf(handler) === -1) bucket.push(handler);
+      this.dataDependencies[dep] = bucket;
+    });
+
+    handler.dependencies = nextDeps;
   }
 
   private getAttrBindsFromElement(
@@ -307,20 +344,15 @@ export class Bind<T> {
     element: HTMLElement,
     callback: (handler: HTMLBindHandler) => void
   ) {
-    let regexp = /\${(.*?)}/gm;
-    if (element.nodeValue && element.nodeValue.trim()) {
-      let matches = element.nodeValue.matchAll(regexp);
-      let current = matches.next();
-      while (!current.done) {
-        const handler = new HTMLBindHandler({
-          type: 'interpolation',
-          element: element,
-          expression: current.value.input || '',
-          attribute: null,
-        });
-        current = matches.next();
-        callback(handler);
-      }
+    const regexp = /\${(.*?)}/gm;
+    if (element.nodeValue && element.nodeValue.trim() && regexp.test(element.nodeValue)) {
+      const handler = new HTMLBindHandler({
+        type: 'interpolation',
+        element: element,
+        expression: element.nodeValue,
+        attribute: null,
+      });
+      callback(handler);
     }
   }
 

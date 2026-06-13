@@ -7,6 +7,51 @@ export interface DataChanges {
   isNew: boolean,
 }
 
+/**
+ * GETTER-BASED DEPENDENCY TRACKING (module-level)
+ * -----------------------------------------------
+ * When `activeCollector` is non-null, every property read flowing through a
+ * proxy `get` trap records its full path into the Set. We turn it on, evaluate
+ * an expression (which reads whatever it actually reads), and turn it off —
+ * whatever landed in the Set is that expression's exact dependency list.
+ *
+ * It lives at module scope (not per-instance) because only one compute runs at
+ * a time in JS, and this lets helpers like `untracked` be shared across modules
+ * (e.g. the foreach handler suppresses tracking while it diffs keys).
+ */
+let activeCollector: Set<string> | null = null;
+
+/**
+ * Runs `fn` with read-collection enabled and returns the set of reactive paths
+ * read during it. Save/restore makes nested collect() calls safe.
+ */
+export function collectReads(fn: () => void): string[] {
+  const previous = activeCollector;
+  const collector = new Set<string>();
+  activeCollector = collector;
+  try {
+    fn();
+  } finally {
+    activeCollector = previous;
+  }
+  return [...collector];
+}
+
+/**
+ * Runs `fn` with tracking temporarily disabled, so reads inside it do NOT
+ * become dependencies. Used for bookkeeping reads (e.g. computing :foreach keys)
+ * that shouldn't subscribe the handler to that data.
+ */
+export function untracked<T>(fn: () => T): T {
+  const previous = activeCollector;
+  activeCollector = null;
+  try {
+    return fn();
+  } finally {
+    activeCollector = previous;
+  }
+}
+
 export class ReactiveData {
   constructor(target: any) {
     this.reactive = this._reactive(target, (changes: DataChanges) => {
@@ -22,12 +67,21 @@ export class ReactiveData {
     this._onUpdate = fn;
   }
 
+  /**
+   * Runs `fn` with read-collection enabled and returns the reactive paths read
+   * during it, so the renderer learns which data should re-trigger a handler.
+   * Delegates to the shared module-level collector (see `collectReads`).
+   */
+  collect(fn: () => void): string[] {
+    return collectReads(fn);
+  }
+
   private _reactive(target: any, onUpdate?: (change: DataChanges) => void) {
     return this._reactiveDeep(target, onUpdate);
   }
 
   private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
-    target.__proto__.__isProxy = true;
+    Object.defineProperty(target, '__isProxy', { value: true, enumerable: false, writable: true, configurable: true });
 
     if (target.length !== undefined) {
       this.flatData.push(path + '.length');
@@ -58,7 +112,25 @@ export class ReactiveData {
   ): ProxyHandler<any> {
     return {
       get: (target: {[key: string]: any}, prop: string, receiver: any) => {
-        return target[prop];
+        const value = target[prop];
+        // Record this read as a dependency, but only when:
+        //  - a collector is active (we're inside collect()),
+        //  - the key is a normal string (skip Symbols like Symbol.iterator),
+        //  - it isn't our internal marker, and
+        //  - the value isn't a function (methods like .forEach/.toFixed are not
+        //    reactive data, so depending on them would just be noise).
+        if (
+          activeCollector &&
+          typeof prop === 'string' &&
+          prop !== '__isProxy' &&
+          typeof value !== 'function'
+        ) {
+          // Build the same path shape used everywhere else: numeric keys are
+          // array indexes ([0]), everything else is a dot property (.foo).
+          const childPath = path + (!isNaN(prop as any) ? `[${prop}]` : `.${prop}`);
+          activeCollector.add(childPath);
+        }
+        return value;
       },
       set: (target: {[key: string]: any}, prop: string, value: any) => {
         let oldValue = target[prop];
@@ -124,14 +196,19 @@ export class ReactiveData {
         };
 
         let properPath = path + (!isNaN(dataChanges.property as any) ? `[${prop}]` : `.${prop}`);
-        let index = this.flatData.indexOf(properPath);
-        if (index > -1) {
-          let deleteCount = Object.values(target[prop]).length;
-          this.flatData.splice(index, deleteCount + 1);
-        }
+        // Remove the path itself and every descendant path, regardless of where
+        // they sit in flatData (children are not guaranteed to be contiguous,
+        // so a positional splice would corrupt unrelated entries).
+        this.flatData = this.flatData.filter(p =>
+          p !== properPath &&
+          !p.startsWith(properPath + '.') &&
+          !p.startsWith(properPath + '[')
+        );
 
+        // For arrays, `delete arr[i]` already adjusts length semantics; manually
+        // decrementing length here would truncate the tail element instead of
+        // leaving a hole, so we only delete the property.
         if (prop in target) delete target[prop];
-        if (target.length !== undefined) target.length -= 1; 
 
         if (callback) callback(dataChanges);
   

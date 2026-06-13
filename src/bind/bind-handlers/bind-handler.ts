@@ -3,7 +3,7 @@ import {
   BindTypes,
   IHTMLBindHandler,
 } from '../bind-model';
-import {evaluateDOMExpression, interpolateText, isPathUsedInExpression, snakeToCamel} from '../../utils';
+import {evaluateDOMExpression, interpolateText, snakeToCamel} from '../../utils';
 import {ForEachBindHandler, IndexHandler} from './foreach-handler/foreach-handler';
 import {ElseHandler, IfBindHandler} from './if-handler/if-handler';
 import { BindingChar } from '../../constants';
@@ -39,8 +39,10 @@ export class HTMLBindHandler {
   isCustom?: string;
 
   /**
-   * Array of property paths that when change, trigger the compute
-   * function in this bind handler
+   * Array of reactive property paths that, when changed, re-trigger this
+   * handler's compute. This list is now populated by the renderer
+   * (Bind.updateHandlerDependencies) from paths observed during compute via
+   * getter-based tracking — not derived from the expression text.
    */
   dependencies: string[] = [];
 
@@ -48,8 +50,19 @@ export class HTMLBindHandler {
   markerStart?: Comment;
   markerEnd?: Comment;
 
-  // trackProp?: string;
+  /**
+   * The most recently rendered set of :foreach keys (one per item, in order).
+   * Used to diff against the next render to decide what actually changed.
+   */
   tracking?: any[]
+
+  /**
+   * Optional :key="expr" for :foreach. When present, an item's identity is the
+   * value of this expression (e.g. device.id) instead of the item itself. This
+   * is what lets a re-assigned array with the same ids be recognised as
+   * unchanged (skip) or appended-to (partial render) rather than rebuilt.
+   */
+  keyExpression?: string;
 
   constructor(templateBind: IHTMLBindHandler) {
     this.type = templateBind.type;
@@ -65,6 +78,9 @@ export class HTMLBindHandler {
         break;
       case 'foreach':
         this.checkIndex();
+        // Capture :key BEFORE replaceForMarker snapshots outerHTML, so the
+        // attribute isn't baked into the per-item template clones.
+        this.checkKey();
         this.replaceForMarker(this.type);
         break;
     }
@@ -97,23 +113,6 @@ export class HTMLBindHandler {
     }
   }
 
-  /**
-   * Based on the expression and the data paths, it determines which
-   * data updates should trigger this handler and returns it as an array
-   * of strings
-   */
-  assignDependencies(paths: string[], append?: boolean): string[] {
-    this.dependencies = append ? this.dependencies : [];
-    paths.forEach((path) => {
-      // Path exists in expression
-      if (isPathUsedInExpression(path, this.expression)) {
-        this.dependencies.push(path);
-      }
-    });
-
-    return this.dependencies;
-  }
-
   private checkIfElse() {
     // This if statement uses else statement too
     if (this.element.nextElementSibling && this.element.nextElementSibling.hasAttribute(':else')) {
@@ -121,6 +120,13 @@ export class HTMLBindHandler {
       elseElement.removeAttribute(':else');
       this.helperHTML = elseElement.outerHTML;
       this.element.nextElementSibling.remove();
+    }
+  }
+
+  private checkKey() {
+    if (this.element.hasAttribute(':key')) {
+      this.keyExpression = this.element.getAttribute(':key') || '';
+      this.element.removeAttribute(':key');
     }
   }
 

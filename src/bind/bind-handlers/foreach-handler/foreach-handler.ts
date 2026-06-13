@@ -1,16 +1,11 @@
 import {HTMLBindHandler} from '../bind-handler';
 import {
-  clearMarkerContents,
   evaluateDOMExpression,
   findAndReplaceVariable,
   recurseElementNodes,
 } from '../../../utils';
+import {untracked} from '../../reactive-data';
 import {BindingChar, InterpolationRegexp} from '../../../constants';
-
-interface IArrayAction {
-  action: 'add' | 'remove' | 're-render' | null,
-  atIndexes: number[]
-}
 
 interface ILocalVars {
   localVar: string,
@@ -19,77 +14,141 @@ interface ILocalVars {
   indexToken: string,
 }
 
-// This bind handler should only compute when the length of the array changes
+/**
+ * KEYED :foreach (common-prefix diff)
+ * -----------------------------------
+ * Each rendered item bakes its array index into its handlers (item -> array[i]),
+ * so a DOM node is only valid while it stays at its index. We exploit that with
+ * a positional key diff:
+ *
+ *   1. Compute a key per item (`:key="expr"`, or the item itself as fallback).
+ *   2. Find the first index where the previous and current key lists differ —
+ *      the length of their common prefix.
+ *   3. Items BEFORE that point are untouched (their indexes, and therefore their
+ *      baked paths, are still correct). Items FROM that point on are dropped and
+ *      re-rendered with fresh, correct indexes.
+ *
+ * This makes the common cases cheap:
+ *   - identical lists            -> nothing happens (full skip)
+ *   - append to the end          -> only the new tail is built
+ *   - truncate from the end      -> only the tail is removed
+ *   - insert/remove near the end -> only the affected suffix is rebuilt
+ * Reorders / front-edits fall back to rebuilding the suffix from the change
+ * point, which stays correct under index-based paths. (True move-with-reuse for
+ * reorders would require identity-keyed dependencies — a deeper change.)
+ */
 export function ForEachBindHandler(
   handler: HTMLBindHandler,
   context: unknown
 ): any {
-  let rebind: any = false;
-  if (!handler.outerHTML) return rebind;
+  if (!handler.outerHTML) return false;
   if (!handler.tracking) handler.tracking = [];
 
   let vars = getVarsFromExpression(handler);
-  handler.result = evaluateDOMExpression(vars.arrayVar, context) || [];
-  let actionData: IArrayAction = getActionData(handler); 
+  let array: any[] = (evaluateDOMExpression(vars.arrayVar, context) as any[]) || [];
+  handler.result = array;
 
-  // If null do nothing
-  if (actionData.action === null) return rebind;
+  // Establish this handler's dependencies on EVERY code path (including the
+  // no-op skip below). Reading `array.length` here — while the dependency
+  // collector is active and `array` is still the reactive proxy — guarantees a
+  // subscription to `<array>.length`, so push/splice/pop/etc. always re-run us.
+  // Without this, a skip-compute (which returns before any length read) would
+  // drop the length subscription and we'd miss the next resize.
+  let length: number = array.length;
 
-  // These elements will be checked for new binds to compute
-  rebind = [];
-  switch (actionData.action) {
-    case 're-render':
-      // Re-render the entire array
-      clearMarkerContents(handler);
-      rebind = renderAll(handler, vars, context);
-      break;
-    case 'add':
-      // Just add at index
-      rebind = renderAtIndex(handler, vars, context, actionData.atIndexes);
-      break;
-    case 'remove':
-      // Just remove at index
-      rebind = removeAtIndex(handler, vars, context, actionData.atIndexes);
-      break;
+  let oldKeys = handler.tracking;
+  // newKeys is DENSE: it skips holes. Array.prototype.pop/shift/splice work as
+  // Delete(i) followed by Set(length, ...), so reacting to the Delete we briefly
+  // see a sparse array (length not yet shrunk, a hole at the tail). Skipping
+  // holes means we never build a node for a slot that's about to disappear —
+  // which would otherwise read `array[i].x` on `undefined` and throw.
+  let newKeys = computeKeys(handler, vars, array, length);
+  let count = newKeys.length;
+
+  // Length of the common prefix == first index at which the lists diverge.
+  let divergence = firstDivergence(oldKeys, newKeys);
+
+  // Nothing changed: same keys, same order, same count -> no DOM work.
+  if (divergence === oldKeys.length && divergence === count) {
+    return false;
   }
 
-  return rebind;
+  // Drop the now-stale suffix, then (re)build items from the divergence point on.
+  removeItemsFromIndex(handler, divergence);
+  let rebinds = renderRange(handler, vars, divergence, count);
+
+  handler.tracking = newKeys;
+  return rebinds;
 }
 
 export function IndexHandler() {
   throw new Error('Invalid use of :index handler, can only be used in an element which uses :foreach handler')
 }
 
-function getActionData(handler: HTMLBindHandler): IArrayAction {
-  // Re-render as default
-  let action: 'add' | 'remove' | 're-render' | null = 're-render';
-  let atIndexes: number[] = [];
-  let actionData: IArrayAction = { action, atIndexes };
+/**
+ * Computes the identity key for every item. With :key the key is the value of
+ * that expression evaluated with the item as `this` (so `device.id` -> this.id).
+ * Without :key we use the item value itself (works for primitives and object
+ * identity). Done UNTRACKED so key reads never become foreach dependencies.
+ */
+function computeKeys(handler: HTMLBindHandler, vars: ILocalVars, array: any[], length: number): any[] {
+  return untracked(() => {
+    // Rewrite the local var to `this` so the same compiled key function can be
+    // reused for every item, evaluated against each item as its context.
+    let keyExpr = handler.keyExpression
+      ? findAndReplaceVariable(handler.keyExpression, vars.localVar, 'this')
+      : null;
+    let keys: any[] = [];
+    for (let i = 0; i < length; i++) {
+      // Skip holes (sparse slots) — see the dense-keys note in the caller.
+      if (!(i in array)) continue;
+      let item = array[i];
+      keys.push(keyExpr ? evaluateDOMExpression(keyExpr, item) : item);
+    }
+    return keys;
+  });
+}
 
-  /**
-   * In the name of stability and sacrificing performance, we always
-   * re-render when an array changes, this IS temporary while the track
-   * system is under development
-   */
-  return actionData;
+/** Index of the first position where the two key lists differ (or the length of
+ * the shorter list if one is a prefix of the other). */
+function firstDivergence(a: any[], b: any[]): number {
+  let max = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < max && a[i] === b[i]) i++;
+  return i;
+}
 
-  // // No array set in result, or tracker re-render all
-  // if (!handler.result || !handler.tracking?.length) return actionData;
-  // // No changes, do nothing
-  // if (handler.result && handler.tracking && handler.result.length === handler.tracking?.length) {
-  //   actionData.action = null;
-  //   return actionData;
-  // }
+/** Removes rendered item elements at position >= fromIndex (the stale suffix),
+ * leaving the unchanged prefix and the end marker in place. */
+function removeItemsFromIndex(handler: HTMLBindHandler, fromIndex: number) {
+  // handler.element is the start marker comment; markerEnd closes the block.
+  // Each item is exactly one element node between the two markers, in order.
+  let node = handler.element.nextSibling;
+  let count = 0;
+  // Walk to the fromIndex-th item element.
+  while (node && node !== handler.markerEnd && count < fromIndex) {
+    if (node.nodeType === 1) count++;
+    node = node.nextSibling;
+  }
+  // Remove it and everything after it up to (but not including) the end marker.
+  while (node && node !== handler.markerEnd) {
+    let next = node.nextSibling;
+    node.remove();
+    node = next;
+  }
+}
 
-  // let difference = handler.result.length - handler.tracking?.length;
-  // actionData.action = difference > 0 ? 'add' : 'remove';
-  // handler.result.forEach((item: any, index: number) => {
-  //   if (handler.tracking && handler.tracking.indexOf(item) === -1) {
-  //     atIndexes.push(index);
-  //   } 
-  // });
-
-  // return actionData;
+/** Builds and appends item elements for indexes [fromIndex, count), inserting
+ * them in order just before the end marker. Returns them so the renderer can
+ * recurse into each for nested binds. */
+function renderRange(handler: HTMLBindHandler, vars: ILocalVars, fromIndex: number, count: number): HTMLElement[] {
+  let rebinds: HTMLElement[] = [];
+  for (let index = fromIndex; index < count; index++) {
+    let domItem = makeDOMItem(handler, vars, index);
+    rebinds.push(domItem);
+    handler.markerEnd?.before(domItem);
+  }
+  return rebinds;
 }
 
 function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
@@ -107,49 +166,6 @@ function getVarsFromExpression(handler: HTMLBindHandler): ILocalVars {
     throw new Error(errorText + ', index name can\'t contain inbetween spaces')
   }
   return { localVar, arrayVar, usesIndex, indexToken };
-}
-
-function renderAll(handler: HTMLBindHandler, vars: ILocalVars, context: any): HTMLElement[] {
-  let array: any = evaluateDOMExpression(vars.arrayVar, context) || [];
-  let rebinds: HTMLElement[] = [];
-  handler.tracking = [];
-
-  array.forEach((item: any, index: number) => {
-    let domItem = makeDOMItem(handler, vars, index);
-    rebinds.push(domItem);
-    handler.markerEnd?.before(domItem);
-    handler.tracking?.push(item);
-  });
-
-  return rebinds;
-}
-
-function renderAtIndex(handler: HTMLBindHandler, vars: ILocalVars, context: any, indexes: number[]) {
-  let rebinds = [];
-  // This is basically a push, so just make one new element and return it for rebinding
-  if (indexes.length === 1 && indexes[0] === handler.result.length - 1) {
-    let item = makeDOMItem(handler, vars, indexes[0]); 
-    rebinds = [item];
-    handler.markerEnd?.before(item);
-    if (handler.tracking) {
-      handler.tracking.push(handler.result[indexes[0]]);
-    }
-  } else {
-    // Any other case re-render all because still no track-by implemented
-    clearMarkerContents(handler);
-    rebinds = renderAll(handler, vars, context);
-  }
-
-  return rebinds;
-
-}
-
-// Not implemented yet so we just duplicate re-render logic
-function removeAtIndex(handler: HTMLBindHandler, vars: ILocalVars, context: any, indexes: number[]) {
-  let rebinds = [];
-  clearMarkerContents(handler);
-  rebinds = renderAll(handler, vars, context);
-  return rebinds;
 }
 
 function makeDOMItem(handler: HTMLBindHandler, vars: ILocalVars, index: number) {
