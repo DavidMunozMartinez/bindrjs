@@ -83,7 +83,7 @@ export class ReactiveData {
   private _reactiveDeep(target: any, callback?: (change: DataChanges) => void, path: string = 'this', pathArray: string[] = ['this']) {
     Object.defineProperty(target, '__isProxy', { value: true, enumerable: false, writable: true, configurable: true });
 
-    if (target.length !== undefined) {
+    if (target.length !== undefined && this.flatData.indexOf(path + '.length') === -1) {
       this.flatData.push(path + '.length');
     }
 
