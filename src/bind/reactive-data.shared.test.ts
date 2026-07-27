@@ -77,3 +77,35 @@ describe('two Bind instances sharing one object', () => {
     expect(a.b.bind.user.profile).toBe(a.b.bind.user.profile);
   });
 });
+
+describe('one raw object mounted at two paths in one Bind', () => {
+  /**
+   * The dashboard grid renders device tiles through `this.groups[g].devices[j]`
+   * while services write display fields through `this.devices[i]` — the same
+   * raw object mounted at two paths. A write through either mount point must
+   * re-render handlers that read through the other (pre-1.5.1 this worked by
+   * accident, via stacked proxy layers double-recording dependencies).
+   */
+  it('a write through one mount point re-renders reads through the other', async () => {
+    document.body.innerHTML = '';
+    const device = {id: 'd1', camHealth: 'live'};
+    const host = document.createElement('div');
+    host.id = 'alias-host';
+    document.body.appendChild(host);
+    const b = await new Promise<Bind<any>>(resolve => {
+      const inst: Bind<any> = new Bind<any>({
+        id: 'alias-host',
+        template: '<span>${this.groups[0].devices[0].camHealth}</span>',
+        bind: {devices: [device], groups: [{zone: 'entrance', devices: [device]}]},
+        ready: () => resolve(inst),
+      });
+    });
+    expect((host.textContent || '').trim()).toBe('live');
+
+    // The template reads ONLY through this.groups[0].devices[0]; write through
+    // the this.devices[0] mount point instead.
+    b.bind.devices[0].camHealth = 'privacy';
+    expect((host.textContent || '').trim()).toBe('privacy');
+    expect(device.camHealth).toBe('privacy');
+  });
+});

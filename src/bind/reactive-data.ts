@@ -100,16 +100,25 @@ export class ReactiveData {
   public flatData: string[] = [];
   private flatSet = new Set<string>();
   /**
-   * raw object -> (path -> proxy), for THIS instance only. Reusing the proxy
-   * for a (raw, path) pair is what makes wrapping idempotent: reassigning
-   * `arms = [...arms, x]` hands back the SAME proxy for each surviving item
-   * instead of stacking another layer on it, and item identity stays stable
-   * across reassignment (which keyless :foreach relies on). Keyed by path as
-   * well as raw because one raw object can be reachable through several
-   * paths (e.g. targets[0].device and arms[2].device) and each proxy bakes
-   * its path into the changes it reports.
+   * raw object -> (path -> {proxy, pathArray}), for THIS instance only.
+   * Reusing the proxy for a (raw, path) pair is what makes wrapping
+   * idempotent: reassigning `arms = [...arms, x]` hands back the SAME proxy
+   * for each surviving item instead of stacking another layer on it, and
+   * item identity stays stable across reassignment (which keyless :foreach
+   * relies on). Keyed by path as well as raw because one raw object can be
+   * mounted at several paths at once (e.g. this.devices[3] and
+   * this.groups[1].devices[0] sharing one device object) and each proxy
+   * bakes its path into the changes it reports.
+   *
+   * The path map doubles as the ALIAS REGISTRY: a write through one mount
+   * point must re-render handlers that read the same raw through its other
+   * mount points, so the set/delete traps re-announce every change once per
+   * alias path (see `_notifyAliases`). Before 1.5.1 this fanout happened by
+   * accident — stacked proxy layers recorded every namespace they passed
+   * through into the dependency collector — and consumers (the dashboard
+   * grid) genuinely rely on it.
    */
-  private proxyCache = new WeakMap<object, Map<string, any>>();
+  private proxyCache = new WeakMap<object, Map<string, {proxy: any; pathArray: string[]}>>();
   private _onUpdate?: (changes: DataChanges) => void;
 
   onUpdate(fn: (changes: DataChanges) => void) {
@@ -188,16 +197,35 @@ export class ReactiveData {
   private _proxyFor(raw: any, path: string, parentPathArray: string[], prop: string) {
     let byPath = this.proxyCache.get(raw);
     if (!byPath) {
-      byPath = new Map<string, any>();
+      byPath = new Map<string, {proxy: any; pathArray: string[]}>();
       this.proxyCache.set(raw, byPath);
     }
-    let proxy = byPath.get(path);
-    if (!proxy) {
-      proxy = new Proxy(raw, this._handler(path, parentPathArray.concat(prop)));
-      PROXY_TO_RAW.set(proxy, raw);
-      byPath.set(path, proxy);
+    let entry = byPath.get(path);
+    if (!entry) {
+      const pathArray = parentPathArray.concat(prop);
+      entry = {proxy: new Proxy(raw, this._handler(path, pathArray)), pathArray};
+      PROXY_TO_RAW.set(entry.proxy, raw);
+      byPath.set(path, entry);
     }
-    return proxy;
+    return entry.proxy;
+  }
+
+  /**
+   * Re-announces a change once per OTHER path the same raw object is mounted
+   * at (this.devices[3] changed, and it is also this.groups[1].devices[0] —
+   * handlers reading through EITHER must re-render). Alias entries can be
+   * stale (the raw may have moved off a path since it was read there); a
+   * stale announcement just recomputes handlers that re-read current data,
+   * so it is at worst a no-op, never wrong.
+   */
+  private _notifyAliases(target: any, path: string, changes: DataChanges) {
+    if (!this._onUpdate) return;
+    const byPath = this.proxyCache.get(target);
+    if (!byPath || byPath.size < 2) return;
+    byPath.forEach((entry, aliasPath) => {
+      if (aliasPath === path) return;
+      this._onUpdate!({...changes, path: aliasPath, pathArray: entry.pathArray});
+    });
   }
 
   private _handler(path: string, pathArray: string[]): ProxyHandler<any> {
@@ -286,6 +314,7 @@ export class ReactiveData {
         }
 
         if (this._onUpdate) this._onUpdate(dataChanges);
+        this._notifyAliases(target, path, dataChanges);
 
         return true;
       },
@@ -310,6 +339,7 @@ export class ReactiveData {
         if (prop in target) delete target[prop];
 
         if (this._onUpdate) this._onUpdate(dataChanges);
+        this._notifyAliases(target, path, dataChanges);
 
         return true;
       }
