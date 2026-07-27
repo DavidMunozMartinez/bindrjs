@@ -1,5 +1,6 @@
 import { Bind } from './bind/bind.class';
 import { CustomBindHandler } from './bind/bind-handlers/bind-handler';
+import { toRaw } from './bind/reactive-data';
 
 // For  vanilla JS projects
 ((w: any) => {
@@ -10,6 +11,7 @@ import { CustomBindHandler } from './bind/bind-handlers/bind-handler';
 // For TS projects
 export {
   Bind,
-  CustomBindHandler
+  CustomBindHandler,
+  toRaw
 }
 
