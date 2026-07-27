@@ -14,7 +14,7 @@
     "examples": "live-server --open=examples",
     "lint": "gts lint",
     "clean": "gts clean",
-    "compile": "webpack --mode=production",
+    "compile": "webpack --mode=production --no-watch",
     "test": "jest",
     "prepublishOnly": "npm run compile"
   },
